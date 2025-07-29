@@ -131,6 +131,12 @@ export default function SubmittedLists() {
         </div>
       </div>
 
+      <div className="mb-4">
+        <p className="text-sm text-gray-600">
+          {checklists?.length || 0} Checklisten gefunden
+        </p>
+      </div>
+
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
