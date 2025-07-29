@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeft } from "lucide-react";
+import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
 import { apiRequest } from "@/lib/queryClient";
 
 
@@ -38,48 +39,59 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Zurück Button */}
-      <div className="absolute top-4 left-4">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Logo Header */}
+      <div className="flex justify-center py-6">
+        <img 
+          src={forzaCheckLogo} 
+          alt="ForzaCheck Logo" 
+          className="h-16 object-contain"
+        />
+      </div>
+      
+      <div className="flex-1 flex items-center justify-center px-4">
+        <div className="max-w-md w-full mx-auto">
+          <Card className="shadow-sm border border-gray-200">
+            <CardContent className="pt-6">
+              <h2 className="text-2xl font-medium text-center mb-6">Admin-Code eingeben</h2>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <Input
+                  type="password"
+                  placeholder="Code eingeben"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  className="w-full"
+                />
+                <Button 
+                  type="submit" 
+                  className="w-full" 
+                  disabled={verifyMutation.isPending}
+                >
+                  {verifyMutation.isPending ? "Überprüfung..." : "Bestätigen"}
+                </Button>
+              </form>
+              {error && (
+                <Alert className="mt-4 border-destructive">
+                  <AlertDescription className="text-destructive">
+                    {error}
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+      
+      {/* Footer mit Zurück Button */}
+      <div className="py-6 flex justify-center">
         <Button 
-          variant="ghost" 
+          variant="outline" 
           onClick={() => navigate("/")}
+          className="px-8"
         >
           <ArrowLeft size={16} className="mr-2" />
           Zurück zur Startseite
         </Button>
-      </div>
-      <div className="flex items-center justify-center px-4 pt-16">
-        <div className="max-w-md w-full mx-auto">
-          <Card className="shadow-sm border border-gray-200">
-            <CardContent className="pt-6">
-          <h2 className="text-2xl font-medium text-center mb-6">Admin-Code eingeben</h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              type="password"
-              placeholder="Code eingeben"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              className="w-full"
-            />
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={verifyMutation.isPending}
-            >
-              {verifyMutation.isPending ? "Überprüfung..." : "Bestätigen"}
-            </Button>
-          </form>
-          {error && (
-            <Alert className="mt-4 border-destructive">
-              <AlertDescription className="text-destructive">
-                {error}
-              </AlertDescription>
-            </Alert>
-          )}
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </div>
   );
