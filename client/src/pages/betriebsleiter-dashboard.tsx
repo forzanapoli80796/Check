@@ -18,8 +18,6 @@ export default function BetriebsleiterDashboard() {
   const { toast } = useToast();
   
   const [selectedStore, setSelectedStore] = useState<string>('');
-  const [employeeName, setEmployeeName] = useState<string>('');
-  const [shiftType, setShiftType] = useState<string>('');
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
 
   const { data: categories = [] } = useQuery<Category[]>({
@@ -49,8 +47,6 @@ export default function BetriebsleiterDashboard() {
       });
       // Formular zurücksetzen
       setSelectedStore('');
-      setEmployeeName('');
-      setShiftType('');
       setCompletedTasks([]);
       queryClient.invalidateQueries({ queryKey: ['/api/checklists'] });
     },
@@ -74,16 +70,14 @@ export default function BetriebsleiterDashboard() {
   const handleSubmit = () => {
     console.log("Debug values:", {
       selectedStore,
-      employeeName,
-      shiftType,
       betriebsleiterCategory: betriebsleiterCategory?.id,
       completedTasks
     });
 
-    if (!selectedStore || !employeeName || !shiftType) {
+    if (!selectedStore) {
       toast({
         title: "Fehlende Angaben",
-        description: "Bitte füllen Sie alle Pflichtfelder aus.",
+        description: "Bitte wählen Sie einen Store aus.",
         variant: "destructive",
       });
       return;
@@ -101,8 +95,8 @@ export default function BetriebsleiterDashboard() {
     const checklist: InsertChecklist = {
       categoryId: betriebsleiterCategory.id,
       store: selectedStore,
-      employeeName,
-      shiftType,
+      employeeName: "Betriebsleiter",
+      shiftType: "Standard",
       completedTasks,
     };
 
@@ -173,36 +167,7 @@ export default function BetriebsleiterDashboard() {
             </CardContent>
           </Card>
 
-          {/* Persönliche Angaben */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Persönliche Angaben</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="employeeName">Name</Label>
-                <Input
-                  id="employeeName"
-                  value={employeeName}
-                  onChange={(e) => setEmployeeName(e.target.value)}
-                  placeholder="Ihr Name..."
-                />
-              </div>
-              <div>
-                <Label htmlFor="shiftType">Schicht</Label>
-                <Select value={shiftType} onValueChange={setShiftType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Schicht auswählen..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Frühschicht">Frühschicht</SelectItem>
-                    <SelectItem value="Spätschicht">Spätschicht</SelectItem>
-                    <SelectItem value="Nachtschicht">Nachtschicht</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
+
 
           {/* Aufgaben */}
           <Card>
