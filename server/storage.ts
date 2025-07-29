@@ -1,4 +1,4 @@
-import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist, type TeigProduction, type InsertTeigProduction } from "@shared/schema";
+import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist, type TeigProduction, type InsertTeigProduction, type InventoryItem, type InsertInventoryItem } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -32,6 +32,13 @@ export interface IStorage {
   createTeigProduction(production: InsertTeigProduction): Promise<TeigProduction>;
   updateTeigProduction(id: string, production: Partial<InsertTeigProduction>): Promise<TeigProduction | undefined>;
   deleteTeigProduction(id: string): Promise<boolean>;
+
+  // Inventory Items
+  getInventoryItems(): Promise<InventoryItem[]>;
+  getInventoryItemsByChecklist(checklistId: string): Promise<InventoryItem[]>;
+  createInventoryItem(item: InsertInventoryItem): Promise<InventoryItem>;
+  updateInventoryItem(id: string, item: Partial<InsertInventoryItem>): Promise<InventoryItem | undefined>;
+  deleteInventoryItem(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -39,6 +46,7 @@ export class MemStorage implements IStorage {
   private tasks: Map<string, Task> = new Map();
   private checklists: Map<string, Checklist> = new Map();
   private teigProductions: Map<string, TeigProduction> = new Map();
+  private inventoryItems: Map<string, InventoryItem> = new Map();
 
   constructor() {
     this.initializeDefaultData();
@@ -222,6 +230,43 @@ export class MemStorage implements IStorage {
 
   async deleteTeigProduction(id: string): Promise<boolean> {
     return this.teigProductions.delete(id);
+  }
+
+  // Inventory Items methods
+  async getInventoryItems(): Promise<InventoryItem[]> {
+    return Array.from(this.inventoryItems.values()).sort((a, b) => 
+      new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
+    );
+  }
+
+  async getInventoryItemsByChecklist(checklistId: string): Promise<InventoryItem[]> {
+    return Array.from(this.inventoryItems.values()).filter(item => 
+      item.checklistId === checklistId
+    );
+  }
+
+  async createInventoryItem(insertItem: InsertInventoryItem): Promise<InventoryItem> {
+    const id = randomUUID();
+    const item: InventoryItem = {
+      ...insertItem,
+      id,
+      createdAt: new Date(),
+    };
+    this.inventoryItems.set(id, item);
+    return item;
+  }
+
+  async updateInventoryItem(id: string, updateData: Partial<InsertInventoryItem>): Promise<InventoryItem | undefined> {
+    const item = this.inventoryItems.get(id);
+    if (!item) return undefined;
+
+    const updatedItem = { ...item, ...updateData };
+    this.inventoryItems.set(id, updatedItem);
+    return updatedItem;
+  }
+
+  async deleteInventoryItem(id: string): Promise<boolean> {
+    return this.inventoryItems.delete(id);
   }
 }
 

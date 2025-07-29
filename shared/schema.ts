@@ -41,6 +41,16 @@ export const teigProduction = pgTable("teig_production", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Inventur-Tabelle für Mengenangaben
+export const inventoryItems = pgTable("inventory_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  checklistId: varchar("checklist_id").references(() => checklists.id).notNull(),
+  taskId: varchar("task_id").references(() => tasks.id).notNull(),
+  quantity: integer("quantity").notNull(),
+  unit: text("unit").notNull(), // Stück, Einheit, Karton, Liter, KG
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertCategorySchema = createInsertSchema(categories).omit({
   id: true,
   createdAt: true,
@@ -61,6 +71,11 @@ export const insertTeigProductionSchema = createInsertSchema(teigProduction).omi
   createdAt: true,
 });
 
+export const insertInventoryItemSchema = createInsertSchema(inventoryItems).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type Category = typeof categories.$inferSelect;
 
@@ -72,3 +87,6 @@ export type Checklist = typeof checklists.$inferSelect;
 
 export type InsertTeigProduction = z.infer<typeof insertTeigProductionSchema>;
 export type TeigProduction = typeof teigProduction.$inferSelect;
+
+export type InsertInventoryItem = z.infer<typeof insertInventoryItemSchema>;
+export type InventoryItem = typeof inventoryItems.$inferSelect;

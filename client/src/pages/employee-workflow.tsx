@@ -8,6 +8,7 @@ import StoreSelection from "@/components/employee-steps/store-selection";
 import AreaSelection from "@/components/employee-steps/area-selection";
 import EmployeeDetails from "@/components/employee-steps/employee-details";
 import TaskChecklist from "@/components/employee-steps/task-checklist";
+import InventoryChecklist from "@/components/employee-steps/inventory-checklist";
 import SuccessScreen from "@/components/employee-steps/success-screen";
 
 
@@ -36,6 +37,10 @@ export default function EmployeeWorkflow() {
       case 'details':
         return <EmployeeDetails state={state} updateState={updateState} />;
       case 'tasks':
+        // Check if this is inventory area
+        if (state.selectedArea === 'inventory') {
+          return <InventoryChecklist state={state} updateState={updateState} />;
+        }
         return <TaskChecklist state={state} updateState={updateState} />;
       case 'success':
         return <SuccessScreen state={state} updateState={updateState} />;

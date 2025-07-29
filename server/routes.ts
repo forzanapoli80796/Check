@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertCategorySchema, insertTaskSchema, insertChecklistSchema, insertTeigProductionSchema } from "@shared/schema";
+import { insertCategorySchema, insertTaskSchema, insertChecklistSchema, insertTeigProductionSchema, insertInventoryItemSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -130,7 +130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'inventory': 'Inventur',
           'cleaning': 'Sonderreinigung'
         };
-        const categoryName = categoryMap[requestData.area.toLowerCase()] || requestData.area;
+        const categoryName = categoryMap[requestData.area.toLowerCase() as keyof typeof categoryMap] || requestData.area;
         const category = categories.find(c => c.name.toLowerCase() === categoryName.toLowerCase());
         if (category) {
           requestData.categoryId = category.id;
@@ -152,7 +152,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Checklist validation error:", error);
       console.error("Request body:", req.body);
-      res.status(400).json({ message: "Invalid checklist data", error: error.message });
+      res.status(400).json({ 
+        message: "Invalid checklist data", 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
     }
   });
 
@@ -243,6 +246,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const success = await storage.deleteTeigProduction(req.params.id);
     if (!success) {
       return res.status(404).json({ message: "Teig production not found" });
+    }
+    res.json({ success: true });
+  });
+
+  // Inventory Items routes
+  app.get("/api/inventory-items", async (req, res) => {
+    try {
+      const items = await storage.getInventoryItems();
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching inventory items" });
+    }
+  });
+
+  app.get("/api/inventory-items/checklist/:checklistId", async (req, res) => {
+    try {
+      const items = await storage.getInventoryItemsByChecklist(req.params.checklistId);
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching inventory items" });
+    }
+  });
+
+  app.post("/api/inventory-items", async (req, res) => {
+    try {
+      const validatedData = insertInventoryItemSchema.parse(req.body);
+      const item = await storage.createInventoryItem(validatedData);
+      res.json(item);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid inventory item data" });
+    }
+  });
+
+  app.put("/api/inventory-items/:id", async (req, res) => {
+    try {
+      const validatedData = insertInventoryItemSchema.partial().parse(req.body);
+      const item = await storage.updateInventoryItem(req.params.id, validatedData);
+      if (!item) {
+        return res.status(404).json({ message: "Inventory item not found" });
+      }
+      res.json(item);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid inventory item data" });
+    }
+  });
+
+  app.delete("/api/inventory-items/:id", async (req, res) => {
+    const success = await storage.deleteInventoryItem(req.params.id);
+    if (!success) {
+      return res.status(404).json({ message: "Inventory item not found" });
     }
     res.json({ success: true });
   });
