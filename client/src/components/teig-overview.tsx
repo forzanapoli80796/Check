@@ -29,8 +29,8 @@ export default function TeigOverview({ selectedStore }: TeigOverviewProps) {
   const { data: todayProductions = [], isLoading } = useQuery({
     queryKey: ['/api/teig-production', todayStr],
     queryFn: async () => {
-      const response = await apiRequest(`/api/teig-production?date=${todayStr}`);
-      return response;
+      const response = await fetch(`/api/teig-production?date=${todayStr}`);
+      return response.json();
     },
   });
 

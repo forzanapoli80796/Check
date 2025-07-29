@@ -48,8 +48,8 @@ export default function TeigManagement() {
   const { data: productions = [], isLoading } = useQuery({
     queryKey: ['/api/teig-production', startDate, endDate],
     queryFn: async () => {
-      const response = await apiRequest(`/api/teig-production?startDate=${startDate}&endDate=${endDate}`);
-      return response;
+      const response = await fetch(`/api/teig-production?startDate=${startDate}&endDate=${endDate}`);
+      return response.json();
     },
   });
 

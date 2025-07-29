@@ -37,15 +37,18 @@ Logo usage: Only use the official ForzaCheck logo (FORZACHECK1_black_17538166219
 - **Categories**: Work areas like Terminal, Kitchen, Driver, Inventory, Deep Cleaning
 - **Tasks**: Individual checklist items assigned to categories with priority levels
 - **Checklists**: Completed task submissions with employee and store information
+- **Teig Production**: Daily dough ball quantity targets per store with weekly planning capability
 
 ### User Roles
 - **Mitarbeiter (Employee)**: Complete checklists through guided workflow
+- **Teig (Dough Production)**: View daily production targets and quantities by store
 - **Betriebsleiter (Manager)**: View store-level analytics and recent submissions
-- **Admin**: Full system management including category and task configuration
+- **Admin**: Full system management including category and task configuration, weekly dough production planning
 
 ### Core Features
 - **Employee Workflow**: Step-by-step process (Store → Area → Details → Tasks → Success)
-- **Admin Dashboard**: Comprehensive management of categories, tasks, and submissions
+- **Teig Dashboard**: Daily production overview showing required dough ball quantities by store
+- **Admin Dashboard**: Comprehensive management of categories, tasks, submissions, and weekly dough production planning
 - **Manager Dashboard**: Overview of completion rates and recent activity
 - **Real-time Updates**: TanStack Query for optimistic updates and cache management
 - **Consistent Branding**: Official ForzaCheck logo integrated across all pages with header component
@@ -71,6 +74,7 @@ Logo usage: Only use the official ForzaCheck logo (FORZACHECK1_black_17538166219
 - Memory storage provides fallback during development
 - Automatic UUID generation for all entities
 - Timestamp tracking for audit trails
+- Teig production data stored with date-based indexing for efficient weekly planning queries
 
 ## External Dependencies
 
