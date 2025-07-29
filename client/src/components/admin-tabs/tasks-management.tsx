@@ -218,6 +218,16 @@ export default function TasksManagement() {
                 </Select>
               </div>
 
+              {/* Info für Inventur-Kategorie */}
+              {formData.categoryId && categories?.find(cat => cat.id === formData.categoryId)?.name === "Inventur" && (
+                <div className="bg-blue-50 p-3 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    <strong>Inventur-Hinweis:</strong> Erstellen Sie hier nur den Artikel-Namen (z.B. "Pizza Margherita", "Tomatensauce"). 
+                    Die Einheiten (Stück, Liter, KG) werden später beim Erfassen von den Mitarbeitern ausgewählt.
+                  </p>
+                </div>
+              )}
+
               <div className="flex space-x-2">
                 <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
                   {editingTask ? "Aktualisieren" : "Erstellen"}
