@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ClipboardCheck, Calendar, ListTodo, Users } from "lucide-react";
@@ -7,8 +8,10 @@ import SubmittedLists from "@/components/admin-tabs/submitted-lists";
 import CategoriesManagement from "@/components/admin-tabs/categories-management";
 import TasksManagement from "@/components/admin-tabs/tasks-management";
 import { AdminTabState } from "@/lib/types";
+import Header from "@/components/header";
 
 export default function AdminDashboard() {
+  const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState<AdminTabState['activeTab']>('submitted');
 
   const { data: stats, isLoading: statsLoading } = useQuery<{
@@ -36,7 +39,13 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
+      <Header 
+        showHomeButton 
+        onHome={() => navigate("/")}
+        title="Admin Dashboard"
+      />
+      <div className="max-w-6xl mx-auto px-4 py-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
         <Card className="stats-card">
@@ -125,6 +134,7 @@ export default function AdminDashboard() {
           {renderTabContent()}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

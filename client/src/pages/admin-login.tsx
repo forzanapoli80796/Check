@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { apiRequest } from "@/lib/queryClient";
+import Header from "@/components/header";
 
 export default function AdminLogin() {
   const [, navigate] = useLocation();
@@ -36,9 +37,16 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="max-w-md mx-auto">
-      <Card className="shadow-md">
-        <CardContent className="pt-6">
+    <div className="min-h-screen bg-gray-50">
+      <Header 
+        showBackButton 
+        onBack={handleBack}
+        title="Admin-Zugang"
+      />
+      <div className="flex items-center justify-center px-4 pt-16">
+        <div className="max-w-md w-full mx-auto">
+          <Card className="shadow-md">
+            <CardContent className="pt-6">
           <h2 className="text-2xl font-medium text-center mb-6">Admin-Code eingeben</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
@@ -72,8 +80,10 @@ export default function AdminLogin() {
               </AlertDescription>
             </Alert>
           )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

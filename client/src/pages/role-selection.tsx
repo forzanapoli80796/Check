@@ -1,5 +1,6 @@
 import { useLocation } from "wouter";
 import { User, Shield, Settings } from "lucide-react";
+import logoPath from "@assets/FORZACHECK1_black_1753816621910.png";
 
 export default function RoleSelection() {
   const [, navigate] = useLocation();
@@ -19,10 +20,11 @@ export default function RoleSelection() {
       <div className="max-w-md w-full mx-auto px-4">
         {/* Logo */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900">
-            <span className="inline-block transform -skew-x-12 bg-black text-white px-2 py-1 mr-2">=</span>
-            FORZACHECK
-          </h1>
+          <img 
+            src={logoPath} 
+            alt="ForzaCheck Logo" 
+            className="h-16 mx-auto mb-4"
+          />
         </div>
 
         {/* Role Buttons */}

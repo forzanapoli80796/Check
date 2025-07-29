@@ -7,6 +7,7 @@ ForzaCheck is a checklist management system designed for retail stores to track 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Logo usage: Only use the official ForzaCheck logo (FORZACHECK1_black_1753816621910.png) provided by the user.
 
 ## System Architecture
 
@@ -47,6 +48,7 @@ Preferred communication style: Simple, everyday language.
 - **Admin Dashboard**: Comprehensive management of categories, tasks, and submissions
 - **Manager Dashboard**: Overview of completion rates and recent activity
 - **Real-time Updates**: TanStack Query for optimistic updates and cache management
+- **Consistent Branding**: Official ForzaCheck logo integrated across all pages with header component
 
 ## Data Flow
 

@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -7,8 +8,10 @@ import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { Checklist } from "@shared/schema";
 import { AREA_LABELS } from "@/lib/types";
+import Header from "@/components/header";
 
 export default function BetriebsleiterDashboard() {
+  const [, navigate] = useLocation();
   const { data: stats, isLoading: statsLoading } = useQuery<{
     todayCompleted: number;
     weekCompleted: number; 
@@ -33,7 +36,13 @@ export default function BetriebsleiterDashboard() {
   }).slice(0, 5) || [];
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
+      <Header 
+        showHomeButton 
+        onHome={() => navigate("/")}
+        title="Betriebsleiter Dashboard"
+      />
+      <div className="max-w-6xl mx-auto p-6">
       <Card className="shadow-md mb-6">
         <CardContent className="pt-6">
           <h2 className="text-xl font-medium mb-6">Betriebsleiter Dashboard</h2>
@@ -119,6 +128,7 @@ export default function BetriebsleiterDashboard() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
