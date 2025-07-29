@@ -37,6 +37,63 @@ function formatDisplayDate(date: Date): string {
   });
 }
 
+// Separate component für Teig-Zellen um Hook-Probleme zu vermeiden
+function TeigCell({ 
+  dateStr, 
+  store, 
+  production, 
+  onSave, 
+  onDelete 
+}: {
+  dateStr: string;
+  store: string;
+  production?: TeigProduction;
+  onSave: (date: string, store: string, amount: number) => void;
+  onDelete: (date: string, store: string) => void;
+}) {
+  const [inputValue, setInputValue] = useState(production?.kugelMenge?.toString() || '');
+
+  return (
+    <td className="border p-2">
+      <div className="flex items-center space-x-1">
+        <Input
+          type="number"
+          min="0"
+          placeholder="0"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          className="w-20 text-center"
+        />
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => {
+            const value = parseInt(inputValue) || 0;
+            if (value > 0) {
+              onSave(dateStr, store, value);
+            }
+          }}
+          disabled={!inputValue || parseInt(inputValue) <= 0}
+        >
+          <Save size={14} />
+        </Button>
+        {production && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              onDelete(dateStr, store);
+              setInputValue('');
+            }}
+          >
+            <Trash2 size={14} />
+          </Button>
+        )}
+      </div>
+    </td>
+  );
+}
+
 export default function TeigManagement() {
   const [selectedWeek, setSelectedWeek] = useState(0); // 0 = current week, 1 = next week, etc.
   const { toast } = useToast();
@@ -190,51 +247,16 @@ export default function TeigManagement() {
                   {weekDates.map((date, dateIndex) => {
                     const dateStr = formatDate(date);
                     const production = getProductionForDate(dateStr, store);
-                    const [inputValue, setInputValue] = useState(production?.kugelMenge?.toString() || '');
                     
                     return (
-                      <td key={dateIndex} className="border p-2">
-                        <div className="flex items-center space-x-1">
-                          <Input
-                            type="number"
-                            min="0"
-                            placeholder="0"
-                            value={production?.kugelMenge?.toString() || ''}
-                            onChange={(e) => {
-                              const value = parseInt(e.target.value) || 0;
-                              if (value > 0) {
-                                handleSaveProduction(dateStr, store, value);
-                              }
-                            }}
-                            className="w-20 text-center"
-                          />
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              const value = parseInt(inputValue) || 0;
-                              if (value > 0) {
-                                handleSaveProduction(dateStr, store, value);
-                              }
-                            }}
-                            disabled={!inputValue || parseInt(inputValue) <= 0}
-                          >
-                            <Save size={14} />
-                          </Button>
-                          {production && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                handleDeleteProduction(dateStr, store);
-                                setInputValue('');
-                              }}
-                            >
-                              <Trash2 size={14} />
-                            </Button>
-                          )}
-                        </div>
-                      </td>
+                      <TeigCell
+                        key={dateIndex}
+                        dateStr={dateStr}
+                        store={store}
+                        production={production}
+                        onSave={handleSaveProduction}
+                        onDelete={handleDeleteProduction}
+                      />
                     );
                   })}
                 </tr>
