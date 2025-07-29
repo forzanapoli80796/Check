@@ -23,7 +23,7 @@ export default function RoleSelection() {
           <img 
             src={logoPath} 
             alt="ForzaCheck Logo" 
-            className="h-80 mx-auto mb-4"
+            className="max-h-80 max-w-full mx-auto mb-4 object-contain"
           />
         </div>
 

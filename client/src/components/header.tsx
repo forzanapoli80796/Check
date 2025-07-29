@@ -46,7 +46,7 @@ export default function Header({
           <img 
             src={logoPath} 
             alt="ForzaCheck Logo" 
-            className="h-40"
+            className="max-h-40 max-w-full object-contain"
           />
         </div>
         {title && (
