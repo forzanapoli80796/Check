@@ -49,9 +49,7 @@ export default function Header({
             className="max-h-40 max-w-full object-contain"
           />
         </div>
-        {title && (
-          <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
-        )}
+
       </div>
     </div>
   );
