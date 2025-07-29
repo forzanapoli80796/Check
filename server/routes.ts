@@ -116,11 +116,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/checklists", async (req, res) => {
     try {
+      console.log("Received checklist data:", JSON.stringify(req.body, null, 2));
       const validatedData = insertChecklistSchema.parse(req.body);
       const checklist = await storage.createChecklist(validatedData);
       res.json(checklist);
     } catch (error) {
       console.error("Checklist validation error:", error);
+      console.error("Request body:", req.body);
       res.status(400).json({ message: "Invalid checklist data", error: error.message });
     }
   });

@@ -72,6 +72,14 @@ export default function BetriebsleiterDashboard() {
   };
 
   const handleSubmit = () => {
+    console.log("Debug values:", {
+      selectedStore,
+      employeeName,
+      shiftType,
+      betriebsleiterCategory: betriebsleiterCategory?.id,
+      completedTasks
+    });
+
     if (!selectedStore || !employeeName || !shiftType) {
       toast({
         title: "Fehlende Angaben",
