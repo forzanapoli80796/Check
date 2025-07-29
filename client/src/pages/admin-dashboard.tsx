@@ -48,7 +48,7 @@ export default function AdminDashboard() {
       <div className="max-w-6xl mx-auto px-4 py-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
-        <Card className="stats-card">
+        <Card className="shadow-sm border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Heute abgeschlossen</p>
@@ -62,7 +62,7 @@ export default function AdminDashboard() {
           </div>
         </Card>
 
-        <Card className="stats-card">
+        <Card className="shadow-sm border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Diese Woche</p>
@@ -76,7 +76,7 @@ export default function AdminDashboard() {
           </div>
         </Card>
 
-        <Card className="stats-card">
+        <Card className="shadow-sm border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Aktive Aufgaben</p>
@@ -90,7 +90,7 @@ export default function AdminDashboard() {
           </div>
         </Card>
 
-        <Card className="stats-card">
+        <Card className="shadow-sm border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Kategorien</p>
@@ -106,7 +106,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Navigation Tabs */}
-      <Card className="shadow-md mb-6">
+      <Card className="shadow-sm border border-gray-200 mb-6">
         <div className="border-b">
           <nav className="flex space-x-8 px-6">
             <button

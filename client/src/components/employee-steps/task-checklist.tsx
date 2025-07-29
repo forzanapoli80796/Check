@@ -117,7 +117,7 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
   }
 
   return (
-    <Card className="shadow-md">
+    <Card className="shadow-sm border border-gray-200">
       <CardContent className="pt-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">

@@ -31,7 +31,7 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
   };
 
   return (
-    <Card className="shadow-md">
+    <Card className="shadow-sm border border-gray-200">
       <CardContent className="pt-6">
         <div className="flex items-center mb-6">
           <div className="step-indicator mr-3">2</div>

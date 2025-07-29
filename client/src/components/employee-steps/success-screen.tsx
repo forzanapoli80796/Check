@@ -22,7 +22,7 @@ export default function SuccessScreen({ updateState }: SuccessScreenProps) {
   };
 
   return (
-    <Card className="shadow-md">
+    <Card className="shadow-sm border border-gray-200">
       <CardContent className="pt-6 text-center">
         <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
           <Check className="text-white" size={32} />
