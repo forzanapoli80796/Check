@@ -355,7 +355,21 @@ export default function SubmittedLists() {
                                       src={image}
                                       alt={`${task?.title || 'Aufgabe'} Bild ${index + 1}`}
                                       className="w-full h-24 object-cover rounded border cursor-pointer hover:opacity-90 transition-opacity"
-                                      onClick={() => window.open(image, '_blank')}
+                                      onClick={() => {
+                                        console.log('Opening image in new tab');
+                                        const newWindow = window.open();
+                                        if (newWindow) {
+                                          newWindow.document.write(`
+                                            <html>
+                                              <head><title>Bild ${index + 1} - ${task?.title || 'Aufgabe'}</title></head>
+                                              <body style="margin:0;padding:20px;background:#000;display:flex;justify-content:center;align-items:center;min-height:100vh;">
+                                                <img src="${image}" style="max-width:100%;max-height:100%;object-fit:contain;" alt="Vollbild" />
+                                              </body>
+                                            </html>
+                                          `);
+                                          newWindow.document.close();
+                                        }
+                                      }}
                                     />
                                     <div className="absolute bottom-1 left-1 bg-black bg-opacity-60 text-white text-xs px-1 py-0.5 rounded">
                                       {index + 1}
