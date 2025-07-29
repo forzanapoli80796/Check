@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Edit, Trash2, Clock } from "lucide-react";
-import * as Icons from "lucide-react";
+import { Plus, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -15,27 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Task, Category } from "@shared/schema";
 
-const ICON_OPTIONS = [
-  { value: "desktop", label: "Monitor", icon: Icons.Monitor },
-  { value: "print", label: "Printer", icon: Icons.Printer },
-  { value: "spray-can", label: "Spray", icon: Icons.Sparkles },
-  { value: "coins", label: "Coins", icon: Icons.Coins },
-  { value: "barcode", label: "Barcode", icon: Icons.ScanLine },
-  { value: "weight", label: "Weight", icon: Icons.Weight },
-  { value: "shopping-cart", label: "Shopping Cart", icon: Icons.ShoppingCart },
-  { value: "users", label: "Users", icon: Icons.Users },
-  { value: "utensils", label: "Utensils", icon: Icons.Utensils },
-  { value: "thermometer", label: "Thermometer", icon: Icons.Thermometer },
-  { value: "fire", label: "Fire", icon: Icons.Flame },
-  { value: "car", label: "Car", icon: Icons.Car },
-  { value: "map", label: "Map", icon: Icons.Map },
-];
 
-const PRIORITY_OPTIONS = [
-  { value: "low", label: "Niedrig", color: "bg-gray-100 text-gray-800" },
-  { value: "medium", label: "Mittel", color: "bg-yellow-100 text-yellow-800" },
-  { value: "high", label: "Hoch", color: "bg-red-100 text-red-800" },
-];
 
 export default function TasksManagement() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -176,19 +155,7 @@ export default function TasksManagement() {
     return categories?.find(cat => cat.id === categoryId)?.name || "Unbekannt";
   };
 
-  const getPriorityBadge = (priority: string) => {
-    const priorityOption = PRIORITY_OPTIONS.find(opt => opt.value === priority);
-    return priorityOption || PRIORITY_OPTIONS[1]; // default to medium
-  };
 
-  const getIcon = (iconName: string) => {
-    const iconOption = ICON_OPTIONS.find(opt => opt.value === iconName);
-    if (iconOption) {
-      const IconComponent = iconOption.icon;
-      return <IconComponent size={20} />;
-    }
-    return <Icons.Settings size={20} />;
-  };
 
   if (tasksLoading || categoriesLoading) {
     return (
@@ -274,7 +241,6 @@ export default function TasksManagement() {
 
       <div className="space-y-4">
         {tasks?.map((task) => {
-          const priorityBadge = getPriorityBadge(task.priority);
           return (
             <Card key={task.id} className="border">
               <CardContent className="p-4">
@@ -282,19 +248,11 @@ export default function TasksManagement() {
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
                       <h4 className="font-medium">{task.title}</h4>
-                      <Badge className={priorityBadge.color}>
+                      <Badge className="bg-blue-100 text-blue-800">
                         {getCategoryName(task.categoryId)}
                       </Badge>
                     </div>
-                    <p className="text-sm text-gray-600 mb-3">{task.description}</p>
-                    <div className="flex items-center text-sm text-gray-500 space-x-4">
-                      {getIcon(task.icon)}
-                      <span>Priorität: {priorityBadge.label}</span>
-                      <div className="flex items-center">
-                        <Clock size={14} className="mr-1" />
-                        <span>~{task.estimatedMinutes} Min</span>
-                      </div>
-                    </div>
+                    <p className="text-sm text-gray-600">{task.description}</p>
                   </div>
                   <div className="flex space-x-2">
                     <Button
