@@ -38,6 +38,15 @@ export default function BetriebsleiterDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Logo zentriert oben */}
+      <div className="text-center py-6">
+        <img 
+          src="/attached_assets/FORZACHECK1_black_1753816621910.png" 
+          alt="ForzaCheck Logo" 
+          className="max-h-40 max-w-full mx-auto object-contain"
+        />
+      </div>
+      
       <div className="max-w-6xl mx-auto p-6">
         {/* Zurück Button */}
         <Button 

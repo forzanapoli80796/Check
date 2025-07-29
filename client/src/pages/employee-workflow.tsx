@@ -45,6 +45,15 @@ export default function EmployeeWorkflow() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Logo zentriert oben */}
+      <div className="text-center py-6">
+        <img 
+          src="/attached_assets/FORZACHECK1_black_1753816621910.png" 
+          alt="ForzaCheck Logo" 
+          className="max-h-40 max-w-full mx-auto object-contain"
+        />
+      </div>
+      
       {/* Zurück Button */}
       <div className="absolute top-4 left-4">
         <Button 

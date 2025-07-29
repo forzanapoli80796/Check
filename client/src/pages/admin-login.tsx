@@ -39,6 +39,15 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Logo zentriert oben */}
+      <div className="text-center py-6">
+        <img 
+          src="/attached_assets/FORZACHECK1_black_1753816621910.png" 
+          alt="ForzaCheck Logo" 
+          className="max-h-40 max-w-full mx-auto object-contain"
+        />
+      </div>
+      
       {/* Zurück Button */}
       <div className="absolute top-4 left-4">
         <Button 
@@ -49,7 +58,7 @@ export default function AdminLogin() {
           Zurück zur Startseite
         </Button>
       </div>
-      <div className="flex items-center justify-center px-4 pt-16">
+      <div className="flex items-center justify-center px-4 pt-8">
         <div className="max-w-md w-full mx-auto">
           <Card className="shadow-sm border border-gray-200">
             <CardContent className="pt-6">
