@@ -8,7 +8,7 @@ import SubmittedLists from "@/components/admin-tabs/submitted-lists";
 import CategoriesManagement from "@/components/admin-tabs/categories-management";
 import TasksManagement from "@/components/admin-tabs/tasks-management";
 import { AdminTabState } from "@/lib/types";
-import Header from "@/components/header";
+
 
 export default function AdminDashboard() {
   const [, navigate] = useLocation();
@@ -40,11 +40,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header 
-        showHomeButton 
-        onHome={() => navigate("/")}
-        title="Admin Dashboard"
-      />
       <div className="max-w-6xl mx-auto px-4 py-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">

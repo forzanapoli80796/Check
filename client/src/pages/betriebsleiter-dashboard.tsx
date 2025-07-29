@@ -8,7 +8,7 @@ import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { Checklist } from "@shared/schema";
 import { AREA_LABELS } from "@/lib/types";
-import Header from "@/components/header";
+
 
 export default function BetriebsleiterDashboard() {
   const [, navigate] = useLocation();
@@ -37,11 +37,6 @@ export default function BetriebsleiterDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header 
-        showHomeButton 
-        onHome={() => navigate("/")}
-        title="Betriebsleiter Dashboard"
-      />
       <div className="max-w-6xl mx-auto p-6">
       <Card className="shadow-sm border border-gray-200 mb-6">
         <CardContent className="pt-6">

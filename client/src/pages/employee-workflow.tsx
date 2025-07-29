@@ -6,7 +6,7 @@ import AreaSelection from "@/components/employee-steps/area-selection";
 import EmployeeDetails from "@/components/employee-steps/employee-details";
 import TaskChecklist from "@/components/employee-steps/task-checklist";
 import SuccessScreen from "@/components/employee-steps/success-screen";
-import Header from "@/components/header";
+
 
 export default function EmployeeWorkflow() {
   const [, navigate] = useLocation();
@@ -43,11 +43,6 @@ export default function EmployeeWorkflow() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header 
-        showHomeButton 
-        onHome={() => navigate("/")}
-        title="Mitarbeiter Checkliste"
-      />
       <div className="flex items-center justify-center px-4 pt-8">
         <div className="max-w-md w-full mx-auto">
           {renderStep()}

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { apiRequest } from "@/lib/queryClient";
-import Header from "@/components/header";
+
 
 export default function AdminLogin() {
   const [, navigate] = useLocation();
@@ -38,11 +38,6 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header 
-        showBackButton 
-        onBack={handleBack}
-        title="Admin-Zugang"
-      />
       <div className="flex items-center justify-center px-4 pt-16">
         <div className="max-w-md w-full mx-auto">
           <Card className="shadow-sm border border-gray-200">
