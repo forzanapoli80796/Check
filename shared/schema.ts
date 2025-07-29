@@ -24,12 +24,11 @@ export const tasks = pgTable("tasks", {
 
 export const checklists = pgTable("checklists", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  categoryId: varchar("category_id").references(() => categories.id).notNull(),
   employeeName: text("employee_name").notNull(),
   store: text("store").notNull(),
-  area: text("area").notNull(),
-  shift: text("shift").notNull(), // schichtanfang, schichtende
-  completedTasks: jsonb("completed_tasks").notNull(), // array of task IDs
-  totalTasks: text("total_tasks").notNull(),
+  shiftType: text("shift_type").notNull(),
+  completedTasks: jsonb("completed_tasks").notNull().default('[]'), // array of task IDs
   submittedAt: timestamp("submitted_at").defaultNow(),
 });
 

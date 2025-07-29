@@ -10,8 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Checklist } from "@shared/schema";
-import { STORES, AREA_LABELS } from "@/lib/types";
+import type { Checklist, Category } from "@shared/schema";
+import { STORES } from "@/lib/types";
 
 export default function SubmittedLists() {
   const [storeFilter, setStoreFilter] = useState<string>("alle");
@@ -51,6 +51,10 @@ export default function SubmittedLists() {
       const response = await fetch(url);
       return response.json();
     },
+  });
+
+  const { data: categories = [] } = useQuery<Category[]>({
+    queryKey: ['/api/categories']
   });
 
   const deleteMutation = useMutation({
@@ -152,14 +156,16 @@ export default function SubmittedLists() {
                   </div>
                 </TableCell>
                 <TableCell>{checklist.store}</TableCell>
-                <TableCell>{AREA_LABELS[checklist.area as keyof typeof AREA_LABELS]}</TableCell>
                 <TableCell>
-                  <Badge variant={getShiftBadgeVariant(checklist.shift)}>
-                    {getShiftLabel(checklist.shift)}
+                  {categories?.find(c => c.id === checklist.categoryId)?.name || 'Unbekannt'}
+                </TableCell>
+                <TableCell>
+                  <Badge variant="secondary">
+                    {checklist.shiftType}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  {Array.isArray(checklist.completedTasks) ? checklist.completedTasks.length : 0}/{checklist.totalTasks}
+                  {Array.isArray(checklist.completedTasks) ? checklist.completedTasks.length : 0}
                 </TableCell>
                 <TableCell>
                   {format(new Date(checklist.submittedAt!), "dd.MM.yyyy HH:mm", { locale: de })}
