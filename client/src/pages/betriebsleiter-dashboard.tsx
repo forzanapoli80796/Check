@@ -74,21 +74,56 @@ export default function BetriebsleiterDashboard() {
     );
   };
 
-  const compressImage = (file: File, maxWidth: number = 800, quality: number = 0.8): Promise<string> => {
-    return new Promise((resolve) => {
+  const compressImage = (file: File, maxWidth: number = 1200, quality: number = 0.8): Promise<string> => {
+    return new Promise((resolve, reject) => {
       const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d')!;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Canvas context not available'));
+        return;
+      }
+      
       const img = new Image();
       
       img.onload = () => {
-        // Berechne neue Dimensionen
-        const ratio = Math.min(maxWidth / img.width, maxWidth / img.height);
-        canvas.width = img.width * ratio;
-        canvas.height = img.height * ratio;
-        
-        // Zeichne komprimiertes Bild
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', quality));
+        try {
+          // Berechne neue Dimensionen unter Beibehaltung des Seitenverhältnisses
+          let { width, height } = img;
+          
+          if (width > height) {
+            if (width > maxWidth) {
+              height = (height * maxWidth) / width;
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxWidth) {
+              width = (width * maxWidth) / height;
+              height = maxWidth;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          // Weißer Hintergrund für bessere JPEG-Kompatibilität
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, width, height);
+          
+          // Bild zeichnen
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          resolve(dataUrl);
+        } catch (error) {
+          reject(error);
+        } finally {
+          URL.revokeObjectURL(img.src);
+        }
+      };
+      
+      img.onerror = () => {
+        reject(new Error('Image load failed'));
+        URL.revokeObjectURL(img.src);
       };
       
       img.src = URL.createObjectURL(file);
@@ -102,11 +137,24 @@ export default function BetriebsleiterDashboard() {
     for (const file of Array.from(files)) {
       if (file.type.startsWith('image/')) {
         try {
+          // Überprüfe Dateigröße
+          const maxSizeInMB = 10;
+          if (file.size > maxSizeInMB * 1024 * 1024) {
+            toast({
+              title: "Datei zu groß",
+              description: `Bitte wählen Sie ein Bild unter ${maxSizeInMB}MB.`,
+              variant: "destructive",
+            });
+            continue;
+          }
+
           const compressedBase64 = await compressImage(file);
           setTaskImages(prev => ({
             ...prev,
             [taskId]: [...(prev[taskId] || []), compressedBase64]
           }));
+          
+          console.log('Bild erfolgreich komprimiert und hinzugefügt');
         } catch (error) {
           console.error('Fehler beim Komprimieren des Bildes:', error);
           toast({
@@ -117,6 +165,9 @@ export default function BetriebsleiterDashboard() {
         }
       }
     }
+    
+    // Input zurücksetzen für erneute Auswahl
+    event.target.value = '';
   };
 
   const removeTaskImage = (taskId: string, imageIndex: number) => {
