@@ -38,7 +38,7 @@ export default function EmployeeWorkflow() {
         return <EmployeeDetails state={state} updateState={updateState} />;
       case 'tasks':
         // Check if this is inventory area
-        if (state.selectedArea === 'inventory') {
+        if (state.selectedArea === 'inventur') {
           return <InventoryChecklist state={state} updateState={updateState} />;
         }
         return <TaskChecklist state={state} updateState={updateState} />;
