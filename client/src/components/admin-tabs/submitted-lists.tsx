@@ -273,7 +273,7 @@ export default function SubmittedLists() {
                 <h4 className="font-medium mb-3">Erledigte Aufgaben</h4>
                 <div className="space-y-2">
                   {Array.isArray(selectedChecklist.completedTasks) && selectedChecklist.completedTasks.length > 0 ? (
-                    selectedChecklist.completedTasks.map((taskId) => {
+                    selectedChecklist.completedTasks.map((taskId: string) => {
                       const task = tasks.find(t => t.id === taskId);
                       return (
                         <div key={taskId} className="flex items-center space-x-2 p-2 bg-green-50 rounded-lg">
