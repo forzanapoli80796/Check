@@ -10,7 +10,7 @@ import EmployeeWorkflow from "@/pages/employee-workflow";
 import AdminDashboard from "@/pages/admin-dashboard";
 import BetriebsleiterDashboard from "@/pages/betriebsleiter-dashboard";
 import TeigDashboard from "@/pages/teig-dashboard";
-import Header from "@/components/header";
+
 
 function Router() {
   return (
@@ -27,17 +27,11 @@ function Router() {
 }
 
 function App() {
-  const [location] = useLocation();
-  const isHomePage = location === "/";
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <div className="min-h-screen bg-background">
-          {!isHomePage && <Header />}
-          <main className={isHomePage ? "" : "container mx-auto px-4 py-6"}>
-            <Router />
-          </main>
+          <Router />
         </div>
         <Toaster />
       </TooltipProvider>
