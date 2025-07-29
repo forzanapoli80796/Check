@@ -2,20 +2,22 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
-import { Eye, Trash2 } from "lucide-react";
+import { Eye, Trash2, X, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import type { Checklist, Category } from "@shared/schema";
+import type { Checklist, Category, Task, InventoryItem } from "@shared/schema";
 import { STORES } from "@/lib/types";
 
 export default function SubmittedLists() {
   const [storeFilter, setStoreFilter] = useState<string>("alle");
   const [dateFilter, setDateFilter] = useState<string>("heute");
+  const [selectedChecklist, setSelectedChecklist] = useState<Checklist | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -57,6 +59,20 @@ export default function SubmittedLists() {
     queryKey: ['/api/categories']
   });
 
+  const { data: tasks = [] } = useQuery<Task[]>({
+    queryKey: ['/api/tasks']
+  });
+
+  const { data: inventoryItems = [] } = useQuery<InventoryItem[]>({
+    queryKey: ['/api/inventory-items/checklist', selectedChecklist?.id],
+    queryFn: async () => {
+      if (!selectedChecklist?.id) return [];
+      const response = await fetch(`/api/inventory-items/checklist/${selectedChecklist.id}`);
+      return response.json();
+    },
+    enabled: !!selectedChecklist?.id
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       await apiRequest("DELETE", `/api/checklists/${id}`);
@@ -90,6 +106,14 @@ export default function SubmittedLists() {
 
   const getShiftLabel = (shift: string) => {
     return shift === "schichtanfang" ? "Schichtanfang" : "Schichtende";
+  };
+
+  const openChecklistDetails = (checklist: Checklist) => {
+    setSelectedChecklist(checklist);
+  };
+
+  const closeChecklistDetails = () => {
+    setSelectedChecklist(null);
   };
 
   if (isLoading) {
@@ -178,7 +202,11 @@ export default function SubmittedLists() {
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => openChecklistDetails(checklist)}
+                    >
                       <Eye size={16} className="text-primary" />
                     </Button>
                     <Button
@@ -201,6 +229,89 @@ export default function SubmittedLists() {
           </div>
         )}
       </div>
+
+      {/* Checklist Details Dialog */}
+      <Dialog open={!!selectedChecklist} onOpenChange={closeChecklistDetails}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Checklisten-Details</span>
+              <Button variant="ghost" size="sm" onClick={closeChecklistDetails}>
+                <X size={16} />
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedChecklist && (
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-medium text-sm text-gray-600 mb-1">Mitarbeiter</h4>
+                  <p className="font-medium">{selectedChecklist.employeeName}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm text-gray-600 mb-1">Filiale</h4>
+                  <p>{selectedChecklist.store}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm text-gray-600 mb-1">Bereich</h4>
+                  <p>{categories?.find(c => c.id === selectedChecklist.categoryId)?.name || 'Unbekannt'}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm text-gray-600 mb-1">Schicht</h4>
+                  <Badge variant="secondary">{selectedChecklist.shiftType}</Badge>
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm text-gray-600 mb-1">Eingereicht am</h4>
+                  <p>{format(new Date(selectedChecklist.submittedAt!), "dd.MM.yyyy HH:mm", { locale: de })}</p>
+                </div>
+              </div>
+
+              {/* Completed Tasks */}
+              <div>
+                <h4 className="font-medium mb-3">Erledigte Aufgaben</h4>
+                <div className="space-y-2">
+                  {Array.isArray(selectedChecklist.completedTasks) && selectedChecklist.completedTasks.length > 0 ? (
+                    selectedChecklist.completedTasks.map((taskId) => {
+                      const task = tasks.find(t => t.id === taskId);
+                      return (
+                        <div key={taskId} className="flex items-center space-x-2 p-2 bg-green-50 rounded-lg">
+                          <CheckCircle2 size={16} className="text-green-600" />
+                          <span className="text-sm">{task?.title || `Aufgabe ${taskId}`}</span>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <p className="text-gray-500 text-sm">Keine Aufgaben erledigt</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Inventory Items (if applicable) */}
+              {inventoryItems && inventoryItems.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-3">Inventur-Artikel</h4>
+                  <div className="space-y-2">
+                    {inventoryItems.map((item) => {
+                      const task = tasks.find(t => t.id === item.taskId);
+                      return (
+                        <div key={item.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                          <span className="text-sm font-medium">{task?.title || 'Unbekannter Artikel'}</span>
+                          <div className="flex items-center space-x-1">
+                            <span className="font-bold">{item.quantity}</span>
+                            <span className="text-sm text-gray-600">{item.unit}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
