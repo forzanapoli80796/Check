@@ -96,9 +96,9 @@ export default function BetriebsleiterDashboard() {
       employeeName,
       shiftType,
       completedTasks,
-      submittedAt: new Date().toISOString(),
     };
 
+    console.log("Submitting checklist:", checklist);
     submitMutation.mutate(checklist);
   };
 

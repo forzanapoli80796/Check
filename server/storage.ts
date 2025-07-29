@@ -52,6 +52,7 @@ export class MemStorage implements IStorage {
       { name: "Fahrer", description: "Fahrzeug & Lieferung", icon: "car" },
       { name: "Inventur", description: "Bestandsaufnahme", icon: "clipboard-list" },
       { name: "Sonderreinigung", description: "Tiefenreinigung", icon: "broom" },
+      { name: "Betriebsleiter", description: "Management & Organisation", icon: "briefcase" },
     ];
 
     defaultCategories.forEach(cat => {
@@ -131,6 +132,32 @@ export class MemStorage implements IStorage {
         const taskObj: Task = {
           id,
           categoryId: fahrerCategory.id,
+          ...task,
+          description: task.description || null,
+          estimatedMinutes: task.estimatedMinutes || null,
+          createdAt: new Date(),
+        };
+        this.tasks.set(id, taskObj);
+      });
+    }
+
+    // Betriebsleiter tasks
+    const betriebsleiterCategory = categories.find(c => c.name === "Betriebsleiter");
+    if (betriebsleiterCategory) {
+      const betriebsleiterTasks = [
+        { title: "Schichtübergabe durchführen", description: "Vollständige Übergabe der wichtigsten Informationen", icon: "clipboard-check", priority: "high", estimatedMinutes: "15" },
+        { title: "Personalplanung überprüfen", description: "Personaleinsatz für kommende Schichten kontrollieren", icon: "users", priority: "high", estimatedMinutes: "10" },
+        { title: "Umsatzzahlen analysieren", description: "Tagesumsatz und Kennzahlen auswerten", icon: "bar-chart", priority: "medium", estimatedMinutes: "20" },
+        { title: "Warenbestand kontrollieren", description: "Kritische Bestände überprüfen und Bestellungen initiieren", icon: "package", priority: "high", estimatedMinutes: "15" },
+        { title: "Qualitätskontrolle", description: "Stichprobenartige Überprüfung der Produktqualität", icon: "check-circle", priority: "medium", estimatedMinutes: "10" },
+        { title: "Kundenbeschwerden bearbeiten", description: "Offene Beschwerden prüfen und Lösungen umsetzen", icon: "message-circle", priority: "medium", estimatedMinutes: "15" },
+      ];
+
+      betriebsleiterTasks.forEach(task => {
+        const id = randomUUID();
+        const taskObj: Task = {
+          id,
+          categoryId: betriebsleiterCategory.id,
           ...task,
           description: task.description || null,
           estimatedMinutes: task.estimatedMinutes || null,
