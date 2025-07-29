@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, jsonb, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, jsonb, boolean, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -33,6 +33,15 @@ export const checklists = pgTable("checklists", {
   submittedAt: timestamp("submitted_at").defaultNow(),
 });
 
+// Teig-Produktions-Tabelle für Kugelmenge-Tracking
+export const teigProduction = pgTable("teig_production", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  date: text("date").notNull(), // Format: YYYY-MM-DD
+  store: text("store").notNull(), // JP23, KP5, TS17
+  kugelMenge: integer("kugel_menge").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertCategorySchema = createInsertSchema(categories).omit({
   id: true,
   createdAt: true,
@@ -48,6 +57,11 @@ export const insertChecklistSchema = createInsertSchema(checklists).omit({
   submittedAt: true,
 });
 
+export const insertTeigProductionSchema = createInsertSchema(teigProduction).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type Category = typeof categories.$inferSelect;
 
@@ -56,3 +70,6 @@ export type Task = typeof tasks.$inferSelect;
 
 export type InsertChecklist = z.infer<typeof insertChecklistSchema>;
 export type Checklist = typeof checklists.$inferSelect;
+
+export type InsertTeigProduction = z.infer<typeof insertTeigProductionSchema>;
+export type TeigProduction = typeof teigProduction.$inferSelect;

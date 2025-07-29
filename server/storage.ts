@@ -1,4 +1,4 @@
-import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist } from "@shared/schema";
+import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist, type TeigProduction, type InsertTeigProduction } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -24,12 +24,21 @@ export interface IStorage {
   getChecklistsByDateRange(startDate: Date, endDate: Date): Promise<Checklist[]>;
   createChecklist(checklist: InsertChecklist): Promise<Checklist>;
   deleteChecklist(id: string): Promise<boolean>;
+
+  // Teig Production
+  getTeigProduction(): Promise<TeigProduction[]>;
+  getTeigProductionByDate(date: string): Promise<TeigProduction[]>;
+  getTeigProductionByDateRange(startDate: string, endDate: string): Promise<TeigProduction[]>;
+  createTeigProduction(production: InsertTeigProduction): Promise<TeigProduction>;
+  updateTeigProduction(id: string, production: Partial<InsertTeigProduction>): Promise<TeigProduction | undefined>;
+  deleteTeigProduction(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
   private categories: Map<string, Category> = new Map();
   private tasks: Map<string, Task> = new Map();
   private checklists: Map<string, Checklist> = new Map();
+  private teigProductions: Map<string, TeigProduction> = new Map();
 
   constructor() {
     this.initializeDefaultData();
@@ -186,6 +195,7 @@ export class MemStorage implements IStorage {
       id,
       description: insertTask.description || null,
       estimatedMinutes: insertTask.estimatedMinutes || null,
+      priority: insertTask.priority || "medium",
       createdAt: new Date(),
     };
     this.tasks.set(id, task);
@@ -240,6 +250,50 @@ export class MemStorage implements IStorage {
 
   async deleteChecklist(id: string): Promise<boolean> {
     return this.checklists.delete(id);
+  }
+
+  // Teig Production methods
+  async getTeigProduction(): Promise<TeigProduction[]> {
+    return Array.from(this.teigProductions.values()).sort((a, b) => 
+      new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
+    );
+  }
+
+  async getTeigProductionByDate(date: string): Promise<TeigProduction[]> {
+    return Array.from(this.teigProductions.values()).filter(production => 
+      production.date === date
+    );
+  }
+
+  async getTeigProductionByDateRange(startDate: string, endDate: string): Promise<TeigProduction[]> {
+    return Array.from(this.teigProductions.values()).filter(production => {
+      const productionDate = production.date;
+      return productionDate >= startDate && productionDate <= endDate;
+    });
+  }
+
+  async createTeigProduction(insertProduction: InsertTeigProduction): Promise<TeigProduction> {
+    const id = randomUUID();
+    const production: TeigProduction = {
+      ...insertProduction,
+      id,
+      createdAt: new Date(),
+    };
+    this.teigProductions.set(id, production);
+    return production;
+  }
+
+  async updateTeigProduction(id: string, updateData: Partial<InsertTeigProduction>): Promise<TeigProduction | undefined> {
+    const production = this.teigProductions.get(id);
+    if (!production) return undefined;
+
+    const updatedProduction = { ...production, ...updateData };
+    this.teigProductions.set(id, updatedProduction);
+    return updatedProduction;
+  }
+
+  async deleteTeigProduction(id: string): Promise<boolean> {
+    return this.teigProductions.delete(id);
   }
 }
 

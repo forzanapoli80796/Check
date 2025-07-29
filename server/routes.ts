@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertCategorySchema, insertTaskSchema, insertChecklistSchema } from "@shared/schema";
+import { insertCategorySchema, insertTaskSchema, insertChecklistSchema, insertTeigProductionSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -163,6 +163,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       completionRate: checklists.length > 0 ? Math.round((todayChecklists.length / checklists.length) * 100) : 0,
       pendingTasks: 0, // This would be calculated based on ongoing checklists
     });
+  });
+
+  // Teig Production routes
+  app.get("/api/teig-production", async (req, res) => {
+    const { date, startDate, endDate } = req.query;
+    
+    try {
+      let productions;
+      if (date) {
+        productions = await storage.getTeigProductionByDate(date as string);
+      } else if (startDate && endDate) {
+        productions = await storage.getTeigProductionByDateRange(startDate as string, endDate as string);
+      } else {
+        productions = await storage.getTeigProduction();
+      }
+      res.json(productions);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching teig production data" });
+    }
+  });
+
+  app.post("/api/teig-production", async (req, res) => {
+    try {
+      const validatedData = insertTeigProductionSchema.parse(req.body);
+      const production = await storage.createTeigProduction(validatedData);
+      res.json(production);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid teig production data" });
+    }
+  });
+
+  app.put("/api/teig-production/:id", async (req, res) => {
+    try {
+      const validatedData = insertTeigProductionSchema.partial().parse(req.body);
+      const production = await storage.updateTeigProduction(req.params.id, validatedData);
+      if (!production) {
+        return res.status(404).json({ message: "Teig production not found" });
+      }
+      res.json(production);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid teig production data" });
+    }
+  });
+
+  app.delete("/api/teig-production/:id", async (req, res) => {
+    const success = await storage.deleteTeigProduction(req.params.id);
+    if (!success) {
+      return res.status(404).json({ message: "Teig production not found" });
+    }
+    res.json({ success: true });
   });
 
   const httpServer = createServer(app);

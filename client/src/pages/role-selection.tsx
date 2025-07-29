@@ -13,8 +13,8 @@ export default function RoleSelection() {
     } else if (role === 'betriebsleiter') {
       navigate("/betriebsleiter");
     } else if (role === 'teig') {
-      // Teig führt auch zum Employee Workflow
-      navigate("/employee");
+      // Teig führt zur speziellen Teig-Dashboard
+      navigate("/teig");
     }
   };
 

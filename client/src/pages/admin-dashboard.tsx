@@ -4,10 +4,11 @@ import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ClipboardCheck, Calendar, ListTodo, Users, ArrowLeft } from "lucide-react";
+import { ClipboardCheck, Calendar, ListTodo, Users, ArrowLeft, Cookie } from "lucide-react";
 import SubmittedLists from "@/components/admin-tabs/submitted-lists";
 import CategoriesManagement from "@/components/admin-tabs/categories-management";
 import TasksManagement from "@/components/admin-tabs/tasks-management";
+import TeigManagement from "@/components/teig-management";
 import { AdminTabState } from "@/lib/types";
 
 
@@ -34,6 +35,8 @@ export default function AdminDashboard() {
         return <CategoriesManagement />;
       case 'tasks':
         return <TasksManagement />;
+      case 'teig':
+        return <TeigManagement />;
       default:
         return <SubmittedLists />;
     }
@@ -131,6 +134,12 @@ export default function AdminDashboard() {
               className={`admin-tab ${activeTab === 'tasks' ? 'active' : ''}`}
             >
               Aufgaben verwalten
+            </button>
+            <button
+              onClick={() => setActiveTab('teig')}
+              className={`admin-tab ${activeTab === 'teig' ? 'active' : ''}`}
+            >
+              Teig-Planung
             </button>
           </nav>
         </div>

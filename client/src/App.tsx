@@ -9,6 +9,7 @@ import AdminLogin from "@/pages/admin-login";
 import EmployeeWorkflow from "@/pages/employee-workflow";
 import AdminDashboard from "@/pages/admin-dashboard";
 import BetriebsleiterDashboard from "@/pages/betriebsleiter-dashboard";
+import TeigDashboard from "@/pages/teig-dashboard";
 import Header from "@/components/header";
 
 function Router() {
@@ -19,6 +20,7 @@ function Router() {
       <Route path="/employee" component={EmployeeWorkflow} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/betriebsleiter" component={BetriebsleiterDashboard} />
+      <Route path="/teig" component={TeigDashboard} />
       <Route component={NotFound} />
     </Switch>
   );
