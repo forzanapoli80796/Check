@@ -242,6 +242,7 @@ export class MemStorage implements IStorage {
     const checklist: Checklist = {
       ...insertChecklist,
       id,
+      completedTasks: insertChecklist.completedTasks || [],
       submittedAt: new Date(),
     };
     this.checklists.set(id, checklist);
