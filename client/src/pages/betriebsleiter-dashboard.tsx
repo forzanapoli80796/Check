@@ -74,23 +74,49 @@ export default function BetriebsleiterDashboard() {
     );
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, taskId: string) => {
+  const compressImage = (file: File, maxWidth: number = 800, quality: number = 0.8): Promise<string> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d')!;
+      const img = new Image();
+      
+      img.onload = () => {
+        // Berechne neue Dimensionen
+        const ratio = Math.min(maxWidth / img.width, maxWidth / img.height);
+        canvas.width = img.width * ratio;
+        canvas.height = img.height * ratio;
+        
+        // Zeichne komprimiertes Bild
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>, taskId: string) => {
     const files = event.target.files;
     if (!files) return;
 
-    Array.from(files).forEach(file => {
+    for (const file of Array.from(files)) {
       if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const base64 = e.target?.result as string;
+        try {
+          const compressedBase64 = await compressImage(file);
           setTaskImages(prev => ({
             ...prev,
-            [taskId]: [...(prev[taskId] || []), base64]
+            [taskId]: [...(prev[taskId] || []), compressedBase64]
           }));
-        };
-        reader.readAsDataURL(file);
+        } catch (error) {
+          console.error('Fehler beim Komprimieren des Bildes:', error);
+          toast({
+            title: "Fehler",
+            description: "Bild konnte nicht verarbeitet werden.",
+            variant: "destructive",
+          });
+        }
       }
-    });
+    }
   };
 
   const removeTaskImage = (taskId: string, imageIndex: number) => {
