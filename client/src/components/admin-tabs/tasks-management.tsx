@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -19,6 +19,7 @@ import { Task, Category } from "@shared/schema";
 export default function TasksManagement() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -155,6 +156,18 @@ export default function TasksManagement() {
     return categories?.find(cat => cat.id === categoryId)?.name || "Unbekannt";
   };
 
+  // Filter tasks based on search term
+  const filteredTasks = tasks?.filter(task => {
+    if (!searchTerm) return true;
+    
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      task.title.toLowerCase().includes(searchLower) ||
+      task.description?.toLowerCase().includes(searchLower) ||
+      getCategoryName(task.categoryId).toLowerCase().includes(searchLower)
+    );
+  }) || [];
+
 
 
   if (tasksLoading || categoriesLoading) {
@@ -249,8 +262,37 @@ export default function TasksManagement() {
         </Dialog>
       </div>
 
+      {/* Search Bar */}
+      <div className="flex items-center space-x-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          <Input
+            placeholder="Aufgaben durchsuchen... (Titel, Beschreibung, Kategorie)"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        {searchTerm && (
+          <Button 
+            variant="outline" 
+            onClick={() => setSearchTerm("")}
+            size="sm"
+          >
+            Zurücksetzen
+          </Button>
+        )}
+      </div>
+
+      {/* Search Results Counter */}
+      {searchTerm && (
+        <div className="text-sm text-gray-600">
+          {filteredTasks.length} von {tasks?.length || 0} Aufgaben gefunden
+        </div>
+      )}
+
       <div className="space-y-4">
-        {tasks?.map((task) => {
+        {filteredTasks.map((task) => {
           return (
             <Card key={task.id} className="border">
               <CardContent className="p-4">
@@ -287,6 +329,28 @@ export default function TasksManagement() {
           );
         })}
       </div>
+
+      {/* No Tasks Message */}
+      {filteredTasks.length === 0 && tasks && tasks.length > 0 && searchTerm && (
+        <div className="text-center py-8">
+          <p className="text-gray-500">Keine Aufgaben gefunden für "{searchTerm}"</p>
+          <Button 
+            variant="outline" 
+            onClick={() => setSearchTerm("")}
+            className="mt-2"
+          >
+            Suche zurücksetzen
+          </Button>
+        </div>
+      )}
+
+      {/* No Tasks at all */}
+      {(!tasks || tasks.length === 0) && (
+        <div className="text-center py-8">
+          <p className="text-gray-500">Noch keine Aufgaben erstellt.</p>
+          <p className="text-sm text-gray-400 mt-1">Erstellen Sie die erste Aufgabe mit dem Button oben.</p>
+        </div>
+      )}
     </div>
   );
 }
