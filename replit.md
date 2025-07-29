@@ -42,14 +42,14 @@ Logo usage: Only use the official ForzaCheck logo (FORZACHECK1_black_17538166219
 ### User Roles
 - **Mitarbeiter (Employee)**: Complete checklists through guided workflow
 - **Teig (Dough Production)**: View daily production targets and quantities by store
-- **Betriebsleiter (Manager)**: View store-level analytics and recent submissions
+- **Betriebsleiter (Manager)**: Complete management-specific tasks and checklist workflow (managed via Admin)
 - **Admin**: Full system management including category and task configuration, weekly dough production planning
 
 ### Core Features
 - **Employee Workflow**: Step-by-step process (Store → Area → Details → Tasks → Success)
 - **Teig Dashboard**: Daily production overview showing required dough ball quantities by store
+- **Betriebsleiter Workflow**: Management-specific task checklist workflow (Store → Details → Tasks → Submit)
 - **Admin Dashboard**: Comprehensive management of categories, tasks, submissions, and weekly dough production planning
-- **Manager Dashboard**: Overview of completion rates and recent activity
 - **Real-time Updates**: TanStack Query for optimistic updates and cache management
 - **Consistent Branding**: Official ForzaCheck logo integrated across all pages with header component
 

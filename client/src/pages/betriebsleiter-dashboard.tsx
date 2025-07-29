@@ -1,45 +1,134 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { useLocation } from "wouter";
-import { Card, CardContent } from "@/components/ui/card";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ClipboardCheck, TrendingUp, AlertTriangle, ArrowLeft } from "lucide-react";
-import { format } from "date-fns";
-import { de } from "date-fns/locale";
-import { Checklist } from "@shared/schema";
-import { AREA_LABELS } from "@/lib/types";
-
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, CheckCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import type { Task, Category, InsertChecklist } from "@shared/schema";
+import { STORES } from "@/lib/types";
 
 export default function BetriebsleiterDashboard() {
   const [, navigate] = useLocation();
-  const { data: stats, isLoading: statsLoading } = useQuery<{
-    todayCompleted: number;
-    weekCompleted: number; 
-    activeTasks: number;
-    activeCategories: number;
-    completionRate: number;
-    pendingTasks: number;
-  }>({
-    queryKey: ["/api/stats"],
+  const { toast } = useToast();
+  
+  const [selectedStore, setSelectedStore] = useState<string>('');
+  const [employeeName, setEmployeeName] = useState<string>('');
+  const [shiftType, setShiftType] = useState<string>('');
+  const [completedTasks, setCompletedTasks] = useState<string[]>([]);
+
+  const { data: categories = [] } = useQuery<Category[]>({
+    queryKey: ['/api/categories']
   });
 
-  const { data: recentChecklists, isLoading: checklistsLoading } = useQuery<Checklist[]>({
-    queryKey: ["/api/checklists"],
+  // Nur Betriebsleiter-Kategorie laden
+  const betriebsleiterCategory = categories.find(c => c.name.toLowerCase().includes('betriebsleiter'));
+
+  const { data: tasks = [] } = useQuery<Task[]>({
+    queryKey: ['/api/tasks'],
+    enabled: !!betriebsleiterCategory
   });
 
-  // Get today's checklists for recent activity
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayChecklists = recentChecklists?.filter(checklist => {
-    const submittedDate = new Date(checklist.submittedAt!);
-    return submittedDate >= today;
-  }).slice(0, 5) || [];
+  // Nur Aufgaben für Betriebsleiter-Kategorie
+  const betriebsleiterTasks = tasks.filter(t => t.categoryId === betriebsleiterCategory?.id);
+
+  const submitMutation = useMutation({
+    mutationFn: async (checklist: InsertChecklist) => {
+      const response = await apiRequest('POST', '/api/checklists', checklist);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Erfolgreich eingereicht",
+        description: "Ihre Betriebsleiter-Aufgaben wurden erfolgreich abgeschlossen.",
+      });
+      // Formular zurücksetzen
+      setSelectedStore('');
+      setEmployeeName('');
+      setShiftType('');
+      setCompletedTasks([]);
+      queryClient.invalidateQueries({ queryKey: ['/api/checklists'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Fehler",
+        description: "Beim Einreichen ist ein Fehler aufgetreten.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleTaskToggle = (taskId: string) => {
+    setCompletedTasks(prev => 
+      prev.includes(taskId) 
+        ? prev.filter(id => id !== taskId)
+        : [...prev, taskId]
+    );
+  };
+
+  const handleSubmit = () => {
+    if (!selectedStore || !employeeName || !shiftType) {
+      toast({
+        title: "Fehlende Angaben",
+        description: "Bitte füllen Sie alle Pflichtfelder aus.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!betriebsleiterCategory) {
+      toast({
+        title: "Fehler",
+        description: "Betriebsleiter-Kategorie nicht gefunden.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const checklist: InsertChecklist = {
+      categoryId: betriebsleiterCategory.id,
+      store: selectedStore,
+      employeeName,
+      shiftType,
+      completedTasks,
+      submittedAt: new Date().toISOString(),
+    };
+
+    submitMutation.mutate(checklist);
+  };
+
+  if (!betriebsleiterCategory) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate("/")} 
+            className="mb-6"
+          >
+            <ArrowLeft size={16} className="mr-2" />
+            Zurück zur Startseite
+          </Button>
+          <Card>
+            <CardContent className="p-6">
+              <p className="text-center text-gray-500">
+                Betriebsleiter-Kategorie muss erst im Admin-Bereich erstellt werden.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto p-6">
-        {/* Zurück Button */}
+      <div className="max-w-4xl mx-auto px-4 py-6">
         <Button 
           variant="ghost" 
           onClick={() => navigate("/")} 
@@ -48,91 +137,119 @@ export default function BetriebsleiterDashboard() {
           <ArrowLeft size={16} className="mr-2" />
           Zurück zur Startseite
         </Button>
-      <Card className="shadow-sm border border-gray-200 mb-6">
-        <CardContent className="pt-6">
-          <h2 className="text-xl font-medium mb-6">Betriebsleiter Dashboard</h2>
-          
-          {/* Overview Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Heutige Checklisten</p>
-                  {statsLoading ? (
-                    <Skeleton className="h-8 w-16" />
-                  ) : (
-                    <p className="text-2xl font-bold text-primary">{stats?.todayCompleted || 0}</p>
-                  )}
-                </div>
-                <ClipboardCheck className="text-primary" size={24} />
-              </div>
-            </div>
-            
-            <div className="bg-green-50 p-4 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Abschlussrate</p>
-                  {statsLoading ? (
-                    <Skeleton className="h-8 w-16" />
-                  ) : (
-                    <p className="text-2xl font-bold text-secondary">{stats?.completionRate || 0}%</p>
-                  )}
-                </div>
-                <TrendingUp className="text-secondary" size={24} />
-              </div>
-            </div>
-            
-            <div className="bg-yellow-50 p-4 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Offene Aufgaben</p>
-                  {statsLoading ? (
-                    <Skeleton className="h-8 w-16" />
-                  ) : (
-                    <p className="text-2xl font-bold text-accent">{stats?.pendingTasks || 0}</p>
-                  )}
-                </div>
-                <AlertTriangle className="text-accent" size={24} />
-              </div>
-            </div>
-          </div>
 
-          {/* Recent Activity */}
-          <div>
-            <h3 className="text-lg font-medium mb-4">Aktuelle Aktivitäten</h3>
-            <div className="space-y-3">
-              {checklistsLoading ? (
-                Array.from({ length: 3 }).map((_, i) => (
-                  <Skeleton key={i} className="h-16 w-full" />
-                ))
-              ) : todayChecklists.length > 0 ? (
-                todayChecklists.map((checklist) => (
-                  <div key={checklist.id} className="flex items-center p-3 bg-gray-50 rounded-lg">
-                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white text-sm font-medium mr-3">
-                      {checklist.employeeName.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">
-                        {checklist.employeeName} hat {AREA_LABELS[checklist.area as keyof typeof AREA_LABELS]}-Checkliste abgeschlossen
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {checklist.store} • {format(new Date(checklist.submittedAt!), "HH:mm", { locale: de })}
-                      </p>
-                    </div>
-                    <Badge variant="secondary">
-                      Vollständig
-                    </Badge>
-                  </div>
-                ))
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Betriebsleiter Aufgaben</h1>
+          <p className="text-gray-600">Ihre täglichen Aufgaben und Kontrollen</p>
+        </div>
+
+        <div className="space-y-6">
+          {/* Store-Auswahl */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Store auswählen</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Select value={selectedStore} onValueChange={setSelectedStore}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Store auswählen..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {STORES.map((store) => (
+                    <SelectItem key={store} value={store}>
+                      {store}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+
+          {/* Persönliche Angaben */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Persönliche Angaben</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="employeeName">Name</Label>
+                <Input
+                  id="employeeName"
+                  value={employeeName}
+                  onChange={(e) => setEmployeeName(e.target.value)}
+                  placeholder="Ihr Name..."
+                />
+              </div>
+              <div>
+                <Label htmlFor="shiftType">Schicht</Label>
+                <Select value={shiftType} onValueChange={setShiftType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Schicht auswählen..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Frühschicht">Frühschicht</SelectItem>
+                    <SelectItem value="Spätschicht">Spätschicht</SelectItem>
+                    <SelectItem value="Nachtschicht">Nachtschicht</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Aufgaben */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle size={20} />
+                Betriebsleiter Aufgaben ({completedTasks.length}/{betriebsleiterTasks.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {betriebsleiterTasks.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">
+                  Keine Aufgaben für Betriebsleiter definiert. 
+                  Bitte wenden Sie sich an den Administrator.
+                </p>
               ) : (
-                <div className="text-center py-8 text-gray-500">
-                  Keine Aktivitäten heute gefunden.
+                <div className="space-y-4">
+                  {betriebsleiterTasks.map((task) => (
+                    <div key={task.id} className="flex items-start space-x-3 p-4 border rounded-lg">
+                      <Checkbox
+                        id={task.id}
+                        checked={completedTasks.includes(task.id)}
+                        onCheckedChange={() => handleTaskToggle(task.id)}
+                      />
+                      <div className="flex-1">
+                        <label htmlFor={task.id} className="font-medium cursor-pointer">
+                          {task.title}
+                        </label>
+                        {task.description && (
+                          <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+
+          {/* Submit Button */}
+          {betriebsleiterTasks.length > 0 && (
+            <Card>
+              <CardContent className="p-6">
+                <Button 
+                  onClick={handleSubmit}
+                  disabled={submitMutation.isPending || !selectedStore || !employeeName || !shiftType}
+                  className="w-full"
+                  size="lg"
+                >
+                  {submitMutation.isPending ? "Wird eingereicht..." : "Aufgaben einreichen"}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </div>
   );
