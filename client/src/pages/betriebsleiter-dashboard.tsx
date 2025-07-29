@@ -40,7 +40,8 @@ export default function BetriebsleiterDashboard() {
   const betriebsleiterTasks = tasks.filter(t => t.categoryId === betriebsleiterCategory?.id);
 
   const submitMutation = useMutation({
-    mutationFn: async (checklist: InsertChecklist & { images?: string[] }) => {
+    mutationFn: async (checklist: InsertChecklist & { images?: string[]; taskImages?: Record<string, string[]>; taskNotes?: Record<string, string> }) => {
+      console.log("Mutation started with data:", checklist);
       const response = await apiRequest('POST', '/api/checklists', checklist);
       return response.json();
     },
@@ -351,7 +352,10 @@ export default function BetriebsleiterDashboard() {
             <Card>
               <CardContent className="p-6">
                 <Button 
-                  onClick={handleSubmit}
+                  onClick={() => {
+                    console.log("Submit button clicked!");
+                    handleSubmit();
+                  }}
                   disabled={submitMutation.isPending || !selectedStore}
                   className="w-full"
                   size="lg"
