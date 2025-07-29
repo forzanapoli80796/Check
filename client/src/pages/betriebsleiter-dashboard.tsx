@@ -213,7 +213,7 @@ export default function BetriebsleiterDashboard() {
               <CardContent className="p-6">
                 <Button 
                   onClick={handleSubmit}
-                  disabled={submitMutation.isPending || !selectedStore || !employeeName || !shiftType}
+                  disabled={submitMutation.isPending || !selectedStore}
                   className="w-full"
                   size="lg"
                 >
