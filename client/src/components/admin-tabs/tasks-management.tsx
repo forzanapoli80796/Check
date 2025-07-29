@@ -44,9 +44,6 @@ export default function TasksManagement() {
     title: "",
     description: "",
     categoryId: "",
-    icon: "desktop",
-    priority: "medium",
-    estimatedMinutes: "5",
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -61,7 +58,14 @@ export default function TasksManagement() {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const response = await apiRequest("POST", "/api/tasks", data);
+      // Add default values for missing fields
+      const taskData = {
+        ...data,
+        icon: "desktop",
+        priority: "medium", 
+        estimatedMinutes: "5"
+      };
+      const response = await apiRequest("POST", "/api/tasks", taskData);
       return response.json();
     },
     onSuccess: () => {
@@ -85,7 +89,14 @@ export default function TasksManagement() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
-      const response = await apiRequest("PUT", `/api/tasks/${id}`, data);
+      // Add default values for missing fields
+      const taskData = {
+        ...data,
+        icon: "desktop",
+        priority: "medium",
+        estimatedMinutes: "5"
+      };
+      const response = await apiRequest("PUT", `/api/tasks/${id}`, taskData);
       return response.json();
     },
     onSuccess: () => {
@@ -133,9 +144,6 @@ export default function TasksManagement() {
       title: "",
       description: "",
       categoryId: "",
-      icon: "desktop",
-      priority: "medium",
-      estimatedMinutes: "5",
     });
   };
 
@@ -145,9 +153,6 @@ export default function TasksManagement() {
       title: task.title,
       description: task.description || "",
       categoryId: task.categoryId,
-      icon: task.icon,
-      priority: task.priority,
-      estimatedMinutes: task.estimatedMinutes || "5",
     });
     setIsDialogOpen(true);
   };
@@ -245,54 +250,7 @@ export default function TasksManagement() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="icon">Icon</Label>
-                  <Select value={formData.icon} onValueChange={(value) => setFormData(prev => ({ ...prev, icon: value }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ICON_OPTIONS.map(option => {
-                        const IconComponent = option.icon;
-                        return (
-                          <SelectItem key={option.value} value={option.value}>
-                            <div className="flex items-center">
-                              <IconComponent size={16} className="mr-2" />
-                              {option.label}
-                            </div>
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="priority">Priorität</Label>
-                  <Select value={formData.priority} onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PRIORITY_OPTIONS.map(option => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="estimatedMinutes">Geschätzte Dauer (Minuten)</Label>
-                <Input
-                  id="estimatedMinutes"
-                  type="number"
-                  min="1"
-                  value={formData.estimatedMinutes}
-                  onChange={(e) => setFormData(prev => ({ ...prev, estimatedMinutes: e.target.value }))}
-                />
-              </div>
+
               <div className="flex space-x-2">
                 <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
                   {editingTask ? "Aktualisieren" : "Erstellen"}
