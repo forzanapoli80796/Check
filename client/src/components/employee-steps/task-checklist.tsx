@@ -84,7 +84,7 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
     const iconMap: Record<string, any> = {
       desktop: Icons.Monitor,
       print: Icons.Printer,
-      'spray-can': Icons.Spray,
+      'spray-can': Icons.Sparkles,
       coins: Icons.Coins,
       barcode: Icons.ScanLine,
       weight: Icons.Weight,

@@ -75,6 +75,8 @@ export class MemStorage implements IStorage {
           id,
           categoryId: terminalCategory.id,
           ...task,
+          description: task.description || null,
+          estimatedMinutes: task.estimatedMinutes || null,
           createdAt: new Date(),
         };
         this.tasks.set(id, taskObj);
@@ -99,6 +101,8 @@ export class MemStorage implements IStorage {
           id,
           categoryId: kucheCategory.id,
           ...task,
+          description: task.description || null,
+          estimatedMinutes: task.estimatedMinutes || null,
           createdAt: new Date(),
         };
         this.tasks.set(id, taskObj);
@@ -119,6 +123,8 @@ export class MemStorage implements IStorage {
           id,
           categoryId: fahrerCategory.id,
           ...task,
+          description: task.description || null,
+          estimatedMinutes: task.estimatedMinutes || null,
           createdAt: new Date(),
         };
         this.tasks.set(id, taskObj);
@@ -140,6 +146,7 @@ export class MemStorage implements IStorage {
     const category: Category = {
       ...insertCategory,
       id,
+      description: insertCategory.description || null,
       createdAt: new Date(),
     };
     this.categories.set(id, category);
@@ -177,6 +184,8 @@ export class MemStorage implements IStorage {
     const task: Task = {
       ...insertTask,
       id,
+      description: insertTask.description || null,
+      estimatedMinutes: insertTask.estimatedMinutes || null,
       createdAt: new Date(),
     };
     this.tasks.set(id, task);

@@ -11,7 +11,14 @@ import { AdminTabState } from "@/lib/types";
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<AdminTabState['activeTab']>('submitted');
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery<{
+    todayCompleted: number;
+    weekCompleted: number; 
+    activeTasks: number;
+    activeCategories: number;
+    completionRate: number;
+    pendingTasks: number;
+  }>({
     queryKey: ["/api/stats"],
   });
 

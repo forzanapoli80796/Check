@@ -18,7 +18,7 @@ import { Task, Category } from "@shared/schema";
 const ICON_OPTIONS = [
   { value: "desktop", label: "Monitor", icon: Icons.Monitor },
   { value: "print", label: "Printer", icon: Icons.Printer },
-  { value: "spray-can", label: "Spray", icon: Icons.Spray },
+  { value: "spray-can", label: "Spray", icon: Icons.Sparkles },
   { value: "coins", label: "Coins", icon: Icons.Coins },
   { value: "barcode", label: "Barcode", icon: Icons.ScanLine },
   { value: "weight", label: "Weight", icon: Icons.Weight },

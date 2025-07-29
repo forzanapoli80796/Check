@@ -9,7 +9,14 @@ import { Checklist } from "@shared/schema";
 import { AREA_LABELS } from "@/lib/types";
 
 export default function BetriebsleiterDashboard() {
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery<{
+    todayCompleted: number;
+    weekCompleted: number; 
+    activeTasks: number;
+    activeCategories: number;
+    completionRate: number;
+    pendingTasks: number;
+  }>({
     queryKey: ["/api/stats"],
   });
 
