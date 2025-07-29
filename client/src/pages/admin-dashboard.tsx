@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ClipboardCheck, Calendar, ListTodo, Users } from "lucide-react";
+import { ClipboardCheck, Calendar, ListTodo, Users, ArrowLeft } from "lucide-react";
 import SubmittedLists from "@/components/admin-tabs/submitted-lists";
 import CategoriesManagement from "@/components/admin-tabs/categories-management";
 import TasksManagement from "@/components/admin-tabs/tasks-management";
@@ -41,6 +42,15 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 py-6">
+        {/* Zurück Button */}
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate("/")} 
+          className="mb-6"
+        >
+          <ArrowLeft size={16} className="mr-2" />
+          Zurück zur Startseite
+        </Button>
       {/* Stats Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
         <Card className="shadow-sm border border-gray-200">

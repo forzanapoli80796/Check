@@ -60,7 +60,7 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
 
   useEffect(() => {
     updateState({ totalTasks: filteredTasks.length });
-  }, [filteredTasks.length, updateState]);
+  }, [filteredTasks.length]);
 
   const toggleTask = (taskId: string) => {
     setCompletedTasks(prev => {

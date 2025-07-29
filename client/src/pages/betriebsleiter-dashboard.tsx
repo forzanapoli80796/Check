@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ClipboardCheck, TrendingUp, AlertTriangle } from "lucide-react";
+import { ClipboardCheck, TrendingUp, AlertTriangle, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { Checklist } from "@shared/schema";
@@ -38,6 +39,15 @@ export default function BetriebsleiterDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto p-6">
+        {/* Zurück Button */}
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate("/")} 
+          className="mb-6"
+        >
+          <ArrowLeft size={16} className="mr-2" />
+          Zurück zur Startseite
+        </Button>
       <Card className="shadow-sm border border-gray-200 mb-6">
         <CardContent className="pt-6">
           <h2 className="text-xl font-medium mb-6">Betriebsleiter Dashboard</h2>

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ArrowLeft } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
 
@@ -38,6 +39,16 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Zurück Button */}
+      <div className="absolute top-4 left-4">
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate("/")}
+        >
+          <ArrowLeft size={16} className="mr-2" />
+          Zurück zur Startseite
+        </Button>
+      </div>
       <div className="flex items-center justify-center px-4 pt-16">
         <div className="max-w-md w-full mx-auto">
           <Card className="shadow-sm border border-gray-200">
@@ -51,22 +62,13 @@ export default function AdminLogin() {
               onChange={(e) => setCode(e.target.value)}
               className="w-full"
             />
-            <div className="flex space-x-3">
-              <Button 
-                type="submit" 
-                className="flex-1" 
-                disabled={verifyMutation.isPending}
-              >
-                {verifyMutation.isPending ? "Überprüfung..." : "Bestätigen"}
-              </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={handleBack}
-              >
-                Zurück
-              </Button>
-            </div>
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={verifyMutation.isPending}
+            >
+              {verifyMutation.isPending ? "Überprüfung..." : "Bestätigen"}
+            </Button>
           </form>
           {error && (
             <Alert className="mt-4 border-destructive">
