@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, CheckCircle, X, Camera } from "lucide-react";
+import { ArrowLeft, CheckCircle, X, Camera, FileText } from "lucide-react";
 import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -21,6 +22,7 @@ export default function BetriebsleiterDashboard() {
   const [selectedStore, setSelectedStore] = useState<string>('');
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
   const [taskImages, setTaskImages] = useState<Record<string, string[]>>({});
+  const [taskNotes, setTaskNotes] = useState<Record<string, string>>({});
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ['/api/categories']
@@ -51,6 +53,7 @@ export default function BetriebsleiterDashboard() {
       setSelectedStore('');
       setCompletedTasks([]);
       setTaskImages({});
+      setTaskNotes({});
       queryClient.invalidateQueries({ queryKey: ['/api/checklists'] });
     },
     onError: (error) => {
@@ -96,6 +99,13 @@ export default function BetriebsleiterDashboard() {
     }));
   };
 
+  const handleNoteChange = (taskId: string, note: string) => {
+    setTaskNotes(prev => ({
+      ...prev,
+      [taskId]: note
+    }));
+  };
+
   const handleSubmit = () => {
     console.log("Debug values:", {
       selectedStore,
@@ -124,7 +134,7 @@ export default function BetriebsleiterDashboard() {
     // Alle Bilder zu einem Array zusammenfassen
     const allImages = Object.values(taskImages).flat();
     
-    const checklistData: InsertChecklist & { images?: string[]; taskImages?: Record<string, string[]> } = {
+    const checklistData: InsertChecklist & { images?: string[]; taskImages?: Record<string, string[]>; taskNotes?: Record<string, string> } = {
       categoryId: betriebsleiterCategory.id,
       store: selectedStore,
       employeeName: "Betriebsleiter",
@@ -132,6 +142,7 @@ export default function BetriebsleiterDashboard() {
       completedTasks,
       images: allImages,
       taskImages: taskImages,
+      taskNotes: taskNotes,
     };
 
     console.log("Submitting checklist:", checklistData);
@@ -253,61 +264,80 @@ export default function BetriebsleiterDashboard() {
                         </div>
                       </div>
                       
-                      {/* Bild-Upload für diese Aufgabe */}
-                      <div className="ml-6 space-y-3">
-                        <div className="flex items-center gap-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const input = document.getElementById(`file-${task.id}`) as HTMLInputElement;
-                              input?.click();
-                            }}
-                            className="flex items-center gap-2"
-                          >
-                            <Camera size={14} />
-                            Bilder hinzufügen (optional)
-                          </Button>
+                      {/* Optionale Zusatz-Informationen für diese Aufgabe */}
+                      <div className="ml-6 space-y-4 border-t pt-3 mt-3">
+                        {/* Notiz-Textfeld */}
+                        <div>
+                          <Label htmlFor={`note-${task.id}`} className="text-sm font-medium flex items-center gap-2 mb-2">
+                            <FileText size={14} />
+                            Notiz zu dieser Aufgabe (optional)
+                          </Label>
+                          <Textarea
+                            id={`note-${task.id}`}
+                            placeholder="Zusätzliche Bemerkungen, Beobachtungen oder Details..."
+                            value={taskNotes[task.id] || ''}
+                            onChange={(e) => handleNoteChange(task.id, e.target.value)}
+                            rows={3}
+                            className="resize-none"
+                          />
+                        </div>
+
+                        {/* Bild-Upload */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const input = document.getElementById(`file-${task.id}`) as HTMLInputElement;
+                                input?.click();
+                              }}
+                              className="flex items-center gap-2"
+                            >
+                              <Camera size={14} />
+                              Bilder hinzufügen (optional)
+                            </Button>
+                            {taskImages[task.id]?.length > 0 && (
+                              <span className="text-sm text-gray-500">
+                                {taskImages[task.id].length} Bild(er)
+                              </span>
+                            )}
+                          </div>
+                          
+                          <input
+                            id={`file-${task.id}`}
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={(e) => handleImageUpload(e, task.id)}
+                            className="hidden"
+                          />
+
+                          {/* Bild-Vorschau für diese Aufgabe */}
                           {taskImages[task.id]?.length > 0 && (
-                            <span className="text-sm text-gray-500">
-                              {taskImages[task.id].length} Bild(er)
-                            </span>
+                            <div className="grid grid-cols-3 gap-2">
+                              {taskImages[task.id].map((image, index) => (
+                                <div key={index} className="relative group">
+                                  <img
+                                    src={image}
+                                    alt={`${task.title} Bild ${index + 1}`}
+                                    className="w-full h-20 object-cover rounded border"
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => removeTaskImage(task.id, index)}
+                                    className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6 w-6"
+                                  >
+                                    <X size={10} />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
                           )}
                         </div>
-                        
-                        <input
-                          id={`file-${task.id}`}
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          onChange={(e) => handleImageUpload(e, task.id)}
-                          className="hidden"
-                        />
-
-                        {/* Bild-Vorschau für diese Aufgabe */}
-                        {taskImages[task.id]?.length > 0 && (
-                          <div className="grid grid-cols-3 gap-2">
-                            {taskImages[task.id].map((image, index) => (
-                              <div key={index} className="relative group">
-                                <img
-                                  src={image}
-                                  alt={`${task.title} Bild ${index + 1}`}
-                                  className="w-full h-20 object-cover rounded border"
-                                />
-                                <Button
-                                  type="button"
-                                  variant="destructive"
-                                  size="sm"
-                                  onClick={() => removeTaskImage(task.id, index)}
-                                  className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6 w-6"
-                                >
-                                  <X size={10} />
-                                </Button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
                       </div>
                     </div>
                   ))}

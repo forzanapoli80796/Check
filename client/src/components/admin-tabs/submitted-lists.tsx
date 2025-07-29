@@ -309,33 +309,62 @@ export default function SubmittedLists() {
                 </div>
               )}
 
-              {/* Task Images (if applicable) */}
-              {selectedChecklist.taskImages && typeof selectedChecklist.taskImages === 'object' && Object.keys(selectedChecklist.taskImages).length > 0 && (
+              {/* Task Notes and Images */}
+              {((selectedChecklist.taskNotes && typeof selectedChecklist.taskNotes === 'object' && Object.keys(selectedChecklist.taskNotes).length > 0) ||
+                (selectedChecklist.taskImages && typeof selectedChecklist.taskImages === 'object' && Object.keys(selectedChecklist.taskImages).length > 0)) && (
                 <div>
-                  <h4 className="font-medium mb-3">Aufgaben-Bilder</h4>
+                  <h4 className="font-medium mb-3">Zusätzliche Aufgaben-Informationen</h4>
                   <div className="space-y-4">
-                    {Object.entries(selectedChecklist.taskImages as Record<string, string[]>).map(([taskId, images]) => {
+                    {/* Alle Task-IDs sammeln die entweder Notizen oder Bilder haben */}
+                    {Array.from(new Set([
+                      ...Object.keys((selectedChecklist.taskNotes as Record<string, string>) || {}),
+                      ...Object.keys((selectedChecklist.taskImages as Record<string, string[]>) || {})
+                    ])).map((taskId) => {
                       const task = tasks.find(t => t.id === taskId);
-                      if (!images || images.length === 0) return null;
+                      const note = (selectedChecklist.taskNotes as Record<string, string>)?.[taskId];
+                      const images = (selectedChecklist.taskImages as Record<string, string[]>)?.[taskId] || [];
+                      
+                      // Nur anzeigen wenn Notiz oder Bilder vorhanden sind
+                      if (!note?.trim() && images.length === 0) return null;
                       
                       return (
-                        <div key={taskId} className="p-3 bg-gray-50 rounded-lg">
-                          <h5 className="font-medium text-sm mb-2">{task?.title || 'Unbekannte Aufgabe'}</h5>
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                            {images.map((image, index) => (
-                              <div key={index} className="relative group">
-                                <img
-                                  src={image}
-                                  alt={`${task?.title || 'Aufgabe'} Bild ${index + 1}`}
-                                  className="w-full h-24 object-cover rounded border cursor-pointer hover:opacity-90 transition-opacity"
-                                  onClick={() => window.open(image, '_blank')}
-                                />
-                                <div className="absolute bottom-1 left-1 bg-black bg-opacity-60 text-white text-xs px-1 py-0.5 rounded">
-                                  {index + 1}
-                                </div>
+                        <div key={taskId} className="p-4 bg-gray-50 rounded-lg">
+                          <h5 className="font-medium text-sm mb-3 flex items-center gap-2">
+                            <CheckCircle2 size={16} className="text-green-600" />
+                            {task?.title || 'Unbekannte Aufgabe'}
+                          </h5>
+                          
+                          {/* Notiz anzeigen */}
+                          {note?.trim() && (
+                            <div className="mb-3">
+                              <p className="text-xs font-medium text-gray-600 mb-1">Notiz:</p>
+                              <p className="text-sm bg-white p-3 rounded border">{note}</p>
+                            </div>
+                          )}
+                          
+                          {/* Bilder anzeigen */}
+                          {images.length > 0 && (
+                            <div>
+                              <p className="text-xs font-medium text-gray-600 mb-2">
+                                Bilder ({images.length}):
+                              </p>
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                {images.map((image, index) => (
+                                  <div key={index} className="relative group">
+                                    <img
+                                      src={image}
+                                      alt={`${task?.title || 'Aufgabe'} Bild ${index + 1}`}
+                                      className="w-full h-24 object-cover rounded border cursor-pointer hover:opacity-90 transition-opacity"
+                                      onClick={() => window.open(image, '_blank')}
+                                    />
+                                    <div className="absolute bottom-1 left-1 bg-black bg-opacity-60 text-white text-xs px-1 py-0.5 rounded">
+                                      {index + 1}
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
-                            ))}
-                          </div>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
