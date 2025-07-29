@@ -15,7 +15,9 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
   const [name, setName] = useState(state.employeeName);
   const [selectedShift, setSelectedShift] = useState(state.selectedShift);
 
-  const isComplete = name.trim() && selectedShift;
+  // For inventory, skip shift selection
+  const isInventory = state.selectedArea === 'inventur';
+  const isComplete = name.trim() && (isInventory || selectedShift);
 
   const selectShift = (shift: 'schichtanfang' | 'schichtende') => {
     setSelectedShift(shift);
@@ -24,7 +26,7 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
   const proceedToTasks = () => {
     updateState({ 
       employeeName: name.trim(), 
-      selectedShift, 
+      selectedShift: isInventory ? 'schichtanfang' : selectedShift, // Default for inventory
       step: 'tasks' 
     });
   };
@@ -55,27 +57,39 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
               className="mt-2"
             />
           </div>
-          <div>
-            <Label className="block mb-3">Schicht</Label>
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                variant="outline"
-                onClick={() => selectShift('schichtanfang')}
-                className={`p-3 ${selectedShift === 'schichtanfang' ? 'selection-button selected' : 'selection-button'}`}
-              >
-                <Play className="text-secondary mr-2" size={16} />
-                Schichtanfang
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => selectShift('schichtende')}
-                className={`p-3 ${selectedShift === 'schichtende' ? 'selection-button selected' : 'selection-button'}`}
-              >
-                <Square className="text-red-500 mr-2" size={16} />
-                Schichtende
-              </Button>
+          {/* Only show shift selection if not inventory */}
+          {!isInventory && (
+            <div>
+              <Label className="block mb-3">Schicht</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => selectShift('schichtanfang')}
+                  className={`p-3 ${selectedShift === 'schichtanfang' ? 'selection-button selected' : 'selection-button'}`}
+                >
+                  <Play className="text-secondary mr-2" size={16} />
+                  Schichtanfang
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => selectShift('schichtende')}
+                  className={`p-3 ${selectedShift === 'schichtende' ? 'selection-button selected' : 'selection-button'}`}
+                >
+                  <Square className="text-red-500 mr-2" size={16} />
+                  Schichtende
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Info message for inventory */}
+          {isInventory && (
+            <div className="bg-blue-50 p-3 rounded-lg">
+              <p className="text-sm text-blue-800">
+                Bei der Inventur ist keine Schichtauswahl erforderlich.
+              </p>
+            </div>
+          )}
         </div>
         <div className="flex space-x-3 mt-6">
           <Button 
