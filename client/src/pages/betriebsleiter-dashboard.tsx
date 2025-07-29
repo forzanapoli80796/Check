@@ -114,7 +114,7 @@ export default function BetriebsleiterDashboard() {
       completedTasks
     });
 
-    if (!selectedStore) {
+    if (!selectedStore || selectedStore.trim() === '') {
       toast({
         title: "Fehlende Angaben",
         description: "Bitte wählen Sie einen Store aus.",
@@ -147,6 +147,7 @@ export default function BetriebsleiterDashboard() {
     };
 
     console.log("Submitting checklist:", checklistData);
+    console.log("Store check passed - submitting now");
     submitMutation.mutate(checklistData);
   };
 
@@ -214,7 +215,13 @@ export default function BetriebsleiterDashboard() {
               <CardTitle>Store auswählen</CardTitle>
             </CardHeader>
             <CardContent>
-              <Select value={selectedStore} onValueChange={setSelectedStore}>
+              <Select 
+                value={selectedStore} 
+                onValueChange={(value) => {
+                  console.log("Store selected:", value);
+                  setSelectedStore(value);
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Store auswählen..." />
                 </SelectTrigger>
@@ -226,6 +233,11 @@ export default function BetriebsleiterDashboard() {
                   ))}
                 </SelectContent>
               </Select>
+              {selectedStore && (
+                <p className="text-sm text-green-600 mt-2">
+                  ✓ Store {selectedStore} ausgewählt
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -353,15 +365,21 @@ export default function BetriebsleiterDashboard() {
               <CardContent className="p-6">
                 <Button 
                   onClick={() => {
-                    console.log("Submit button clicked!");
+                    console.log("Submit button clicked! Store:", selectedStore);
                     handleSubmit();
                   }}
-                  disabled={submitMutation.isPending || !selectedStore}
+                  disabled={submitMutation.isPending || !selectedStore || selectedStore.trim() === ''}
                   className="w-full"
                   size="lg"
                 >
                   {submitMutation.isPending ? "Wird eingereicht..." : "Aufgaben einreichen"}
                 </Button>
+                
+                {(!selectedStore || selectedStore.trim() === '') && (
+                  <p className="text-sm text-amber-600 mt-2 text-center">
+                    ⚠️ Bitte wählen Sie zuerst einen Store aus
+                  </p>
+                )}
               </CardContent>
             </Card>
           )}
