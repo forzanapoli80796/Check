@@ -117,7 +117,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/checklists", async (req, res) => {
     try {
       console.log("Received checklist data:", JSON.stringify(req.body, null, 2));
-      const validatedData = insertChecklistSchema.parse(req.body);
+      
+      // Handle legacy format from employee workflow (area -> categoryId, shift -> shiftType)
+      let requestData = { ...req.body };
+      if (requestData.area && !requestData.categoryId) {
+        // Find category by name/area
+        const categories = await storage.getCategories();
+        const categoryMap = {
+          'terminal': 'Terminal',
+          'kitchen': 'Küche', 
+          'driver': 'Fahrer',
+          'inventory': 'Inventur',
+          'cleaning': 'Sonderreinigung'
+        };
+        const categoryName = categoryMap[requestData.area.toLowerCase()] || requestData.area;
+        const category = categories.find(c => c.name.toLowerCase() === categoryName.toLowerCase());
+        if (category) {
+          requestData.categoryId = category.id;
+        }
+        delete requestData.area;
+      }
+      
+      if (requestData.shift && !requestData.shiftType) {
+        requestData.shiftType = requestData.shift;
+        delete requestData.shift;
+      }
+      
+      // Clean up extra fields
+      delete requestData.totalTasks;
+      
+      const validatedData = insertChecklistSchema.parse(requestData);
       const checklist = await storage.createChecklist(validatedData);
       res.json(checklist);
     } catch (error) {
