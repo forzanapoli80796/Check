@@ -18,7 +18,7 @@ export default function Header({
   title 
 }: HeaderProps) {
   return (
-    <div className="bg-white border-b border-gray-200 px-4 py-4 mb-6">
+    <div className="bg-white border-b border-gray-200 px-4 py-8 mb-6">
       <div className="max-w-4xl mx-auto flex items-center justify-between">
         <div className="flex items-center">
           {showBackButton && onBack && (
@@ -46,7 +46,7 @@ export default function Header({
           <img 
             src={logoPath} 
             alt="ForzaCheck Logo" 
-            className="h-8"
+            className="h-40"
           />
         </div>
         {title && (
