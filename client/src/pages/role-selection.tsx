@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { User, Shield, Settings } from "lucide-react";
+import { User, Shield, Settings, Cookie } from "lucide-react";
 import logoPath from "@assets/FORZACHECK1_black_1753816621910.png";
 
 export default function RoleSelection() {
@@ -12,6 +12,9 @@ export default function RoleSelection() {
       navigate("/employee");
     } else if (role === 'betriebsleiter') {
       navigate("/betriebsleiter");
+    } else if (role === 'teig') {
+      // Teig führt auch zum Employee Workflow
+      navigate("/employee");
     }
   };
 
@@ -47,6 +50,16 @@ export default function RoleSelection() {
               <Shield className="text-white" size={24} />
             </div>
             <span className="text-lg font-medium text-gray-900">Betriebsleiter</span>
+          </button>
+          
+          <button
+            onClick={() => selectRole('teig')}
+            className="w-full flex items-center p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200"
+          >
+            <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center mr-4">
+              <Cookie className="text-white" size={24} />
+            </div>
+            <span className="text-lg font-medium text-gray-900">Teig</span>
           </button>
           
           <button

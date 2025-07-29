@@ -35,7 +35,7 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
 
   useEffect(() => {
     updateState({ employeeName: name, selectedShift });
-  }, [name, selectedShift, updateState]);
+  }, [name, selectedShift]);
 
   return (
     <Card className="shadow-sm border border-gray-200">
