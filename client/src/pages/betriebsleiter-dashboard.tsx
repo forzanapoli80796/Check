@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, CheckCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle, Upload, X, Camera } from "lucide-react";
 import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -20,6 +20,8 @@ export default function BetriebsleiterDashboard() {
   
   const [selectedStore, setSelectedStore] = useState<string>('');
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ['/api/categories']
@@ -37,7 +39,7 @@ export default function BetriebsleiterDashboard() {
   const betriebsleiterTasks = tasks.filter(t => t.categoryId === betriebsleiterCategory?.id);
 
   const submitMutation = useMutation({
-    mutationFn: async (checklist: InsertChecklist) => {
+    mutationFn: async (checklist: InsertChecklist & { images?: string[] }) => {
       const response = await apiRequest('POST', '/api/checklists', checklist);
       return response.json();
     },
@@ -49,6 +51,7 @@ export default function BetriebsleiterDashboard() {
       // Formular zurücksetzen
       setSelectedStore('');
       setCompletedTasks([]);
+      setUploadedImages([]);
       queryClient.invalidateQueries({ queryKey: ['/api/checklists'] });
     },
     onError: (error) => {
@@ -66,6 +69,26 @@ export default function BetriebsleiterDashboard() {
         ? prev.filter(id => id !== taskId)
         : [...prev, taskId]
     );
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    Array.from(files).forEach(file => {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const base64 = e.target?.result as string;
+          setUploadedImages(prev => [...prev, base64]);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  };
+
+  const removeImage = (index: number) => {
+    setUploadedImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = () => {
@@ -93,16 +116,17 @@ export default function BetriebsleiterDashboard() {
       return;
     }
 
-    const checklist: InsertChecklist = {
+    const checklistData: InsertChecklist & { images?: string[] } = {
       categoryId: betriebsleiterCategory.id,
       store: selectedStore,
       employeeName: "Betriebsleiter",
       shiftType: "Standard",
       completedTasks,
+      images: uploadedImages,
     };
 
-    console.log("Submitting checklist:", checklist);
-    submitMutation.mutate(checklist);
+    console.log("Submitting checklist:", checklistData);
+    submitMutation.mutate(checklistData);
   };
 
   if (!betriebsleiterCategory) {
@@ -184,7 +208,70 @@ export default function BetriebsleiterDashboard() {
             </CardContent>
           </Card>
 
+          {/* Bild-Upload Sektion */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Camera size={20} />
+                Bilder hochladen (optional)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-2"
+                  >
+                    <Upload size={16} />
+                    Bilder auswählen
+                  </Button>
+                  <span className="text-sm text-gray-500">
+                    {uploadedImages.length > 0 && `${uploadedImages.length} Bild(er) ausgewählt`}
+                  </span>
+                </div>
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
 
+                {/* Bild-Vorschau */}
+                {uploadedImages.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {uploadedImages.map((image, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={image}
+                          alt={`Upload ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg border"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => removeImage(index)}
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X size={12} />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                <p className="text-xs text-gray-500">
+                  Sie können optional Bilder zu Ihrer Checkliste hinzufügen. Diese werden dem Administrator zur Verfügung gestellt.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Aufgaben */}
           <Card>

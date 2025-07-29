@@ -29,6 +29,7 @@ export const checklists = pgTable("checklists", {
   store: text("store").notNull(),
   shiftType: text("shift_type").notNull(),
   completedTasks: jsonb("completed_tasks").notNull().default('[]'), // array of task IDs
+  images: jsonb("images").default('[]'), // array of image URLs/base64 data for Betriebsleiter
   submittedAt: timestamp("submitted_at").defaultNow(),
 });
 

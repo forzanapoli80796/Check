@@ -308,6 +308,31 @@ export default function SubmittedLists() {
                   </div>
                 </div>
               )}
+
+              {/* Uploaded Images (if applicable) */}
+              {selectedChecklist.images && Array.isArray(selectedChecklist.images) && selectedChecklist.images.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-3">Hochgeladene Bilder</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {selectedChecklist.images.map((image, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={image}
+                          alt={`Bild ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg border cursor-pointer hover:opacity-90 transition-opacity"
+                          onClick={() => window.open(image, '_blank')}
+                        />
+                        <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
+                          Bild {index + 1}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Klicken Sie auf ein Bild, um es in voller Größe zu öffnen.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
