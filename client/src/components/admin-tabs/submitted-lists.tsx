@@ -309,24 +309,36 @@ export default function SubmittedLists() {
                 </div>
               )}
 
-              {/* Uploaded Images (if applicable) */}
-              {selectedChecklist.images && Array.isArray(selectedChecklist.images) && selectedChecklist.images.length > 0 && (
+              {/* Task Images (if applicable) */}
+              {selectedChecklist.taskImages && typeof selectedChecklist.taskImages === 'object' && Object.keys(selectedChecklist.taskImages).length > 0 && (
                 <div>
-                  <h4 className="font-medium mb-3">Hochgeladene Bilder</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {selectedChecklist.images.map((image, index) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={image}
-                          alt={`Bild ${index + 1}`}
-                          className="w-full h-32 object-cover rounded-lg border cursor-pointer hover:opacity-90 transition-opacity"
-                          onClick={() => window.open(image, '_blank')}
-                        />
-                        <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
-                          Bild {index + 1}
+                  <h4 className="font-medium mb-3">Aufgaben-Bilder</h4>
+                  <div className="space-y-4">
+                    {Object.entries(selectedChecklist.taskImages as Record<string, string[]>).map(([taskId, images]) => {
+                      const task = tasks.find(t => t.id === taskId);
+                      if (!images || images.length === 0) return null;
+                      
+                      return (
+                        <div key={taskId} className="p-3 bg-gray-50 rounded-lg">
+                          <h5 className="font-medium text-sm mb-2">{task?.title || 'Unbekannte Aufgabe'}</h5>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            {images.map((image, index) => (
+                              <div key={index} className="relative group">
+                                <img
+                                  src={image}
+                                  alt={`${task?.title || 'Aufgabe'} Bild ${index + 1}`}
+                                  className="w-full h-24 object-cover rounded border cursor-pointer hover:opacity-90 transition-opacity"
+                                  onClick={() => window.open(image, '_blank')}
+                                />
+                                <div className="absolute bottom-1 left-1 bg-black bg-opacity-60 text-white text-xs px-1 py-0.5 rounded">
+                                  {index + 1}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
                     Klicken Sie auf ein Bild, um es in voller Größe zu öffnen.

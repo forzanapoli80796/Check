@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, CheckCircle, Upload, X, Camera } from "lucide-react";
+import { ArrowLeft, CheckCircle, X, Camera } from "lucide-react";
 import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -20,8 +20,7 @@ export default function BetriebsleiterDashboard() {
   
   const [selectedStore, setSelectedStore] = useState<string>('');
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [taskImages, setTaskImages] = useState<Record<string, string[]>>({});
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ['/api/categories']
@@ -51,7 +50,7 @@ export default function BetriebsleiterDashboard() {
       // Formular zurücksetzen
       setSelectedStore('');
       setCompletedTasks([]);
-      setUploadedImages([]);
+      setTaskImages({});
       queryClient.invalidateQueries({ queryKey: ['/api/checklists'] });
     },
     onError: (error) => {
@@ -71,7 +70,7 @@ export default function BetriebsleiterDashboard() {
     );
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, taskId: string) => {
     const files = event.target.files;
     if (!files) return;
 
@@ -80,15 +79,21 @@ export default function BetriebsleiterDashboard() {
         const reader = new FileReader();
         reader.onload = (e) => {
           const base64 = e.target?.result as string;
-          setUploadedImages(prev => [...prev, base64]);
+          setTaskImages(prev => ({
+            ...prev,
+            [taskId]: [...(prev[taskId] || []), base64]
+          }));
         };
         reader.readAsDataURL(file);
       }
     });
   };
 
-  const removeImage = (index: number) => {
-    setUploadedImages(prev => prev.filter((_, i) => i !== index));
+  const removeTaskImage = (taskId: string, imageIndex: number) => {
+    setTaskImages(prev => ({
+      ...prev,
+      [taskId]: prev[taskId]?.filter((_, i) => i !== imageIndex) || []
+    }));
   };
 
   const handleSubmit = () => {
@@ -116,13 +121,17 @@ export default function BetriebsleiterDashboard() {
       return;
     }
 
-    const checklistData: InsertChecklist & { images?: string[] } = {
+    // Alle Bilder zu einem Array zusammenfassen
+    const allImages = Object.values(taskImages).flat();
+    
+    const checklistData: InsertChecklist & { images?: string[]; taskImages?: Record<string, string[]> } = {
       categoryId: betriebsleiterCategory.id,
       store: selectedStore,
       employeeName: "Betriebsleiter",
       shiftType: "Standard",
       completedTasks,
-      images: uploadedImages,
+      images: allImages,
+      taskImages: taskImages,
     };
 
     console.log("Submitting checklist:", checklistData);
@@ -208,70 +217,7 @@ export default function BetriebsleiterDashboard() {
             </CardContent>
           </Card>
 
-          {/* Bild-Upload Sektion */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Camera size={20} />
-                Bilder hochladen (optional)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-2"
-                  >
-                    <Upload size={16} />
-                    Bilder auswählen
-                  </Button>
-                  <span className="text-sm text-gray-500">
-                    {uploadedImages.length > 0 && `${uploadedImages.length} Bild(er) ausgewählt`}
-                  </span>
-                </div>
-                
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
 
-                {/* Bild-Vorschau */}
-                {uploadedImages.length > 0 && (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {uploadedImages.map((image, index) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={image}
-                          alt={`Upload ${index + 1}`}
-                          className="w-full h-32 object-cover rounded-lg border"
-                        />
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => removeImage(index)}
-                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X size={12} />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                
-                <p className="text-xs text-gray-500">
-                  Sie können optional Bilder zu Ihrer Checkliste hinzufügen. Diese werden dem Administrator zur Verfügung gestellt.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Aufgaben */}
           <Card>
@@ -290,18 +236,77 @@ export default function BetriebsleiterDashboard() {
               ) : (
                 <div className="space-y-4">
                   {betriebsleiterTasks.map((task) => (
-                    <div key={task.id} className="flex items-start space-x-3 p-4 border rounded-lg">
-                      <Checkbox
-                        id={task.id}
-                        checked={completedTasks.includes(task.id)}
-                        onCheckedChange={() => handleTaskToggle(task.id)}
-                      />
-                      <div className="flex-1">
-                        <label htmlFor={task.id} className="font-medium cursor-pointer">
-                          {task.title}
-                        </label>
-                        {task.description && (
-                          <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+                    <div key={task.id} className="border rounded-lg p-4">
+                      <div className="flex items-start space-x-3 mb-3">
+                        <Checkbox
+                          id={task.id}
+                          checked={completedTasks.includes(task.id)}
+                          onCheckedChange={() => handleTaskToggle(task.id)}
+                        />
+                        <div className="flex-1">
+                          <label htmlFor={task.id} className="font-medium cursor-pointer">
+                            {task.title}
+                          </label>
+                          {task.description && (
+                            <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Bild-Upload für diese Aufgabe */}
+                      <div className="ml-6 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const input = document.getElementById(`file-${task.id}`) as HTMLInputElement;
+                              input?.click();
+                            }}
+                            className="flex items-center gap-2"
+                          >
+                            <Camera size={14} />
+                            Bilder hinzufügen (optional)
+                          </Button>
+                          {taskImages[task.id]?.length > 0 && (
+                            <span className="text-sm text-gray-500">
+                              {taskImages[task.id].length} Bild(er)
+                            </span>
+                          )}
+                        </div>
+                        
+                        <input
+                          id={`file-${task.id}`}
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={(e) => handleImageUpload(e, task.id)}
+                          className="hidden"
+                        />
+
+                        {/* Bild-Vorschau für diese Aufgabe */}
+                        {taskImages[task.id]?.length > 0 && (
+                          <div className="grid grid-cols-3 gap-2">
+                            {taskImages[task.id].map((image, index) => (
+                              <div key={index} className="relative group">
+                                <img
+                                  src={image}
+                                  alt={`${task.title} Bild ${index + 1}`}
+                                  className="w-full h-20 object-cover rounded border"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => removeTaskImage(task.id, index)}
+                                  className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6 w-6"
+                                >
+                                  <X size={10} />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
                         )}
                       </div>
                     </div>
