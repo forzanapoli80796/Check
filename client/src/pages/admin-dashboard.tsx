@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 import { ArrowLeft, Cookie } from "lucide-react";
+import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
 import SubmittedLists from "@/components/admin-tabs/submitted-lists";
 import CategoriesManagement from "@/components/admin-tabs/categories-management";
 import TasksManagement from "@/components/admin-tabs/tasks-management";
@@ -34,17 +35,18 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        {/* Zurück Button */}
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate("/")} 
-          className="mb-6"
-        >
-          <ArrowLeft size={16} className="mr-2" />
-          Zurück zur Startseite
-        </Button>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Logo Header */}
+      <div className="flex justify-center py-6">
+        <img 
+          src={forzaCheckLogo} 
+          alt="ForzaCheck Logo" 
+          className="h-16 object-contain"
+        />
+      </div>
+      
+      <div className="flex-1">
+        <div className="max-w-6xl mx-auto px-4 py-6">
 
 
       {/* Navigation Tabs */}
@@ -82,6 +84,19 @@ export default function AdminDashboard() {
           {renderTabContent()}
         </CardContent>
       </Card>
+        </div>
+      </div>
+      
+      {/* Footer mit Zurück Button */}
+      <div className="py-6 flex justify-center">
+        <Button 
+          variant="outline" 
+          onClick={() => navigate("/")}
+          className="px-8"
+        >
+          <ArrowLeft size={16} className="mr-2" />
+          Zurück zur Startseite
+        </Button>
       </div>
     </div>
   );

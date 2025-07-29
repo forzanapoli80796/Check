@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, CheckCircle } from "lucide-react";
+import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Task, Category, InsertChecklist } from "@shared/schema";
@@ -106,44 +107,60 @@ export default function BetriebsleiterDashboard() {
 
   if (!betriebsleiterCategory) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        {/* Logo Header */}
+        <div className="flex justify-center py-6">
+          <img 
+            src={forzaCheckLogo} 
+            alt="ForzaCheck Logo" 
+            className="h-16 object-contain"
+          />
+        </div>
+        
+        <div className="flex-1">
+          <div className="max-w-4xl mx-auto px-4 py-6">
+            <Card>
+              <CardContent className="p-6">
+                <p className="text-center text-gray-500">
+                  Betriebsleiter-Kategorie muss erst im Admin-Bereich erstellt werden.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+        
+        {/* Footer mit Zurück Button */}
+        <div className="py-6 flex justify-center">
           <Button 
-            variant="ghost" 
-            onClick={() => navigate("/")} 
-            className="mb-6"
+            variant="outline" 
+            onClick={() => navigate("/")}
+            className="px-8"
           >
             <ArrowLeft size={16} className="mr-2" />
             Zurück zur Startseite
           </Button>
-          <Card>
-            <CardContent className="p-6">
-              <p className="text-center text-gray-500">
-                Betriebsleiter-Kategorie muss erst im Admin-Bereich erstellt werden.
-              </p>
-            </CardContent>
-          </Card>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate("/")} 
-          className="mb-6"
-        >
-          <ArrowLeft size={16} className="mr-2" />
-          Zurück zur Startseite
-        </Button>
-
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Betriebsleiter Aufgaben</h1>
-          <p className="text-gray-600">Ihre täglichen Aufgaben und Kontrollen</p>
-        </div>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Logo Header */}
+      <div className="flex justify-center py-6">
+        <img 
+          src={forzaCheckLogo} 
+          alt="ForzaCheck Logo" 
+          className="h-16 object-contain"
+        />
+      </div>
+      
+      <div className="flex-1">
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-2">Betriebsleiter Aufgaben</h1>
+            <p className="text-gray-600">Ihre täglichen Aufgaben und Kontrollen</p>
+          </div>
 
         <div className="space-y-6">
           {/* Store-Auswahl */}
@@ -223,6 +240,19 @@ export default function BetriebsleiterDashboard() {
             </Card>
           )}
         </div>
+        </div>
+      </div>
+      
+      {/* Footer mit Zurück Button */}
+      <div className="py-6 flex justify-center">
+        <Button 
+          variant="outline" 
+          onClick={() => navigate("/")}
+          className="px-8"
+        >
+          <ArrowLeft size={16} className="mr-2" />
+          Zurück zur Startseite
+        </Button>
       </div>
     </div>
   );
