@@ -109,6 +109,12 @@ Logo usage: Only use the official ForzaCheck logo (FORZACHECK1_black_17538166219
 - Static file serving through Express
 - Database migrations via Drizzle Kit
 
+### Deployment Warnings
+- **CRITICAL**: MemStorage data is not persistent in Replit deployments
+- All categories, tasks, and checklists will reset on each deploy
+- Production environment sets `NODE_ENV=production` and `REPLIT_DEPLOYMENT=1`
+- Consider PostgreSQL for production to maintain data persistence
+
 ### Database Management
 - PostgreSQL schema defined in `shared/schema.ts`
 - Drizzle migrations stored in `./migrations`

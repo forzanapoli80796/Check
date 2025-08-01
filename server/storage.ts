@@ -50,6 +50,12 @@ export class MemStorage implements IStorage {
 
   constructor() {
     this.initializeDefaultData();
+    
+    // Warnung für Production Environment
+    if (process.env.REPLIT_DEPLOYMENT) {
+      console.warn('⚠️  WARNING: Using MemStorage in Production - Data will not persist between deployments!');
+      console.warn('📝 Consider using PostgreSQL or Replit Database for production deployments.');
+    }
   }
 
   private initializeDefaultData() {
