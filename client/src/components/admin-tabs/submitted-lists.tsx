@@ -289,7 +289,7 @@ export default function SubmittedLists() {
                           <span className="text-sm">{task?.title || `Aufgabe ${taskId}`}</span>
                         </div>
                       );
-                    })
+                    }) as React.ReactNode[]
                   ) : (
                     <p className="text-gray-500 text-sm">Keine Aufgaben erledigt</p>
                   )}
