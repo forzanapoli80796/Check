@@ -31,8 +31,12 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
   const submitMutation = useMutation({
     mutationFn: async () => {
       if (!currentCategory?.id) {
-        throw new Error('Category not found');
+        console.error('Category not found for area:', state.selectedArea);
+        console.error('Available categories:', categories);
+        throw new Error(`Category not found for area: ${state.selectedArea}`);
       }
+      
+      console.log('Submitting checklist with categoryId:', currentCategory.id);
       
       const response = await apiRequest("POST", "/api/checklists", {
         categoryId: currentCategory.id,
@@ -55,9 +59,14 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
     },
   });
 
-  const currentCategory = categories?.find(cat => 
-    cat.name.toLowerCase() === AREA_LABELS[state.selectedArea as keyof typeof AREA_LABELS]?.toLowerCase()
-  );
+  const currentCategory = categories?.find(cat => {
+    const areaLabel = AREA_LABELS[state.selectedArea as keyof typeof AREA_LABELS];
+    console.log(`Looking for category: selectedArea="${state.selectedArea}", areaLabel="${areaLabel}", categoryName="${cat.name}"`);
+    return cat.name.toLowerCase() === areaLabel?.toLowerCase();
+  });
+
+  console.log(`Found category:`, currentCategory);
+  console.log(`Available categories:`, categories);
 
   const filteredTasks = tasks?.filter(task => task.categoryId === currentCategory?.id) || [];
 
