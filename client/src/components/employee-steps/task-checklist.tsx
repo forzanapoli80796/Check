@@ -61,19 +61,17 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
     },
   });
 
-  // Erweiterte Kategorie-Zuordnung mit mehreren Varianten
+  // Kategorie-Zuordnung basierend auf selectedArea
   const currentCategory = categories?.find(cat => {
     const areaLabel = AREA_LABELS[state.selectedArea as keyof typeof AREA_LABELS];
-    console.log(`Looking for category: selectedArea="${state.selectedArea}", areaLabel="${areaLabel}", categoryName="${cat.name}"`);
     
-    // Verschiedene Matching-Strategien versuchen
     const normalizedCatName = cat.name.toLowerCase().trim();
     const normalizedAreaLabel = areaLabel?.toLowerCase().trim();
     
-    // 1. Exakte Übereinstimmung
+    // Exakte Übereinstimmung
     if (normalizedCatName === normalizedAreaLabel) return true;
     
-    // 2. Spezielle Zuordnungen für bekannte Probleme
+    // Spezielle Zuordnungen für bekannte Varianten
     const specialMappings: Record<string, string[]> = {
       'kueche': ['küche', 'kitchen', 'kueche'],
       'terminal': ['terminal', 'kasse'],
@@ -86,13 +84,7 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
     return mappings.some(mapping => normalizedCatName.includes(mapping) || mapping.includes(normalizedCatName));
   });
 
-  console.log(`Found category:`, currentCategory);
-  console.log(`Available categories:`, categories?.map(c => ({ id: c.id, name: c.name })));
-  console.log(`Categories loading:`, categoriesLoading, `Tasks loading:`, tasksLoading);
-
   const filteredTasks = tasks?.filter(task => task.categoryId === currentCategory?.id) || [];
-  
-  console.log(`Filtered tasks for category ${currentCategory?.id}:`, filteredTasks.length);
 
   useEffect(() => {
     updateState({ totalTasks: filteredTasks.length });
@@ -188,16 +180,6 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
               {completedTasks.length}/{filteredTasks.length}
             </div>
           </div>
-        </div>
-
-        {/* Debug Info für Problem-Diagnose */}
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-xs">
-          <p><strong>Submit Button Status:</strong></p>
-          <p>• Tasks Available: {filteredTasks.length}</p>
-          <p>• Tasks Completed: {completedTasks.length}</p>
-          <p>• Can Submit: {canSubmit ? 'YES' : 'NO'}</p>
-          <p>• Mutation Pending: {submitMutation.isPending ? 'YES' : 'NO'}</p>
-          <p>• Button Disabled: {(!canSubmit || submitMutation.isPending) ? 'YES' : 'NO'}</p>
         </div>
 
         <div className="space-y-3 mb-6">
