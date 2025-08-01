@@ -19,14 +19,16 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
   const [completedTasks, setCompletedTasks] = useState<string[]>(state.completedTasks);
   const { toast } = useToast();
 
-  const { data: categories } = useQuery<Category[]>({
+  const { data: categories, isLoading: categoriesLoading } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
 
-  const { data: tasks, isLoading } = useQuery<Task[]>({
+  const { data: tasks, isLoading: tasksLoading } = useQuery<Task[]>({
     queryKey: ["/api/tasks"],
     enabled: !!categories,
   });
+
+  const isLoading = categoriesLoading || tasksLoading;
 
   const submitMutation = useMutation({
     mutationFn: async () => {
@@ -86,8 +88,11 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
 
   console.log(`Found category:`, currentCategory);
   console.log(`Available categories:`, categories?.map(c => ({ id: c.id, name: c.name })));
+  console.log(`Categories loading:`, categoriesLoading, `Tasks loading:`, tasksLoading);
 
   const filteredTasks = tasks?.filter(task => task.categoryId === currentCategory?.id) || [];
+  
+  console.log(`Filtered tasks for category ${currentCategory?.id}:`, filteredTasks.length);
 
   useEffect(() => {
     updateState({ totalTasks: filteredTasks.length });
