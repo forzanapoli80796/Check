@@ -180,25 +180,33 @@ export default function SubmittedLists() {
                 <TableCell>
                   <div className="flex items-center">
                     <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white text-sm font-medium mr-3">
-                      {checklist.employeeName.charAt(0).toUpperCase()}
+                      {(checklist.employeeName || 'U').charAt(0).toUpperCase()}
                     </div>
-                    <span className="font-medium">{checklist.employeeName}</span>
+                    <span className="font-medium">{checklist.employeeName || 'Unbekannt'}</span>
                   </div>
                 </TableCell>
-                <TableCell>{checklist.store}</TableCell>
                 <TableCell>
-                  {categories?.find(c => c.id === checklist.categoryId)?.name || 'Unbekannt'}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="secondary">
-                    {checklist.shiftType}
+                  <Badge variant="outline">
+                    {checklist.store || 'Unbekannt'}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  {Array.isArray(checklist.completedTasks) ? checklist.completedTasks.length : 0}
+                  {categories?.find(c => c.id === checklist.categoryId)?.name || 'Unbekannte Kategorie'}
                 </TableCell>
                 <TableCell>
-                  {format(new Date(checklist.submittedAt!), "dd.MM.yyyy HH:mm", { locale: de })}
+                  <Badge variant="secondary">
+                    {checklist.shiftType || 'Standard'}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <span className="font-medium">
+                    {Array.isArray(checklist.completedTasks) ? checklist.completedTasks.length : 0}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span className="text-sm text-gray-600">
+                    {checklist.submittedAt ? format(new Date(checklist.submittedAt), "dd.MM.yyyy HH:mm", { locale: de }) : 'Unbekannt'}
+                  </span>
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
@@ -264,7 +272,7 @@ export default function SubmittedLists() {
                 </div>
                 <div>
                   <h4 className="font-medium text-sm text-gray-600 mb-1">Eingereicht am</h4>
-                  <p>{format(new Date(selectedChecklist.submittedAt!), "dd.MM.yyyy HH:mm", { locale: de })}</p>
+                  <p>{selectedChecklist.submittedAt ? format(new Date(selectedChecklist.submittedAt), "dd.MM.yyyy HH:mm", { locale: de }) : 'Unbekannt'}</p>
                 </div>
               </div>
 
