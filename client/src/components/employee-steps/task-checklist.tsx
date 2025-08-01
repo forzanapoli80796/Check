@@ -30,13 +30,16 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
 
   const submitMutation = useMutation({
     mutationFn: async () => {
+      if (!currentCategory?.id) {
+        throw new Error('Category not found');
+      }
+      
       const response = await apiRequest("POST", "/api/checklists", {
+        categoryId: currentCategory.id,
         employeeName: state.employeeName,
         store: state.selectedStore,
-        area: state.selectedArea,
-        shift: state.selectedShift,
+        shiftType: state.selectedShift,
         completedTasks,
-        totalTasks: filteredTasks.length.toString(),
       });
       return response.json();
     },
