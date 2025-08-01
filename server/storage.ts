@@ -63,6 +63,8 @@ export class MemStorage implements IStorage {
       { name: "Betriebsleiter", description: "Management & Organisation", icon: "briefcase" },
     ];
 
+    const categoryIds: Record<string, string> = {};
+    
     defaultCategories.forEach(cat => {
       const id = randomUUID();
       const category: Category = {
@@ -71,9 +73,55 @@ export class MemStorage implements IStorage {
         createdAt: new Date(),
       };
       this.categories.set(id, category);
+      categoryIds[cat.name] = id;
     });
 
-    // No default tasks - Admin will create them as needed
+    // Initialize default tasks for each category
+    const defaultTasks = [
+      // Terminal tasks
+      { categoryName: "Terminal", title: "Kassensystem überprüfen", description: "Kasse einschalten und Funktion testen", icon: "desktop", priority: "high" as const },
+      { categoryName: "Terminal", title: "Kundenbereich reinigen", description: "Theke und Wartebereich säubern", icon: "spray-can", priority: "medium" as const },
+      { categoryName: "Terminal", title: "Wechselgeld prüfen", description: "Kassenschublade auffüllen", icon: "coins", priority: "high" as const },
+      
+      // Küche tasks
+      { categoryName: "Küche", title: "Küchengeräte reinigen", description: "Alle Geräte gründlich säubern", icon: "utensils", priority: "high" as const },
+      { categoryName: "Küche", title: "Temperatur kontrollieren", description: "Kühl- und Gefriergeräte prüfen", icon: "thermometer", priority: "high" as const },
+      { categoryName: "Küche", title: "Arbeitsflächen desinfizieren", description: "Alle Oberflächen mit Desinfektionsmittel reinigen", icon: "spray-can", priority: "high" as const },
+      
+      // Fahrer tasks  
+      { categoryName: "Fahrer", title: "Fahrzeug checken", description: "Lichter, Bremsen und Reifen prüfen", icon: "car", priority: "high" as const },
+      { categoryName: "Fahrer", title: "Liefertaschen kontrollieren", description: "Thermotaschen auf Sauberkeit prüfen", icon: "shopping-cart", priority: "medium" as const },
+      
+      // Inventur tasks
+      { categoryName: "Inventur", title: "Warenbestand zählen", description: "Alle Artikel erfassen und dokumentieren", icon: "barcode", priority: "medium" as const },
+      { categoryName: "Inventur", title: "Gewichte kontrollieren", description: "Waagen kalibrieren und prüfen", icon: "weight", priority: "medium" as const },
+      
+      // Sonderreinigung tasks
+      { categoryName: "Sonderreinigung", title: "Tiefenreinigung durchführen", description: "Gründliche Reinigung aller Bereiche", icon: "broom", priority: "medium" as const },
+      { categoryName: "Sonderreinigung", title: "Desinfektionsprotokoll", description: "Vollständige Desinfektion nach Hygieneplan", icon: "spray-can", priority: "high" as const },
+      
+      // Betriebsleiter tasks
+      { categoryName: "Betriebsleiter", title: "Personalplanung prüfen", description: "Schichtpläne kontrollieren und anpassen", icon: "users", priority: "high" as const },
+      { categoryName: "Betriebsleiter", title: "Tagesabrechnung", description: "Kassenabrechnungen und Berichte erstellen", icon: "coins", priority: "high" as const },
+    ];
+
+    defaultTasks.forEach(taskData => {
+      const categoryId = categoryIds[taskData.categoryName];
+      if (categoryId) {
+        const id = randomUUID();
+        const task: Task = {
+          id,
+          title: taskData.title,
+          description: taskData.description,
+          icon: taskData.icon,
+          priority: taskData.priority,
+          categoryId,
+          estimatedMinutes: null,
+          createdAt: new Date(),
+        };
+        this.tasks.set(id, task);
+      }
+    });
   }
 
   // Category methods
