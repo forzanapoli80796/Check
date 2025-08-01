@@ -153,7 +153,7 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
     return <IconComponent className="text-primary" size={20} />;
   };
 
-  const isAllTasksCompleted = completedTasks.length === filteredTasks.length && filteredTasks.length > 0;
+  const canSubmit = filteredTasks.length > 0; // Allow submission even if not all tasks are completed
 
   if (isLoading) {
     return (
@@ -190,6 +190,16 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
           </div>
         </div>
 
+        {/* Debug Info für Problem-Diagnose */}
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-xs">
+          <p><strong>Submit Button Status:</strong></p>
+          <p>• Tasks Available: {filteredTasks.length}</p>
+          <p>• Tasks Completed: {completedTasks.length}</p>
+          <p>• Can Submit: {canSubmit ? 'YES' : 'NO'}</p>
+          <p>• Mutation Pending: {submitMutation.isPending ? 'YES' : 'NO'}</p>
+          <p>• Button Disabled: {(!canSubmit || submitMutation.isPending) ? 'YES' : 'NO'}</p>
+        </div>
+
         <div className="space-y-3 mb-6">
           {filteredTasks.map((task) => {
             const isCompleted = completedTasks.includes(task.id);
@@ -222,7 +232,7 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
           <Button
             onClick={submitChecklist}
             className="flex-1 bg-secondary hover:bg-green-700"
-            disabled={!isAllTasksCompleted || submitMutation.isPending}
+            disabled={!canSubmit || submitMutation.isPending}
           >
             <Check className="mr-2" size={16} />
             {submitMutation.isPending ? "Wird gesendet..." : "Liste absenden"}
