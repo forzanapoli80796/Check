@@ -59,14 +59,33 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
     },
   });
 
+  // Erweiterte Kategorie-Zuordnung mit mehreren Varianten
   const currentCategory = categories?.find(cat => {
     const areaLabel = AREA_LABELS[state.selectedArea as keyof typeof AREA_LABELS];
     console.log(`Looking for category: selectedArea="${state.selectedArea}", areaLabel="${areaLabel}", categoryName="${cat.name}"`);
-    return cat.name.toLowerCase() === areaLabel?.toLowerCase();
+    
+    // Verschiedene Matching-Strategien versuchen
+    const normalizedCatName = cat.name.toLowerCase().trim();
+    const normalizedAreaLabel = areaLabel?.toLowerCase().trim();
+    
+    // 1. Exakte Übereinstimmung
+    if (normalizedCatName === normalizedAreaLabel) return true;
+    
+    // 2. Spezielle Zuordnungen für bekannte Probleme
+    const specialMappings: Record<string, string[]> = {
+      'kueche': ['küche', 'kitchen', 'kueche'],
+      'terminal': ['terminal', 'kasse'],
+      'fahrer': ['fahrer', 'driver'],
+      'inventur': ['inventur', 'inventory'],
+      'sonderreinigung': ['sonderreinigung', 'reinigung', 'cleaning']
+    };
+    
+    const mappings = specialMappings[state.selectedArea as string] || [];
+    return mappings.some(mapping => normalizedCatName.includes(mapping) || mapping.includes(normalizedCatName));
   });
 
   console.log(`Found category:`, currentCategory);
-  console.log(`Available categories:`, categories);
+  console.log(`Available categories:`, categories?.map(c => ({ id: c.id, name: c.name })));
 
   const filteredTasks = tasks?.filter(task => task.categoryId === currentCategory?.id) || [];
 
@@ -89,6 +108,23 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
   };
 
   const submitChecklist = () => {
+    console.log('Submit button clicked! Current state:', {
+      selectedArea: state.selectedArea,
+      currentCategory,
+      completedTasks,
+      categories: categories?.map(c => ({ id: c.id, name: c.name }))
+    });
+    
+    if (!currentCategory) {
+      console.error('No category found - checking if we need to create one');
+      toast({
+        title: "Kategorie nicht gefunden",
+        description: `Keine Kategorie für "${AREA_LABELS[state.selectedArea as keyof typeof AREA_LABELS]}" gefunden. Bitte wenden Sie sich an den Administrator.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     submitMutation.mutate();
   };
 
