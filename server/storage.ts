@@ -115,8 +115,32 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteTask(id: string): Promise<boolean> {
-    const result = await db.delete(tasks).where(eq(tasks.id, id));
-    return (result.rowCount || 0) > 0;
+    try {
+      // Prüfe erst, ob die Aufgabe in Checklists verwendet wird
+      const checklistsData = await db.select().from(checklists);
+      const isUsed = checklistsData.some((checklist: any) => {
+        const completedTasks = Array.isArray(checklist.completedTasks) 
+          ? checklist.completedTasks 
+          : [];
+        return completedTasks.includes(id);
+      });
+
+      if (isUsed) {
+        // Aufgabe ist in Checklists verwendet - Fehler werfen
+        throw new Error('TASK_IN_USE');
+      }
+
+      const result = await db.delete(tasks).where(eq(tasks.id, id));
+      return (result.rowCount || 0) > 0;
+    } catch (error: any) {
+      if (error.message === 'TASK_IN_USE') {
+        throw error;
+      }
+      // Andere Datenbankfehler
+      console.error('Delete task error:', error);
+      console.error('Error details:', error.stack);
+      throw new Error('DATABASE_ERROR');
+    }
   }
 
   async getChecklists(): Promise<Checklist[]> {

@@ -100,7 +100,12 @@ export default function TasksManagement() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest("DELETE", `/api/tasks/${id}`);
+      const response = await apiRequest("DELETE", `/api/tasks/${id}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.code || 'DELETE_ERROR');
+      }
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
@@ -110,12 +115,20 @@ export default function TasksManagement() {
         description: "Die Aufgabe wurde erfolgreich gelöscht.",
       });
     },
-    onError: () => {
-      toast({
-        title: "Fehler",
-        description: "Die Aufgabe konnte nicht gelöscht werden.",
-        variant: "destructive",
-      });
+    onError: (error: any) => {
+      if (error.message === 'TASK_IN_USE') {
+        toast({
+          title: "Aufgabe kann nicht gelöscht werden",
+          description: "Diese Aufgabe wird bereits in eingereichten Checklists verwendet und kann daher nicht gelöscht werden.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Fehler",
+          description: "Die Aufgabe konnte nicht gelöscht werden.",
+          variant: "destructive",
+        });
+      }
     },
   });
 

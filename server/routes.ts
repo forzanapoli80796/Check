@@ -89,12 +89,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.delete("/api/tasks/:id", async (req, res) => {
-    const storage = await getStorage();
-    const success = await storage.deleteTask(req.params.id);
-    if (!success) {
-      return res.status(404).json({ message: "Task not found" });
+    try {
+      const storage = await getStorage();
+      const success = await storage.deleteTask(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+      res.json({ success: true });
+    } catch (error: any) {
+      if (error.message === 'TASK_IN_USE') {
+        return res.status(400).json({ 
+          message: "Diese Aufgabe kann nicht gelöscht werden, da sie bereits in Checklists verwendet wird.",
+          code: "TASK_IN_USE"
+        });
+      }
+      return res.status(500).json({ 
+        message: "Fehler beim Löschen der Aufgabe",
+        code: "DATABASE_ERROR"
+      });
     }
-    res.json({ success: true });
   });
 
   // Checklists routes
