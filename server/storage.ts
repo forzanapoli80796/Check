@@ -429,6 +429,9 @@ export class MemStorage implements IStorage {
       ...insertChecklist,
       id,
       completedTasks: insertChecklist.completedTasks || [],
+      images: insertChecklist.images || [],
+      taskImages: insertChecklist.taskImages || {},
+      taskNotes: insertChecklist.taskNotes || {},
       submittedAt: new Date(),
     };
     this.checklists.set(id, checklist);
