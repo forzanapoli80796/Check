@@ -116,7 +116,10 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTask(id: string): Promise<boolean> {
     try {
-      // Lösche die Aufgabe direkt ohne Prüfung auf Verwendung
+      // Erst alle zugehörigen inventory_items löschen
+      await db.delete(inventoryItems).where(eq(inventoryItems.taskId, id));
+      
+      // Dann die Aufgabe löschen
       const result = await db.delete(tasks).where(eq(tasks.id, id));
       return (result.rowCount || 0) > 0;
     } catch (error: any) {
