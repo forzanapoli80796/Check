@@ -115,20 +115,12 @@ export default function TasksManagement() {
         description: "Die Aufgabe wurde erfolgreich gelöscht.",
       });
     },
-    onError: (error: any) => {
-      if (error.message === 'TASK_IN_USE') {
-        toast({
-          title: "Aufgabe kann nicht gelöscht werden",
-          description: "Diese Aufgabe wird bereits in eingereichten Checklists verwendet und kann daher nicht gelöscht werden.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Fehler",
-          description: "Die Aufgabe konnte nicht gelöscht werden.",
-          variant: "destructive",
-        });
-      }
+    onError: () => {
+      toast({
+        title: "Fehler",
+        description: "Die Aufgabe konnte nicht gelöscht werden.",
+        variant: "destructive",
+      });
     },
   });
 
