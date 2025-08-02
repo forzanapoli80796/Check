@@ -152,6 +152,9 @@ export class DatabaseStorage implements IStorage {
         ...insertChecklist,
         id: randomUUID(),
         submittedAt: new Date(),
+        images: insertChecklist.images || null,
+        taskImages: insertChecklist.taskImages || null,
+        taskNotes: insertChecklist.taskNotes || null,
       })
       .returning();
     return checklist;
