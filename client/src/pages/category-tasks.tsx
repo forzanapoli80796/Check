@@ -10,7 +10,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Plus, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
 
 import type { Task } from "@shared/schema";
@@ -122,9 +121,11 @@ export default function CategoryTasks() {
 
   const deleteMutation = useMutation({
     mutationFn: async (taskId: string) => {
-      return apiRequest(`/api/tasks/${taskId}`, {
+      const response = await fetch(`/api/tasks/${taskId}`, {
         method: "DELETE",
       });
+      if (!response.ok) throw new Error('Failed to delete task');
+      return response.json();
     },
     onSuccess: () => {
       qClient.invalidateQueries({ queryKey: ["/api/tasks"] });
@@ -165,8 +166,8 @@ export default function CategoryTasks() {
       icon: task.icon,
       categoryId: task.categoryId,
     });
-    setSelectedShift(task.shift || "früh");
-    setSelectedPhase(task.phase || "start");
+    setSelectedShift((task.shift as 'früh' | 'spät') || "früh");
+    setSelectedPhase((task.phase as 'start' | 'ende') || "start");
     setIsDialogOpen(true);
   };
 
@@ -348,31 +349,9 @@ export default function CategoryTasks() {
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Schicht</Label>
-                <Select value={selectedShift} onValueChange={(value: any) => setSelectedShift(value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="früh">Frühschicht</SelectItem>
-                    <SelectItem value="spät">Spätschicht</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Phase</Label>
-                <Select value={selectedPhase} onValueChange={(value: any) => setSelectedPhase(value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="start">Start</SelectItem>
-                    <SelectItem value="ende">Ende</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Schicht und Phase werden automatisch aus der gewählten Spalte gesetzt */}
+            <div className="bg-blue-50 p-3 rounded text-sm">
+              <strong>Wird erstellt in:</strong> {selectedShift === 'früh' ? '🌅 Frühschicht' : '🌇 Spätschicht'} - {selectedPhase === 'start' ? 'Start' : 'Ende'}
             </div>
             <div>
               <Label htmlFor="title">Titel</Label>
