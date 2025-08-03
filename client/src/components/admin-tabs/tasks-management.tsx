@@ -25,6 +25,7 @@ export default function TasksManagement() {
     title: "",
     description: "",
     categoryId: "",
+    shiftType: "both" as "schichtanfang" | "schichtende" | "both",
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -134,6 +135,7 @@ export default function TasksManagement() {
       title: "",
       description: "",
       categoryId: "",
+      shiftType: "both",
     });
     setEditingTask(null);
   };
@@ -144,6 +146,7 @@ export default function TasksManagement() {
       title: task.title,
       description: task.description || "",
       categoryId: task.categoryId,
+      shiftType: task.shiftType || "both",
     });
     setDialogKey(prev => prev + 1); // Force dialog re-render
     setIsDialogOpen(true);
@@ -262,6 +265,20 @@ export default function TasksManagement() {
                 </Select>
               </div>
 
+              <div>
+                <Label htmlFor="shiftType">Schicht</Label>
+                <Select value={formData.shiftType} onValueChange={(value: "schichtanfang" | "schichtende" | "both") => setFormData(prev => ({ ...prev, shiftType: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Schicht auswählen" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="both">Beide Schichten</SelectItem>
+                    <SelectItem value="schichtanfang">Nur Schichtanfang</SelectItem>
+                    <SelectItem value="schichtende">Nur Schichtende</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Info für Inventur-Arbeitsbereich */}
               {formData.categoryId && categories?.find(cat => cat.id === formData.categoryId)?.name === "Inventur" && (
                 <div className="bg-blue-50 p-3 rounded-lg">
@@ -331,6 +348,14 @@ export default function TasksManagement() {
                       <h4 className="font-medium">{task.title}</h4>
                       <Badge className="bg-blue-100 text-blue-800">
                         {getCategoryName(task.categoryId)}
+                      </Badge>
+                      <Badge className={`text-xs ${
+                        task.shiftType === 'schichtanfang' ? 'bg-green-100 text-green-800' :
+                        task.shiftType === 'schichtende' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {task.shiftType === 'schichtanfang' ? 'Früh' :
+                         task.shiftType === 'schichtende' ? 'Spät' : 'Beide'}
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-600">{task.description}</p>

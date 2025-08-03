@@ -62,7 +62,16 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
   // Kategorie direkt über ID finden
   const currentCategory = categories?.find(cat => cat.id === state.selectedArea);
 
-  const filteredTasks = tasks?.filter(task => task.categoryId === currentCategory?.id) || [];
+  const filteredTasks = tasks?.filter(task => {
+    if (task.categoryId !== currentCategory?.id) return false;
+    
+    // Filter by shift type if task has specific shift assignment
+    if (task.shiftType && task.shiftType !== 'both') {
+      return task.shiftType === state.selectedShift;
+    }
+    
+    return true;
+  }) || [];
 
   useEffect(() => {
     updateState({ totalTasks: filteredTasks.length });
