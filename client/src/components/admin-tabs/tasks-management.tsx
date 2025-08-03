@@ -51,12 +51,15 @@ export default function TasksManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
-      setIsDialogOpen(false);
-      resetForm();
-      toast({
-        title: "Aufgabe erstellt",
-        description: "Die neue Aufgabe wurde erfolgreich erstellt.",
-      });
+      // Use setTimeout to ensure DOM operations complete before state changes
+      setTimeout(() => {
+        setIsDialogOpen(false);
+        resetForm();
+        toast({
+          title: "Aufgabe erstellt",
+          description: "Die neue Aufgabe wurde erfolgreich erstellt.",
+        });
+      }, 100);
     },
     onError: () => {
       toast({
@@ -81,13 +84,16 @@ export default function TasksManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
-      setIsDialogOpen(false);
-      resetForm();
-      setEditingTask(null);
-      toast({
-        title: "Aufgabe aktualisiert",
-        description: "Die Aufgabe wurde erfolgreich aktualisiert.",
-      });
+      // Use setTimeout to ensure DOM operations complete before state changes
+      setTimeout(() => {
+        setIsDialogOpen(false);
+        resetForm();
+        setEditingTask(null);
+        toast({
+          title: "Aufgabe aktualisiert",
+          description: "Die Aufgabe wurde erfolgreich aktualisiert.",
+        });
+      }, 100);
     },
     onError: () => {
       toast({
@@ -130,6 +136,7 @@ export default function TasksManagement() {
       description: "",
       categoryId: "",
     });
+    setEditingTask(null);
   };
 
   const handleEdit = (task: Task) => {
@@ -144,6 +151,12 @@ export default function TasksManagement() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent multiple submissions
+    if (createMutation.isPending || updateMutation.isPending) {
+      return;
+    }
+    
     if (editingTask) {
       updateMutation.mutate({ id: editingTask.id, data: formData });
     } else {
@@ -254,9 +267,11 @@ export default function TasksManagement() {
                   type="button"
                   variant="outline"
                   onClick={() => {
-                    setIsDialogOpen(false);
-                    resetForm();
-                    setEditingTask(null);
+                    // Use setTimeout to prevent DOM errors
+                    setTimeout(() => {
+                      setIsDialogOpen(false);
+                      resetForm();
+                    }, 50);
                   }}
                 >
                   Abbrechen

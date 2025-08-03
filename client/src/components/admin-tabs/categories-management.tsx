@@ -72,12 +72,15 @@ export default function CategoriesManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
-      setIsDialogOpen(false);
-      resetForm();
-      toast({
-        title: "Arbeitsbereich erstellt",
-        description: "Der neue Arbeitsbereich wurde erfolgreich erstellt.",
-      });
+      // Use setTimeout to ensure DOM operations complete before state changes
+      setTimeout(() => {
+        setIsDialogOpen(false);
+        resetForm();
+        toast({
+          title: "Arbeitsbereich erstellt",
+          description: "Der neue Arbeitsbereich wurde erfolgreich erstellt.",
+        });
+      }, 100);
     },
     onError: () => {
       toast({
@@ -95,13 +98,16 @@ export default function CategoriesManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
-      setIsDialogOpen(false);
-      resetForm();
-      setEditingCategory(null);
-      toast({
-        title: "Arbeitsbereich aktualisiert",
-        description: "Der Arbeitsbereich wurde erfolgreich aktualisiert.",
-      });
+      // Use setTimeout to ensure DOM operations complete before state changes
+      setTimeout(() => {
+        setIsDialogOpen(false);
+        resetForm();
+        setEditingCategory(null);
+        toast({
+          title: "Arbeitsbereich aktualisiert",
+          description: "Der Arbeitsbereich wurde erfolgreich aktualisiert.",
+        });
+      }, 100);
     },
     onError: () => {
       toast({
@@ -140,6 +146,7 @@ export default function CategoriesManagement() {
       description: "",
       icon: "desktop",
     });
+    setEditingCategory(null);
   };
 
   const handleEdit = (category: Category) => {
