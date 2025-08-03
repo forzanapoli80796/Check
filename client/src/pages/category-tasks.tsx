@@ -3,15 +3,14 @@ import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Plus, Edit, Trash2, Upload, File } from "lucide-react";
+import { ArrowLeft, Plus, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-// ObjectUploader removed for now
 import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
 
 import type { Task } from "@shared/schema";
@@ -36,13 +35,12 @@ export default function CategoryTasks() {
     icon: "clipboard-list",
     categoryId: categoryId || "",
   });
-  // const [taskAttachments, setTaskAttachments] = useState<string[]>([]);
   
   const { toast } = useToast();
   const qClient = useQueryClient();
 
   // Fetch tasks for this category
-  const { data: allTasks = [], isLoading: tasksLoading, refetch: refetchTasks } = useQuery<Task[]>({
+  const { data: allTasks = [], isLoading: tasksLoading } = useQuery<Task[]>({
     queryKey: ["/api/tasks"],
   });
   
@@ -79,7 +77,8 @@ export default function CategoryTasks() {
       setIsDialogOpen(false);
       resetForm();
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Create error:', error);
       toast({ 
         title: "Fehler", 
         description: "Die Aufgabe konnte nicht erstellt werden.",
@@ -103,7 +102,8 @@ export default function CategoryTasks() {
       setIsDialogOpen(false);
       resetForm();
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Update error:', error);
       toast({ 
         title: "Fehler", 
         description: "Die Aufgabe konnte nicht aktualisiert werden.",
@@ -122,7 +122,8 @@ export default function CategoryTasks() {
       qClient.invalidateQueries({ queryKey: ["/api/tasks"] });
       toast({ title: "Aufgabe gelöscht", description: "Die Aufgabe wurde erfolgreich gelöscht." });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Delete error:', error);
       toast({ 
         title: "Fehler", 
         description: "Die Aufgabe konnte nicht gelöscht werden.",
@@ -174,18 +175,16 @@ export default function CategoryTasks() {
     setIsDialogOpen(true);
   };
 
-  // Upload functionality removed for now
-  
   const getTasksForColumn = (shift: 'früh' | 'spät', phase: 'start' | 'ende') => {
     return tasks.filter(task => task.shift === shift && task.phase === phase);
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'text-red-600 bg-red-100';
-      case 'medium': return 'text-yellow-600 bg-yellow-100';
-      case 'low': return 'text-green-600 bg-green-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'high': return 'bg-red-100 text-red-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'low': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -238,16 +237,10 @@ export default function CategoryTasks() {
                   )}
                   <div className="flex justify-between items-center">
                     <span className={`text-xs px-2 py-1 rounded ${getPriorityColor(task.priority)}`}>
-                      {task.priority}
+                      {task.priority === 'high' ? 'Hoch' : task.priority === 'medium' ? 'Mittel' : 'Niedrig'}
                     </span>
-                    <span className="text-xs text-gray-500">{task.estimatedMinutes} min</span>
+                    <span className="text-xs text-gray-500">{task.estimatedMinutes || "5"} min</span>
                   </div>
-                  {task.attachments && task.attachments.length > 0 && (
-                    <div className="mt-2 flex items-center text-xs text-blue-600">
-                      <File size={12} className="mr-1" />
-                      {task.attachments.length} Anhänge
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             ))
@@ -314,7 +307,7 @@ export default function CategoryTasks() {
             <Card className="shadow-lg border border-gray-200">
               <CardHeader className="bg-orange-50 border-b">
                 <CardTitle className="text-lg font-semibold text-orange-800 text-center">
-                  🌆 Spätschicht
+                  🌇 Spätschicht
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
@@ -334,20 +327,45 @@ export default function CategoryTasks() {
                 </div>
               </CardContent>
             </Card>
-
           </div>
         </div>
       </div>
 
       {/* Task Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>
-              {editingTask ? "Aufgabe bearbeiten" : "Neue Aufgabe"} - {selectedShift}schicht ({selectedPhase})
+              {editingTask ? "Aufgabe bearbeiten" : "Neue Aufgabe erstellen"}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Schicht</Label>
+                <Select value={selectedShift} onValueChange={(value: any) => setSelectedShift(value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="früh">Frühschicht</SelectItem>
+                    <SelectItem value="spät">Spätschicht</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Phase</Label>
+                <Select value={selectedPhase} onValueChange={(value: any) => setSelectedPhase(value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="start">Start</SelectItem>
+                    <SelectItem value="ende">Ende</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             <div>
               <Label htmlFor="title">Titel</Label>
               <Input
@@ -390,8 +408,6 @@ export default function CategoryTasks() {
                 />
               </div>
             </div>
-            
-            {/* File Upload - temporarily removed */}
             
             <div className="flex space-x-2">
               <Button 
