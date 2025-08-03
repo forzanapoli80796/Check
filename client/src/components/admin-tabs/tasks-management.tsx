@@ -20,6 +20,7 @@ export default function TasksManagement() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [dialogKey, setDialogKey] = useState(0); // Add key for force re-render
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -51,15 +52,14 @@ export default function TasksManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
-      // Use setTimeout to ensure DOM operations complete before state changes
-      setTimeout(() => {
-        setIsDialogOpen(false);
-        resetForm();
-        toast({
-          title: "Aufgabe erstellt",
-          description: "Die neue Aufgabe wurde erfolgreich erstellt.",
-        });
-      }, 100);
+      // Force dialog re-render and close safely
+      setDialogKey(prev => prev + 1);
+      setIsDialogOpen(false);
+      resetForm();
+      toast({
+        title: "Aufgabe erstellt",
+        description: "Die neue Aufgabe wurde erfolgreich erstellt.",
+      });
     },
     onError: () => {
       toast({
@@ -84,16 +84,15 @@ export default function TasksManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
-      // Use setTimeout to ensure DOM operations complete before state changes
-      setTimeout(() => {
-        setIsDialogOpen(false);
-        resetForm();
-        setEditingTask(null);
-        toast({
-          title: "Aufgabe aktualisiert",
-          description: "Die Aufgabe wurde erfolgreich aktualisiert.",
-        });
-      }, 100);
+      // Force dialog re-render and close safely
+      setDialogKey(prev => prev + 1);
+      setIsDialogOpen(false);
+      resetForm();
+      setEditingTask(null);
+      toast({
+        title: "Aufgabe aktualisiert",
+        description: "Die Aufgabe wurde erfolgreich aktualisiert.",
+      });
     },
     onError: () => {
       toast({
@@ -146,6 +145,7 @@ export default function TasksManagement() {
       description: task.description || "",
       categoryId: task.categoryId,
     });
+    setDialogKey(prev => prev + 1); // Force dialog re-render
     setIsDialogOpen(true);
   };
 
@@ -202,9 +202,22 @@ export default function TasksManagement() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-medium">Aufgaben verwalten</h3>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog key={dialogKey} open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) {
+            // When dialog closes, reset after a short delay
+            setTimeout(() => {
+              resetForm();
+              setEditingTask(null);
+            }, 100);
+          }
+        }}>
           <DialogTrigger asChild>
-            <Button onClick={resetForm}>
+            <Button onClick={() => {
+              resetForm();
+              setEditingTask(null);
+              setIsDialogOpen(true);
+            }}>
               <Plus size={16} className="mr-2" />
               Neue Aufgabe
             </Button>
@@ -267,11 +280,7 @@ export default function TasksManagement() {
                   type="button"
                   variant="outline"
                   onClick={() => {
-                    // Use setTimeout to prevent DOM errors
-                    setTimeout(() => {
-                      setIsDialogOpen(false);
-                      resetForm();
-                    }, 50);
+                    setIsDialogOpen(false);
                   }}
                 >
                   Abbrechen
