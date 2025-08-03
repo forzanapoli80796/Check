@@ -37,13 +37,32 @@ export default function CategoriesManagement() {
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
 
-  const { data: categories, isLoading } = useQuery<Category[]>({
+  const { data: categories, isLoading, error: categoriesError } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
+    retry: 3,
+    retryDelay: 1000,
   });
 
-  const { data: tasks } = useQuery<Task[]>({
+  const { data: tasks, error: tasksError } = useQuery<Task[]>({
     queryKey: ["/api/tasks"],
+    retry: 3,
+    retryDelay: 1000,
   });
+
+  // Error handling for production
+  if (categoriesError || tasksError) {
+    return (
+      <div className="p-6 text-center">
+        <h3 className="text-lg font-medium text-red-600 mb-2">Verbindungsfehler</h3>
+        <p className="text-gray-600 mb-4">
+          Fehler beim Laden der Daten. Bitte versuchen Sie es erneut.
+        </p>
+        <Button onClick={() => window.location.reload()}>
+          Seite neu laden
+        </Button>
+      </div>
+    );
+  }
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {

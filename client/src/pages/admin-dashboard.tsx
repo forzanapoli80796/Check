@@ -8,7 +8,7 @@ import { ArrowLeft, Cookie } from "lucide-react";
 import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
 import SubmittedLists from "@/components/admin-tabs/submitted-lists";
 import CategoriesManagement from "@/components/admin-tabs/categories-management";
-
+import ErrorBoundary from "@/components/error-boundary";
 import TeigManagement from "@/components/teig-management";
 import { AdminTabState } from "@/lib/types";
 
@@ -22,14 +22,29 @@ export default function AdminDashboard() {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'submitted':
-        return <SubmittedLists />;
+        return (
+          <ErrorBoundary>
+            <SubmittedLists />
+          </ErrorBoundary>
+        );
       case 'categories':
-        return <CategoriesManagement />;
-
+        return (
+          <ErrorBoundary>
+            <CategoriesManagement />
+          </ErrorBoundary>
+        );
       case 'teig':
-        return <TeigManagement />;
+        return (
+          <ErrorBoundary>
+            <TeigManagement />
+          </ErrorBoundary>
+        );
       default:
-        return <SubmittedLists />;
+        return (
+          <ErrorBoundary>
+            <SubmittedLists />
+          </ErrorBoundary>
+        );
     }
   };
 
