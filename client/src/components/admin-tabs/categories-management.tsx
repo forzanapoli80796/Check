@@ -258,7 +258,7 @@ export default function CategoriesManagement() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => navigate(`/category-tasks?categoryId=${category.id}&categoryName=${encodeURIComponent(category.name)}`)}
+                    onClick={() => navigate(`/location-selection?categoryId=${category.id}&categoryName=${encodeURIComponent(category.name)}`)}
                   >
                     <Plus size={16} className="text-green-600" />
                   </Button>

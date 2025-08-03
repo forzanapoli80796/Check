@@ -21,10 +21,12 @@ export default function CategoryTasks() {
   const [selectedShift, setSelectedShift] = useState<'früh' | 'spät'>('früh');
   const [selectedPhase, setSelectedPhase] = useState<'start' | 'ende'>('start');
   
-  // Extract category info from URL params first
+  // Extract category and location info from URL params
   const urlParams = new URLSearchParams(window.location.search);
   const categoryId = urlParams.get('categoryId');
   const categoryName = urlParams.get('categoryName') || 'Kategorie';
+  const locationId = urlParams.get('locationId');
+  const locationName = urlParams.get('locationName') || 'Standort';
   
   const [formData, setFormData] = useState({
     title: "",
@@ -277,10 +279,10 @@ export default function CategoryTasks() {
           {/* Header */}
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900">
-              Aufgaben für {categoryName}
+              Aufgaben für {categoryName} - {locationName}
             </h1>
             <p className="text-gray-600 mt-2">
-              Verwalten Sie die Aufgaben nach Schichten und Phasen
+              Verwalten Sie die Aufgaben nach Schichten und Phasen für Standort {locationName}
             </p>
           </div>
 
