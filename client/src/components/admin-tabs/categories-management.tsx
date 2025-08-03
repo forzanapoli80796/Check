@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import * as Icons from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ export default function CategoriesManagement() {
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
 
   const { data: categories, isLoading } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
@@ -253,6 +255,13 @@ export default function CategoriesManagement() {
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-medium">{category.name}</h4>
                 <div className="flex space-x-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate(`/category-tasks?categoryId=${category.id}&categoryName=${encodeURIComponent(category.name)}`)}
+                  >
+                    <Plus size={16} className="text-green-600" />
+                  </Button>
                   <Button
                     variant="ghost"
                     size="sm"

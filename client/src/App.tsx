@@ -10,6 +10,7 @@ import EmployeeWorkflow from "@/pages/employee-workflow";
 import AdminDashboard from "@/pages/admin-dashboard";
 import BetriebsleiterDashboard from "@/pages/betriebsleiter-dashboard";
 import TeigDashboard from "@/pages/teig-dashboard";
+import CategoryTasks from "@/pages/category-tasks";
 
 
 function Router() {
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/betriebsleiter" component={BetriebsleiterDashboard} />
       <Route path="/teig" component={TeigDashboard} />
+      <Route path="/category-tasks" component={CategoryTasks} />
       <Route component={NotFound} />
     </Switch>
   );
