@@ -203,7 +203,7 @@ export default function BetriebsleiterDashboard() {
     if (!betriebsleiterCategory) {
       toast({
         title: "Fehler",
-        description: "Betriebsleiter-Kategorie nicht gefunden.",
+        description: "Betriebsleiter-Arbeitsbereich nicht gefunden.",
         variant: "destructive",
       });
       return;
@@ -245,7 +245,7 @@ export default function BetriebsleiterDashboard() {
             <Card>
               <CardContent className="p-6">
                 <p className="text-center text-gray-500">
-                  Betriebsleiter-Kategorie muss erst im Admin-Bereich erstellt werden.
+                  Betriebsleiter-Arbeitsbereich muss erst im Admin-Bereich erstellt werden.
                 </p>
               </CardContent>
             </Card>

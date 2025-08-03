@@ -62,7 +62,7 @@ export default function AdminDashboard() {
               onClick={() => setActiveTab('categories')}
               className={`admin-tab ${activeTab === 'categories' ? 'active' : ''}`}
             >
-              Kategorien verwalten
+              Arbeitsbereiche verwalten
             </button>
             <button
               onClick={() => setActiveTab('teig')}

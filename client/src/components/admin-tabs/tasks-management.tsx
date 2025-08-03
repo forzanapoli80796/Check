@@ -221,10 +221,10 @@ export default function TasksManagement() {
                 />
               </div>
               <div>
-                <Label htmlFor="categoryId">Kategorie</Label>
+                <Label htmlFor="categoryId">Arbeitsbereich</Label>
                 <Select value={formData.categoryId} onValueChange={(value) => setFormData(prev => ({ ...prev, categoryId: value }))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Kategorie auswählen" />
+                    <SelectValue placeholder="Arbeitsbereich auswählen" />
                   </SelectTrigger>
                   <SelectContent>
                     {categories?.map(category => (
@@ -236,7 +236,7 @@ export default function TasksManagement() {
                 </Select>
               </div>
 
-              {/* Info für Inventur-Kategorie */}
+              {/* Info für Inventur-Arbeitsbereich */}
               {formData.categoryId && categories?.find(cat => cat.id === formData.categoryId)?.name === "Inventur" && (
                 <div className="bg-blue-50 p-3 rounded-lg">
                   <p className="text-sm text-blue-800">
@@ -272,7 +272,7 @@ export default function TasksManagement() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
           <Input
-            placeholder="Aufgaben durchsuchen... (Titel, Beschreibung, Kategorie)"
+            placeholder="Aufgaben durchsuchen... (Titel, Beschreibung, Arbeitsbereich)"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"

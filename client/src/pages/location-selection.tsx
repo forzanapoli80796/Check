@@ -16,7 +16,7 @@ export default function LocationSelection() {
   // Extract category info from URL params
   const urlParams = new URLSearchParams(window.location.search);
   const categoryId = urlParams.get('categoryId');
-  const categoryName = urlParams.get('categoryName') || 'Kategorie';
+  const categoryName = urlParams.get('categoryName') || 'Arbeitsbereich';
 
   const handleLocationSelect = (locationId: string, locationName: string) => {
     const params = new URLSearchParams({
@@ -49,7 +49,7 @@ export default function LocationSelection() {
               Standort auswählen
             </h1>
             <p className="text-gray-600">
-              Wählen Sie einen Standort für die Kategorie "{categoryName}"
+              Wählen Sie einen Standort für den Arbeitsbereich "{categoryName}"
             </p>
           </div>
 

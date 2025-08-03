@@ -24,7 +24,7 @@ export default function CategoryTasks() {
   // Extract category and location info from URL params
   const urlParams = new URLSearchParams(window.location.search);
   const categoryId = urlParams.get('categoryId');
-  const categoryName = urlParams.get('categoryName') || 'Kategorie';
+  const categoryName = urlParams.get('categoryName') || 'Arbeitsbereich';
   const locationId = urlParams.get('locationId');
   const locationName = urlParams.get('locationName') || 'Standort';
   

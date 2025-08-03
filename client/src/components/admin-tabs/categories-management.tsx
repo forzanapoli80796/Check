@@ -56,14 +56,14 @@ export default function CategoriesManagement() {
       setIsDialogOpen(false);
       resetForm();
       toast({
-        title: "Kategorie erstellt",
-        description: "Die neue Kategorie wurde erfolgreich erstellt.",
+        title: "Arbeitsbereich erstellt",
+        description: "Der neue Arbeitsbereich wurde erfolgreich erstellt.",
       });
     },
     onError: () => {
       toast({
         title: "Fehler",
-        description: "Die Kategorie konnte nicht erstellt werden.",
+        description: "Der Arbeitsbereich konnte nicht erstellt werden.",
         variant: "destructive",
       });
     },
@@ -80,14 +80,14 @@ export default function CategoriesManagement() {
       resetForm();
       setEditingCategory(null);
       toast({
-        title: "Kategorie aktualisiert",
-        description: "Die Kategorie wurde erfolgreich aktualisiert.",
+        title: "Arbeitsbereich aktualisiert",
+        description: "Der Arbeitsbereich wurde erfolgreich aktualisiert.",
       });
     },
     onError: () => {
       toast({
         title: "Fehler",
-        description: "Die Kategorie konnte nicht aktualisiert werden.",
+        description: "Der Arbeitsbereich konnte nicht aktualisiert werden.",
         variant: "destructive",
       });
     },
@@ -102,14 +102,14 @@ export default function CategoriesManagement() {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
       toast({
-        title: "Kategorie gelöscht",
-        description: "Die Kategorie wurde erfolgreich gelöscht.",
+        title: "Arbeitsbereich gelöscht",
+        description: "Der Arbeitsbereich wurde erfolgreich gelöscht.",
       });
     },
     onError: () => {
       toast({
         title: "Fehler",
-        description: "Die Kategorie konnte nicht gelöscht werden.",
+        description: "Der Arbeitsbereich konnte nicht gelöscht werden.",
         variant: "destructive",
       });
     },
@@ -143,7 +143,7 @@ export default function CategoriesManagement() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Sind Sie sicher, dass Sie diese Kategorie löschen möchten?")) {
+    if (confirm("Sind Sie sicher, dass Sie diesen Arbeitsbereich löschen möchten?")) {
       deleteMutation.mutate(id);
     }
   };
@@ -174,18 +174,18 @@ export default function CategoriesManagement() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-medium">Kategorien verwalten</h3>
+        <h3 className="text-lg font-medium">Arbeitsbereiche verwalten</h3>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={resetForm}>
               <Plus size={16} className="mr-2" />
-              Neue Kategorie
+              Neuer Arbeitsbereich
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {editingCategory ? "Kategorie bearbeiten" : "Neue Kategorie"}
+                {editingCategory ? "Arbeitsbereich bearbeiten" : "Neuer Arbeitsbereich"}
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
