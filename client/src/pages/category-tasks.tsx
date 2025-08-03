@@ -11,20 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Plus, Edit, Trash2, Upload, File } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { ObjectUploader } from "@/components/ObjectUploader";
-import type { UploadResult } from "@uppy/core";
+// ObjectUploader removed for now
 import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
 
-interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  priority: 'low' | 'medium' | 'high';
-  estimatedMinutes: string;
-  shift: 'früh' | 'spät';
-  phase: 'start' | 'ende';
-  attachments?: string[];
-}
+import type { Task } from "@shared/schema";
 
 export default function CategoryTasks() {
   const [, navigate] = useLocation();
@@ -32,24 +22,32 @@ export default function CategoryTasks() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [selectedShift, setSelectedShift] = useState<'früh' | 'spät'>('früh');
   const [selectedPhase, setSelectedPhase] = useState<'start' | 'ende'>('start');
+  
+  // Extract category info from URL params first
+  const urlParams = new URLSearchParams(window.location.search);
+  const categoryId = urlParams.get('categoryId');
+  const categoryName = urlParams.get('categoryName') || 'Kategorie';
+  
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     priority: "medium" as const,
     estimatedMinutes: "5",
+    icon: "clipboard-list",
+    categoryId: categoryId || "",
   });
-  const [taskAttachments, setTaskAttachments] = useState<string[]>([]);
+  // const [taskAttachments, setTaskAttachments] = useState<string[]>([]);
   
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  
-  // Extract category info from URL params
-  const urlParams = new URLSearchParams(window.location.search);
-  const categoryId = urlParams.get('categoryId');
-  const categoryName = urlParams.get('categoryName') || 'Kategorie';
+  const qClient = useQueryClient();
 
-  // Mock data - replace with real API calls later
-  const [tasks, setTasks] = useState<Task[]>([]);
+  // Fetch tasks for this category
+  const { data: allTasks = [], isLoading: tasksLoading, refetch: refetchTasks } = useQuery<Task[]>({
+    queryKey: ["/api/tasks"],
+  });
+  
+  // Filter tasks for this category
+  const tasks = allTasks.filter(task => task.categoryId === categoryId);
 
   const resetForm = () => {
     setFormData({
@@ -57,33 +55,95 @@ export default function CategoryTasks() {
       description: "",
       priority: "medium",
       estimatedMinutes: "5",
+      icon: "clipboard-list",
+      categoryId: categoryId || "",
     });
-    setTaskAttachments([]);
+    setSelectedShift("früh");
+    setSelectedPhase("start");
     setEditingTask(null);
   };
 
+  const createMutation = useMutation({
+    mutationFn: async (taskData: any) => {
+      return apiRequest("/api/tasks", {
+        method: "POST",
+        body: {
+          ...taskData,
+          categoryId,
+        },
+      });
+    },
+    onSuccess: () => {
+      qClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+      toast({ title: "Aufgabe erstellt", description: "Die Aufgabe wurde erfolgreich erstellt." });
+      setIsDialogOpen(false);
+      resetForm();
+    },
+    onError: () => {
+      toast({ 
+        title: "Fehler", 
+        description: "Die Aufgabe konnte nicht erstellt werden.",
+        variant: "destructive"
+      });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, ...taskData }: any) => {
+      return apiRequest(`/api/tasks/${id}`, {
+        method: "PUT",
+        body: {
+          ...taskData,
+        },
+      });
+    },
+    onSuccess: () => {
+      qClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+      toast({ title: "Aufgabe aktualisiert", description: "Die Aufgabe wurde erfolgreich aktualisiert." });
+      setIsDialogOpen(false);
+      resetForm();
+    },
+    onError: () => {
+      toast({ 
+        title: "Fehler", 
+        description: "Die Aufgabe konnte nicht aktualisiert werden.",
+        variant: "destructive"
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (taskId: string) => {
+      return apiRequest(`/api/tasks/${taskId}`, {
+        method: "DELETE",
+      });
+    },
+    onSuccess: () => {
+      qClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+      toast({ title: "Aufgabe gelöscht", description: "Die Aufgabe wurde erfolgreich gelöscht." });
+    },
+    onError: () => {
+      toast({ 
+        title: "Fehler", 
+        description: "Die Aufgabe konnte nicht gelöscht werden.",
+        variant: "destructive"
+      });
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const newTask: Task = {
-      id: Date.now().toString(),
+    const taskData = {
       ...formData,
       shift: selectedShift,
       phase: selectedPhase,
-      attachments: taskAttachments,
     };
     
     if (editingTask) {
-      setTasks(prev => prev.map(task => 
-        task.id === editingTask.id ? { ...newTask, id: editingTask.id } : task
-      ));
-      toast({ title: "Aufgabe aktualisiert", description: "Die Aufgabe wurde erfolgreich aktualisiert." });
+      updateMutation.mutate({ id: editingTask.id, ...taskData });
     } else {
-      setTasks(prev => [...prev, newTask]);
-      toast({ title: "Aufgabe erstellt", description: "Die Aufgabe wurde erfolgreich erstellt." });
+      createMutation.mutate(taskData);
     }
-    
-    setIsDialogOpen(false);
-    resetForm();
   };
 
   const handleEdit = (task: Task) => {
@@ -92,18 +152,18 @@ export default function CategoryTasks() {
       title: task.title,
       description: task.description || "",
       priority: task.priority,
-      estimatedMinutes: task.estimatedMinutes,
+      estimatedMinutes: task.estimatedMinutes || "5",
+      icon: task.icon,
+      categoryId: task.categoryId,
     });
-    setTaskAttachments(task.attachments || []);
-    setSelectedShift(task.shift);
-    setSelectedPhase(task.phase);
+    setSelectedShift(task.shift || "früh");
+    setSelectedPhase(task.phase || "start");
     setIsDialogOpen(true);
   };
 
   const handleDelete = (taskId: string) => {
     if (confirm("Sind Sie sicher, dass Sie diese Aufgabe löschen möchten?")) {
-      setTasks(prev => prev.filter(task => task.id !== taskId));
-      toast({ title: "Aufgabe gelöscht", description: "Die Aufgabe wurde erfolgreich gelöscht." });
+      deleteMutation.mutate(taskId);
     }
   };
 
@@ -114,50 +174,8 @@ export default function CategoryTasks() {
     setIsDialogOpen(true);
   };
 
-  const handleGetUploadParameters = async () => {
-    try {
-      const response = await apiRequest("/api/objects/upload", {
-        method: "POST",
-      });
-      return {
-        method: "PUT" as const,
-        url: response.uploadURL,
-      };
-    } catch (error) {
-      console.error("Error getting upload parameters:", error);
-      throw error;
-    }
-  };
-
-  const handleUploadComplete = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
-    try {
-      if (result.successful && result.successful.length > 0) {
-        const uploadedFile = result.successful[0];
-        const response = await apiRequest("/api/attachments", {
-          method: "PUT",
-          body: { fileURL: uploadedFile.uploadURL },
-        });
-        
-        setTaskAttachments(prev => [...prev, response.objectPath]);
-        toast({ 
-          title: "Datei hochgeladen", 
-          description: "Die Datei wurde erfolgreich hinzugefügt." 
-        });
-      }
-    } catch (error) {
-      console.error("Error processing upload:", error);
-      toast({ 
-        title: "Upload-Fehler", 
-        description: "Die Datei konnte nicht verarbeitet werden.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const removeAttachment = (index: number) => {
-    setTaskAttachments(prev => prev.filter((_, i) => i !== index));
-  };
-
+  // Upload functionality removed for now
+  
   const getTasksForColumn = (shift: 'früh' | 'spät', phase: 'start' | 'ende') => {
     return tasks.filter(task => task.shift === shift && task.phase === phase);
   };
@@ -415,7 +433,10 @@ export default function CategoryTasks() {
             </div>
             
             <div className="flex space-x-2">
-              <Button type="submit">
+              <Button 
+                type="submit" 
+                disabled={createMutation.isPending || updateMutation.isPending}
+              >
                 {editingTask ? "Aktualisieren" : "Erstellen"}
               </Button>
               <Button

@@ -100,6 +100,9 @@ export class DatabaseStorage implements IStorage {
         ...insertTask,
         id: randomUUID(),
         createdAt: new Date(),
+        shift: insertTask.shift || null,
+        phase: insertTask.phase || null,
+        attachments: insertTask.attachments || null,
       })
       .returning();
     return task;
@@ -108,7 +111,12 @@ export class DatabaseStorage implements IStorage {
   async updateTask(id: string, updateData: Partial<InsertTask>): Promise<Task | undefined> {
     const [task] = await db
       .update(tasks)
-      .set(updateData)
+      .set({
+        ...updateData,
+        shift: updateData.shift || null,
+        phase: updateData.phase || null,
+        attachments: updateData.attachments || null,
+      })
       .where(eq(tasks.id, id))
       .returning();
     return task || undefined;
@@ -320,6 +328,9 @@ export class MemStorage implements IStorage {
           priority: taskData.priority,
           categoryId,
           estimatedMinutes: null,
+          shift: null,
+          phase: null,
+          attachments: null,
           createdAt: new Date(),
         };
         this.tasks.set(id, task);
@@ -382,6 +393,9 @@ export class MemStorage implements IStorage {
       description: insertTask.description || null,
       estimatedMinutes: insertTask.estimatedMinutes || null,
       priority: insertTask.priority || "medium",
+      shift: insertTask.shift || null,
+      phase: insertTask.phase || null,
+      attachments: insertTask.attachments || null,
       createdAt: new Date(),
     };
     this.tasks.set(id, task);

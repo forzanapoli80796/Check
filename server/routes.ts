@@ -70,10 +70,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/tasks", async (req, res) => {
     try {
       const storage = await getStorage();
-      const validatedData = insertTaskSchema.parse(req.body);
+      const taskData = {
+        ...req.body,
+        icon: req.body.icon || "clipboard-list", // Default icon
+      };
+      const validatedData = insertTaskSchema.parse(taskData);
       const task = await storage.createTask(validatedData);
       res.json(task);
     } catch (error) {
+      console.error("Error creating task:", error);
       res.status(400).json({ message: "Invalid task data" });
     }
   });
