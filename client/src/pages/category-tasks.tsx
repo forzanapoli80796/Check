@@ -63,13 +63,18 @@ export default function CategoryTasks() {
 
   const createMutation = useMutation({
     mutationFn: async (taskData: any) => {
-      return apiRequest("/api/tasks", {
+      const response = await fetch("/api/tasks", {
         method: "POST",
-        body: {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           ...taskData,
           categoryId,
-        },
+        }),
       });
+      if (!response.ok) throw new Error('Failed to create task');
+      return response.json();
     },
     onSuccess: () => {
       qClient.invalidateQueries({ queryKey: ["/api/tasks"] });
@@ -89,12 +94,15 @@ export default function CategoryTasks() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, ...taskData }: any) => {
-      return apiRequest(`/api/tasks/${id}`, {
+      const response = await fetch(`/api/tasks/${id}`, {
         method: "PUT",
-        body: {
-          ...taskData,
+        headers: {
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify(taskData),
       });
+      if (!response.ok) throw new Error('Failed to update task');
+      return response.json();
     },
     onSuccess: () => {
       qClient.invalidateQueries({ queryKey: ["/api/tasks"] });
