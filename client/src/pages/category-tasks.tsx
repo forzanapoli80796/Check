@@ -391,46 +391,7 @@ export default function CategoryTasks() {
               </div>
             </div>
             
-            {/* File Upload Section */}
-            <div>
-              <Label>Anhänge</Label>
-              <div className="mt-2 space-y-2">
-                <ObjectUploader
-                  maxNumberOfFiles={5}
-                  maxFileSize={10485760}
-                  onGetUploadParameters={handleGetUploadParameters}
-                  onComplete={handleUploadComplete}
-                  buttonClassName="w-full"
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <Upload size={16} />
-                    Datei hinzufügen
-                  </div>
-                </ObjectUploader>
-                
-                {taskAttachments.length > 0 && (
-                  <div className="space-y-1">
-                    {taskAttachments.map((attachment, index) => (
-                      <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded text-sm">
-                        <div className="flex items-center gap-2">
-                          <File size={14} />
-                          <span className="truncate">Anhang {index + 1}</span>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeAttachment(index)}
-                          className="h-6 w-6 p-0"
-                        >
-                          <Trash2 size={12} />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+            {/* File Upload - temporarily removed */}
             
             <div className="flex space-x-2">
               <Button 
