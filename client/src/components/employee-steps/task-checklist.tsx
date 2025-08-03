@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { EmployeeWorkflowState, AREA_LABELS } from "@/lib/types";
+import { EmployeeWorkflowState } from "@/lib/types";
 import { Task, Category } from "@shared/schema";
 
 interface TaskChecklistProps {
@@ -32,16 +32,14 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
 
   const submitMutation = useMutation({
     mutationFn: async () => {
-      if (!currentCategory?.id) {
-        console.error('Category not found for area:', state.selectedArea);
-        console.error('Available categories:', categories);
-        throw new Error(`Category not found for area: ${state.selectedArea}`);
+      if (!state.selectedArea) {
+        throw new Error('No area selected');
       }
       
-      console.log('Submitting checklist with categoryId:', currentCategory.id);
+      console.log('Submitting checklist with categoryId:', state.selectedArea);
       
       const response = await apiRequest("POST", "/api/checklists", {
-        categoryId: currentCategory.id,
+        categoryId: state.selectedArea,
         employeeName: state.employeeName,
         store: state.selectedStore,
         shiftType: state.selectedShift,
@@ -61,28 +59,8 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
     },
   });
 
-  // Kategorie-Zuordnung basierend auf selectedArea
-  const currentCategory = categories?.find(cat => {
-    const areaLabel = AREA_LABELS[state.selectedArea as keyof typeof AREA_LABELS];
-    
-    const normalizedCatName = cat.name.toLowerCase().trim();
-    const normalizedAreaLabel = areaLabel?.toLowerCase().trim();
-    
-    // Exakte Übereinstimmung
-    if (normalizedCatName === normalizedAreaLabel) return true;
-    
-    // Spezielle Zuordnungen für bekannte Varianten
-    const specialMappings: Record<string, string[]> = {
-      'kueche': ['küche', 'kitchen', 'kueche'],
-      'terminal': ['terminal', 'kasse'],
-      'fahrer': ['fahrer', 'driver'],
-      'inventur': ['inventur', 'inventory'],
-      'sonderreinigung': ['sonderreinigung', 'reinigung', 'cleaning']
-    };
-    
-    const mappings = specialMappings[state.selectedArea as string] || [];
-    return mappings.some(mapping => normalizedCatName.includes(mapping) || mapping.includes(normalizedCatName));
-  });
+  // Kategorie direkt über ID finden
+  const currentCategory = categories?.find(cat => cat.id === state.selectedArea);
 
   const filteredTasks = tasks?.filter(task => task.categoryId === currentCategory?.id) || [];
 
@@ -115,8 +93,8 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
     if (!currentCategory) {
       console.error('No category found - checking if we need to create one');
       toast({
-        title: "Kategorie nicht gefunden",
-        description: `Keine Kategorie für "${AREA_LABELS[state.selectedArea as keyof typeof AREA_LABELS]}" gefunden. Bitte wenden Sie sich an den Administrator.`,
+        title: "Arbeitsbereich nicht gefunden",
+        description: `Keine Aufgaben für den ausgewählten Arbeitsbereich gefunden. Bitte wenden Sie sich an den Administrator.`,
         variant: "destructive",
       });
       return;
@@ -170,7 +148,7 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
             <div>
               <h2 className="text-xl font-medium">Aufgaben-Checkliste</h2>
               <p className="text-sm text-gray-600">
-                {state.selectedStore} - {AREA_LABELS[state.selectedArea as keyof typeof AREA_LABELS]}
+                {state.selectedStore} - {state.selectedAreaName || 'Arbeitsbereich'}
               </p>
             </div>
           </div>

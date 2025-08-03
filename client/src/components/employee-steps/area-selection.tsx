@@ -2,7 +2,10 @@ import { ArrowLeft } from "lucide-react";
 import * as Icons from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { AREAS, AREA_LABELS, AREA_ICONS, EmployeeWorkflowState } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from "@tanstack/react-query";
+import { EmployeeWorkflowState } from "@/lib/types";
+import type { Category } from "@shared/schema";
 
 interface AreaSelectionProps {
   state: EmployeeWorkflowState;
@@ -10,8 +13,12 @@ interface AreaSelectionProps {
 }
 
 export default function AreaSelection({ state, updateState }: AreaSelectionProps) {
-  const selectArea = (area: string) => {
-    updateState({ selectedArea: area, step: 'details' });
+  const { data: categories = [], isLoading } = useQuery<Category[]>({
+    queryKey: ["/api/categories"],
+  });
+
+  const selectArea = (categoryId: string, categoryName: string) => {
+    updateState({ selectedArea: categoryId, selectedAreaName: categoryName, step: 'details' });
   };
 
   const goBack = () => {
@@ -25,10 +32,30 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
       car: Icons.Car,
       'clipboard-list': Icons.ClipboardList,
       broom: Icons.Brush,
+      cog: Icons.Settings,
+      users: Icons.Users,
     };
     const IconComponent = iconMap[iconName] || Icons.Monitor;
     return <IconComponent className="text-primary" size={20} />;
   };
+
+  if (isLoading) {
+    return (
+      <Card className="shadow-sm border border-gray-200">
+        <CardContent className="pt-6">
+          <div className="flex items-center mb-6">
+            <div className="step-indicator mr-3">2</div>
+            <h2 className="text-xl font-medium">Arbeitsbereich auswählen</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="shadow-sm border border-gray-200">
@@ -38,15 +65,15 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
           <h2 className="text-xl font-medium">Arbeitsbereich auswählen</h2>
         </div>
         <div className="grid grid-cols-1 gap-3">
-          {AREAS.map((area) => (
+          {categories.map((category) => (
             <Button
-              key={area}
+              key={category.id}
               variant="outline"
-              onClick={() => selectArea(area)}
+              onClick={() => selectArea(category.id, category.name)}
               className="selection-button justify-start"
             >
-              {getIcon(AREA_ICONS[area])}
-              <span className="font-medium">{AREA_LABELS[area]}</span>
+              {getIcon(category.icon)}
+              <span className="font-medium">{category.name}</span>
             </Button>
           ))}
         </div>

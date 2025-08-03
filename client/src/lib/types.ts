@@ -6,6 +6,7 @@ export interface EmployeeWorkflowState {
   step: 'store' | 'area' | 'details' | 'tasks' | 'success';
   selectedStore: string | null;
   selectedArea: string | null;
+  selectedAreaName?: string | null;
   employeeName: string;
   selectedShift: 'schichtanfang' | 'schichtende' | null;
   completedTasks: string[];
