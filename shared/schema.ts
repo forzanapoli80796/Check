@@ -17,7 +17,7 @@ export const tasks = pgTable("tasks", {
   title: text("title").notNull(),
   description: text("description"),
   icon: text("icon").notNull(),
-  priority: text("priority").notNull().default("medium"), // low, medium, high
+  priority: text("priority", { enum: ["low", "medium", "high"] }).notNull().default("medium"),
   estimatedMinutes: text("estimated_minutes").default("5"),
   shift: text("shift", { enum: ["früh", "spät"] }),
   phase: text("phase", { enum: ["start", "ende"] }),

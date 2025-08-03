@@ -76,8 +76,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteCategory(id: string): Promise<boolean> {
-    const result = await db.delete(categories).where(eq(categories.id, id));
-    return (result.rowCount || 0) > 0;
+    try {
+      // First delete all tasks that reference this category
+      await db.delete(tasks).where(eq(tasks.categoryId, id));
+      
+      // Then delete the category
+      const result = await db.delete(categories).where(eq(categories.id, id));
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      return false;
+    }
   }
 
   async getTasks(): Promise<Task[]> {

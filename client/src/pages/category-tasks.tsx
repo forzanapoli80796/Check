@@ -31,7 +31,7 @@ export default function CategoryTasks() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    priority: "medium" as const,
+    priority: "medium" as "low" | "medium" | "high",
     estimatedMinutes: "5",
     icon: "clipboard-list",
     categoryId: categoryId || "",
