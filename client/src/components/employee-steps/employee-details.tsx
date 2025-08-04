@@ -19,15 +19,15 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
   const isInventory = state.selectedArea === 'inventur';
   const isComplete = name.trim() && (isInventory || selectedShift);
 
-  const selectShift = (shift: 'schichtanfang' | 'schichtende') => {
+  const selectShift = (shift: 'frühschicht' | 'spätschicht') => {
     setSelectedShift(shift);
   };
 
-  const proceedToTasks = () => {
+  const proceedToShiftPhase = () => {
     updateState({ 
       employeeName: name.trim(), 
-      selectedShift: isInventory ? 'schichtanfang' : selectedShift, // Default for inventory
-      step: 'tasks' 
+      selectedShift: isInventory ? 'frühschicht' : selectedShift, // Default for inventory
+      step: isInventory ? 'tasks' : 'shift-phase' // Skip phase selection for inventory
     });
   };
 
@@ -60,23 +60,23 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
           {/* Only show shift selection if not inventory */}
           {!isInventory && (
             <div>
-              <Label className="block mb-3">Schicht</Label>
+              <Label className="block mb-3">Schicht auswählen</Label>
               <div className="grid grid-cols-2 gap-3">
                 <Button
                   variant="outline"
-                  onClick={() => selectShift('schichtanfang')}
-                  className={`p-3 ${selectedShift === 'schichtanfang' ? 'selection-button selected' : 'selection-button'}`}
+                  onClick={() => selectShift('frühschicht')}
+                  className={`p-3 ${selectedShift === 'frühschicht' ? 'selection-button selected' : 'selection-button'}`}
                 >
-                  <Play className="text-secondary mr-2" size={16} />
-                  Schichtanfang
+                  <span className="text-green-600 mr-2">☀️</span>
+                  Frühschicht
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => selectShift('schichtende')}
-                  className={`p-3 ${selectedShift === 'schichtende' ? 'selection-button selected' : 'selection-button'}`}
+                  onClick={() => selectShift('spätschicht')}
+                  className={`p-3 ${selectedShift === 'spätschicht' ? 'selection-button selected' : 'selection-button'}`}
                 >
-                  <Square className="text-red-500 mr-2" size={16} />
-                  Schichtende
+                  <span className="text-orange-600 mr-2">🌙</span>
+                  Spätschicht
                 </Button>
               </div>
             </div>
@@ -93,7 +93,7 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
         </div>
         <div className="flex space-x-3 mt-6">
           <Button 
-            onClick={proceedToTasks} 
+            onClick={proceedToShiftPhase} 
             className="flex-1" 
             disabled={!isComplete}
           >

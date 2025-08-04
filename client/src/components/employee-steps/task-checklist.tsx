@@ -42,7 +42,7 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
         categoryId: state.selectedArea,
         employeeName: state.employeeName,
         store: state.selectedStore,
-        shiftType: state.selectedShift,
+        shiftType: `${state.selectedShift}_${state.selectedShiftPhase}`,
         completedTasks,
       });
       return response.json();
@@ -65,22 +65,13 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
   const filteredTasks = tasks?.filter(task => {
     if (task.categoryId !== currentCategory?.id) return false;
     
-    // Determine current shift based on time
-    const currentHour = new Date().getHours();
-    const isEarlyShift = currentHour < 15; // Before 3 PM = Frühschicht
-    const currentShiftType = isEarlyShift ? 'frühschicht' : 'spätschicht';
-    
-
-    
-    // Vereinfachte Logik: Zeige alle Aufgaben für die gewählte Kategorie
-    // Die schichtspezifische Filterung ist optional
-    if (task.shift && task.shift !== 'both' && task.shift !== currentShiftType) {
-      // Nur filtern wenn explizit eine andere Schicht gewählt wurde
+    // Filter by selected shift
+    if (task.shift !== 'both' && task.shift !== state.selectedShift) {
       return false;
     }
     
-    if (task.shiftPhase && task.shiftPhase !== 'both' && task.shiftPhase !== state.selectedShift) {
-      // Nur filtern wenn explizit eine andere Phase gewählt wurde  
+    // Filter by selected shift phase
+    if (task.shiftPhase !== 'both' && task.shiftPhase !== state.selectedShiftPhase) {
       return false;
     }
     
@@ -167,11 +158,15 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
       <CardContent className="pt-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
-            <div className="step-indicator mr-3">4</div>
+            <div className="step-indicator mr-3">5</div>
             <div>
               <h2 className="text-xl font-medium">Aufgaben-Checkliste</h2>
               <p className="text-sm text-gray-600">
                 {state.selectedStore} - {state.selectedAreaName || 'Arbeitsbereich'}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {state.selectedShift === 'frühschicht' ? 'Frühschicht' : 'Spätschicht'} - 
+                {state.selectedShiftPhase === 'schichtanfang' ? ' Start' : ' Ende'}
               </p>
             </div>
           </div>

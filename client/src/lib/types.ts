@@ -3,12 +3,13 @@ export interface UserSession {
 }
 
 export interface EmployeeWorkflowState {
-  step: 'store' | 'area' | 'details' | 'tasks' | 'success';
+  step: 'store' | 'area' | 'details' | 'shift-phase' | 'tasks' | 'success';
   selectedStore: string | null;
   selectedArea: string | null;
   selectedAreaName?: string | null;
   employeeName: string;
-  selectedShift: 'schichtanfang' | 'schichtende' | null;
+  selectedShift: 'frühschicht' | 'spätschicht' | null;
+  selectedShiftPhase: 'schichtanfang' | 'schichtende' | null;
   completedTasks: string[];
   totalTasks: number;
 }

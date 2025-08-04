@@ -7,6 +7,7 @@ import { EmployeeWorkflowState } from "@/lib/types";
 import StoreSelection from "@/components/employee-steps/store-selection";
 import AreaSelection from "@/components/employee-steps/area-selection";
 import EmployeeDetails from "@/components/employee-steps/employee-details";
+import ShiftPhaseSelection from "@/components/employee-steps/shift-phase-selection";
 import TaskChecklist from "@/components/employee-steps/task-checklist";
 import InventoryChecklist from "@/components/employee-steps/inventory-checklist";
 import SuccessScreen from "@/components/employee-steps/success-screen";
@@ -20,6 +21,7 @@ export default function EmployeeWorkflow() {
     selectedArea: null,
     employeeName: '',
     selectedShift: null,
+    selectedShiftPhase: null,
     completedTasks: [],
     totalTasks: 0,
   });
@@ -36,6 +38,8 @@ export default function EmployeeWorkflow() {
         return <AreaSelection state={state} updateState={updateState} />;
       case 'details':
         return <EmployeeDetails state={state} updateState={updateState} />;
+      case 'shift-phase':
+        return <ShiftPhaseSelection state={state} updateState={updateState} />;
       case 'tasks':
         // Check if this is inventory area
         if (state.selectedArea === 'inventur') {
