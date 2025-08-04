@@ -63,7 +63,8 @@ export default function AdminCategoryTasks() {
     mutationFn: async (data: TaskFormData) => {
       const response = await apiRequest('POST', '/api/tasks', {
         ...data,
-        categoryId: category?.id || '',
+        estimatedMinutes: parseInt(data.estimatedMinutes) || 5,
+        categoryId: categoryId,
         icon: 'check'
       });
       return response.json();
@@ -82,7 +83,10 @@ export default function AdminCategoryTasks() {
   // Update task mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, ...data }: TaskFormData & { id: string }) => {
-      const response = await apiRequest('PUT', `/api/tasks/${id}`, data);
+      const response = await apiRequest('PUT', `/api/tasks/${id}`, {
+        ...data,
+        estimatedMinutes: parseInt(data.estimatedMinutes) || 5
+      });
       return response.json();
     },
     onSuccess: () => {
