@@ -70,14 +70,18 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
     const isEarlyShift = currentHour < 15; // Before 3 PM = Frühschicht
     const currentShiftType = isEarlyShift ? 'frühschicht' : 'spätschicht';
     
-    // Filter by shift type if task has specific shift assignment
-    if (task.shift && task.shift !== 'both') {
-      if (task.shift !== currentShiftType) return false;
+
+    
+    // Vereinfachte Logik: Zeige alle Aufgaben für die gewählte Kategorie
+    // Die schichtspezifische Filterung ist optional
+    if (task.shift && task.shift !== 'both' && task.shift !== currentShiftType) {
+      // Nur filtern wenn explizit eine andere Schicht gewählt wurde
+      return false;
     }
     
-    // Filter by shift phase if task has specific phase assignment
-    if (task.shiftPhase && task.shiftPhase !== 'both') {
-      if (task.shiftPhase !== state.selectedShift) return false;
+    if (task.shiftPhase && task.shiftPhase !== 'both' && task.shiftPhase !== state.selectedShift) {
+      // Nur filtern wenn explizit eine andere Phase gewählt wurde  
+      return false;
     }
     
     return true;

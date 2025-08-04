@@ -300,7 +300,7 @@ export default function SubmittedLists() {
                     }) as React.ReactNode[]
                   ) : (
                     <p className="text-gray-500 text-sm">Keine Aufgaben erledigt</p>
-                  )}
+                  ) as React.ReactNode}
                 </div>
               </div>
 
