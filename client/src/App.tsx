@@ -13,6 +13,7 @@ import BetriebsleiterDashboard from "@/pages/betriebsleiter-dashboard";
 import TeigDashboard from "@/pages/teig-dashboard";
 import CategoryTasks from "@/pages/category-tasks";
 import LocationSelection from "@/pages/location-selection";
+import AdminCategoryTasks from "@/pages/admin-category-tasks";
 
 
 function Router() {
@@ -26,6 +27,7 @@ function Router() {
       <Route path="/teig" component={TeigDashboard} />
       <Route path="/location-selection" component={LocationSelection} />
       <Route path="/category-tasks" component={CategoryTasks} />
+      <Route path="/admin-category-tasks/:categoryId/:store" component={AdminCategoryTasks} />
       <Route component={NotFound} />
     </Switch>
   );

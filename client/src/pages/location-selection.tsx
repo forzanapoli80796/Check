@@ -19,13 +19,22 @@ export default function LocationSelection() {
   const categoryName = urlParams.get('categoryName') || 'Arbeitsbereich';
 
   const handleLocationSelect = (locationId: string, locationName: string) => {
-    const params = new URLSearchParams({
-      categoryId: categoryId || '',
-      categoryName,
-      locationId,
-      locationName,
-    });
-    navigate(`/category-tasks?${params.toString()}`);
+    // Check if admin is accessing this page
+    const isAdmin = window.location.search.includes('admin=true');
+    
+    if (isAdmin && categoryId) {
+      // Admin gets redirected to task management page
+      navigate(`/admin-category-tasks/${categoryId}/${locationId}`);
+    } else {
+      // Normal employee flow
+      const params = new URLSearchParams({
+        categoryId: categoryId || '',
+        categoryName,
+        locationId,
+        locationName,
+      });
+      navigate(`/category-tasks?${params.toString()}`);
+    }
   };
 
   return (
