@@ -204,6 +204,8 @@ export default function TasksManagement() {
     );
   }
 
+  console.log('Tasks data:', tasks?.length, 'Filtered tasks:', filteredTasks?.length);
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -367,20 +369,20 @@ export default function TasksManagement() {
                         {getCategoryName(task.categoryId)}
                       </Badge>
                       <Badge className={`text-xs ${
-                        task.shift === 'frühschicht' ? 'bg-green-100 text-green-800' :
-                        task.shift === 'spätschicht' ? 'bg-orange-100 text-orange-800' :
+                        (task.shift || 'both') === 'frühschicht' ? 'bg-green-100 text-green-800' :
+                        (task.shift || 'both') === 'spätschicht' ? 'bg-orange-100 text-orange-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
-                        {task.shift === 'frühschicht' ? 'Früh' :
-                         task.shift === 'spätschicht' ? 'Spät' : 'Beide'}
+                        {(task.shift || 'both') === 'frühschicht' ? 'Früh' :
+                         (task.shift || 'both') === 'spätschicht' ? 'Spät' : 'Beide'}
                       </Badge>
                       <Badge className={`text-xs ${
-                        task.shiftPhase === 'schichtanfang' ? 'bg-blue-100 text-blue-800' :
-                        task.shiftPhase === 'schichtende' ? 'bg-purple-100 text-purple-800' :
+                        (task.shiftPhase || 'both') === 'schichtanfang' ? 'bg-blue-100 text-blue-800' :
+                        (task.shiftPhase || 'both') === 'schichtende' ? 'bg-purple-100 text-purple-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
-                        {task.shiftPhase === 'schichtanfang' ? 'Start' :
-                         task.shiftPhase === 'schichtende' ? 'Ende' : 'Start+Ende'}
+                        {(task.shiftPhase || 'both') === 'schichtanfang' ? 'Start' :
+                         (task.shiftPhase || 'both') === 'schichtende' ? 'Ende' : 'Start+Ende'}
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-600">{task.description}</p>
@@ -420,6 +422,13 @@ export default function TasksManagement() {
           >
             Suche zurücksetzen
           </Button>
+        </div>
+      )}
+
+      {/* Debug Info */}
+      {tasks && (
+        <div className="mb-4 p-3 bg-yellow-50 rounded">
+          <p className="text-sm">Debug: {tasks.length} Aufgaben geladen, {filteredTasks.length} gefiltert</p>
         </div>
       )}
 
