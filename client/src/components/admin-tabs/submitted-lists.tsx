@@ -103,6 +103,14 @@ export default function SubmittedLists() {
   const getShiftBadgeVariant = (shift: string) => {
     return shift === "schichtanfang" ? "default" : "destructive";
   };
+  
+  const formatShiftDisplay = (shiftType: string) => {
+    const currentHour = new Date().getHours();
+    const isEarlyShift = currentHour < 15; // Before 3 PM = Frühschicht
+    const currentShiftPeriod = isEarlyShift ? 'Frühschicht' : 'Spätschicht';
+    const phase = shiftType === 'schichtanfang' ? 'Start' : 'Ende';
+    return `${currentShiftPeriod} (${phase})`;
+  };
 
   const getShiftLabel = (shift: string) => {
     return shift === "schichtanfang" ? "Schichtanfang" : "Schichtende";
@@ -194,8 +202,8 @@ export default function SubmittedLists() {
                   {categories?.find(c => c.id === checklist.categoryId)?.name || 'Unbekannte Kategorie'}
                 </TableCell>
                 <TableCell>
-                  <Badge variant="secondary">
-                    {checklist.shiftType || 'Standard'}
+                  <Badge variant={getShiftBadgeVariant(checklist.shiftType)}>
+                    {formatShiftDisplay(checklist.shiftType)}
                   </Badge>
                 </TableCell>
                 <TableCell>

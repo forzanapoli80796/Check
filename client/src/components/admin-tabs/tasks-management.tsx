@@ -25,7 +25,8 @@ export default function TasksManagement() {
     title: "",
     description: "",
     categoryId: "",
-    shiftType: "both" as "schichtanfang" | "schichtende" | "both",
+    shift: "both" as "frühschicht" | "spätschicht" | "both",
+    shiftPhase: "both" as "schichtanfang" | "schichtende" | "both",
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -135,7 +136,8 @@ export default function TasksManagement() {
       title: "",
       description: "",
       categoryId: "",
-      shiftType: "both",
+      shift: "both",
+      shiftPhase: "both",
     });
     setEditingTask(null);
   };
@@ -146,7 +148,8 @@ export default function TasksManagement() {
       title: task.title,
       description: task.description || "",
       categoryId: task.categoryId,
-      shiftType: task.shiftType || "both",
+      shift: task.shift || "both",
+      shiftPhase: task.shiftPhase || "both",
     });
     setDialogKey(prev => prev + 1); // Force dialog re-render
     setIsDialogOpen(true);
@@ -266,13 +269,27 @@ export default function TasksManagement() {
               </div>
 
               <div>
-                <Label htmlFor="shiftType">Schicht</Label>
-                <Select value={formData.shiftType} onValueChange={(value: "schichtanfang" | "schichtende" | "both") => setFormData(prev => ({ ...prev, shiftType: value }))}>
+                <Label htmlFor="shift">Schichttyp</Label>
+                <Select value={formData.shift} onValueChange={(value: "frühschicht" | "spätschicht" | "both") => setFormData(prev => ({ ...prev, shift: value }))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Schicht auswählen" />
+                    <SelectValue placeholder="Schichttyp auswählen" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="both">Beide Schichten</SelectItem>
+                    <SelectItem value="both">Früh- und Spätschicht</SelectItem>
+                    <SelectItem value="frühschicht">Nur Frühschicht</SelectItem>
+                    <SelectItem value="spätschicht">Nur Spätschicht</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="shiftPhase">Schichtphase</Label>
+                <Select value={formData.shiftPhase} onValueChange={(value: "schichtanfang" | "schichtende" | "both") => setFormData(prev => ({ ...prev, shiftPhase: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Schichtphase auswählen" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="both">Anfang und Ende</SelectItem>
                     <SelectItem value="schichtanfang">Nur Schichtanfang</SelectItem>
                     <SelectItem value="schichtende">Nur Schichtende</SelectItem>
                   </SelectContent>
@@ -350,12 +367,20 @@ export default function TasksManagement() {
                         {getCategoryName(task.categoryId)}
                       </Badge>
                       <Badge className={`text-xs ${
-                        task.shiftType === 'schichtanfang' ? 'bg-green-100 text-green-800' :
-                        task.shiftType === 'schichtende' ? 'bg-blue-100 text-blue-800' :
+                        task.shift === 'frühschicht' ? 'bg-green-100 text-green-800' :
+                        task.shift === 'spätschicht' ? 'bg-orange-100 text-orange-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
-                        {task.shiftType === 'schichtanfang' ? 'Früh' :
-                         task.shiftType === 'schichtende' ? 'Spät' : 'Beide'}
+                        {task.shift === 'frühschicht' ? 'Früh' :
+                         task.shift === 'spätschicht' ? 'Spät' : 'Beide'}
+                      </Badge>
+                      <Badge className={`text-xs ${
+                        task.shiftPhase === 'schichtanfang' ? 'bg-blue-100 text-blue-800' :
+                        task.shiftPhase === 'schichtende' ? 'bg-purple-100 text-purple-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {task.shiftPhase === 'schichtanfang' ? 'Start' :
+                         task.shiftPhase === 'schichtende' ? 'Ende' : 'Start+Ende'}
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-600">{task.description}</p>

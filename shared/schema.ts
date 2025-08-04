@@ -19,9 +19,8 @@ export const tasks = pgTable("tasks", {
   icon: text("icon").notNull(),
   priority: text("priority", { enum: ["low", "medium", "high"] }).notNull().default("medium"),
   estimatedMinutes: text("estimated_minutes").default("5"),
-  shiftType: text("shift_type", { enum: ["schichtanfang", "schichtende", "both"] }).default("both"),
-  shift: text("shift", { enum: ["früh", "spät"] }),
-  phase: text("phase", { enum: ["start", "ende"] }),
+  shift: text("shift", { enum: ["frühschicht", "spätschicht", "both"] }).notNull().default("both"),
+  shiftPhase: text("shift_phase", { enum: ["schichtanfang", "schichtende", "both"] }).notNull().default("both"),
   attachments: text("attachments").array(),
   createdAt: timestamp("created_at").defaultNow(),
 });

@@ -65,9 +65,19 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
   const filteredTasks = tasks?.filter(task => {
     if (task.categoryId !== currentCategory?.id) return false;
     
+    // Determine current shift based on time
+    const currentHour = new Date().getHours();
+    const isEarlyShift = currentHour < 15; // Before 3 PM = Frühschicht
+    const currentShiftType = isEarlyShift ? 'frühschicht' : 'spätschicht';
+    
     // Filter by shift type if task has specific shift assignment
-    if (task.shiftType && task.shiftType !== 'both') {
-      return task.shiftType === state.selectedShift;
+    if (task.shift && task.shift !== 'both') {
+      if (task.shift !== currentShiftType) return false;
+    }
+    
+    // Filter by shift phase if task has specific phase assignment
+    if (task.shiftPhase && task.shiftPhase !== 'both') {
+      if (task.shiftPhase !== state.selectedShift) return false;
     }
     
     return true;
