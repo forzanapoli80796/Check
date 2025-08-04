@@ -204,7 +204,7 @@ export default function TasksManagement() {
     );
   }
 
-  console.log('Tasks data:', tasks?.length, 'Filtered tasks:', filteredTasks?.length);
+
 
   return (
     <div>

@@ -74,6 +74,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         icon: req.body.icon || "clipboard-list", // Default icon
       };
+      // Convert old format to new format for backwards compatibility
+      if (taskData.shift === 'früh') taskData.shift = 'frühschicht';
+      if (taskData.shift === 'spät') taskData.shift = 'spätschicht';
+      
       const validatedData = insertTaskSchema.parse(taskData);
       const task = await storage.createTask(validatedData);
       res.json(task);
@@ -86,7 +90,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/tasks/:id", async (req, res) => {
     try {
       const storage = await getStorage();
-      const validatedData = insertTaskSchema.partial().parse(req.body);
+      // Convert old format to new format for backwards compatibility
+      const updateData = { ...req.body };
+      if (updateData.shift === 'früh') updateData.shift = 'frühschicht';
+      if (updateData.shift === 'spät') updateData.shift = 'spätschicht';
+      
+      const validatedData = insertTaskSchema.partial().parse(updateData);
       const task = await storage.updateTask(req.params.id, validatedData);
       if (!task) {
         return res.status(404).json({ message: "Task not found" });
