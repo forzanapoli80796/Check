@@ -178,11 +178,23 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
           </div>
         </div>
 
-        <div className="space-y-3 mb-6">
-          {filteredTasks.map((task) => {
-            const isCompleted = completedTasks.includes(task.id);
-            return (
-              <div
+        {filteredTasks.length === 0 ? (
+          <div className="py-12 text-center">
+            <p className="text-gray-500">Keine Aufgaben für diese Schichtphase gefunden.</p>
+            <p className="text-sm text-gray-400 mt-2">
+              {state.selectedShift === 'frühschicht' ? 'Frühschicht' : 'Spätschicht'} - 
+              {state.selectedShiftPhase === 'schichtanfang' ? ' Start' : ' Ende'}
+            </p>
+            <p className="text-sm text-gray-400 mt-1">
+              Bitte wenden Sie sich an Ihren Administrator.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3 mb-6">
+            {filteredTasks.map((task) => {
+              const isCompleted = completedTasks.includes(task.id);
+              return (
+                <div
                 key={task.id}
                 onClick={() => toggleTask(task.id)}
                 className={`task-item ${isCompleted ? 'completed' : ''}`}
@@ -202,9 +214,10 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
                 </div>
                 {getIcon(task.icon)}
               </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
         <div className="flex space-x-3">
           <Button
