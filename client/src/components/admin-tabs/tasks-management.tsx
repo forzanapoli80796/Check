@@ -357,58 +357,78 @@ export default function TasksManagement() {
       )}
 
       <div className="space-y-4">
-        {filteredTasks.map((task) => {
-          return (
-            <Card key={task.id} className="border">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h4 className="font-medium">{task.title}</h4>
-                      <Badge className="bg-blue-100 text-blue-800">
-                        {getCategoryName(task.categoryId)}
-                      </Badge>
-                      <Badge className={`text-xs ${
-                        (task.shift || 'both') === 'frühschicht' ? 'bg-green-100 text-green-800' :
-                        (task.shift || 'both') === 'spätschicht' ? 'bg-orange-100 text-orange-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {(task.shift || 'both') === 'frühschicht' ? 'Früh' :
-                         (task.shift || 'both') === 'spätschicht' ? 'Spät' : 'Beide'}
-                      </Badge>
-                      <Badge className={`text-xs ${
-                        (task.shiftPhase || 'both') === 'schichtanfang' ? 'bg-blue-100 text-blue-800' :
-                        (task.shiftPhase || 'both') === 'schichtende' ? 'bg-purple-100 text-purple-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {(task.shiftPhase || 'both') === 'schichtanfang' ? 'Start' :
-                         (task.shiftPhase || 'both') === 'schichtende' ? 'Ende' : 'Start+Ende'}
-                      </Badge>
+        {filteredTasks && filteredTasks.length > 0 ? (
+          filteredTasks.map((task) => {
+            try {
+              return (
+                <Card key={task.id} className="border">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h4 className="font-medium">{task.title || 'Ohne Titel'}</h4>
+                          <Badge className="bg-blue-100 text-blue-800">
+                            {getCategoryName(task.categoryId)}
+                          </Badge>
+                          <Badge className={`text-xs ${
+                            (task.shift || 'both') === 'frühschicht' ? 'bg-green-100 text-green-800' :
+                            (task.shift || 'both') === 'spätschicht' ? 'bg-orange-100 text-orange-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {(task.shift || 'both') === 'frühschicht' ? 'Früh' :
+                             (task.shift || 'both') === 'spätschicht' ? 'Spät' : 'Beide'}
+                          </Badge>
+                          <Badge className={`text-xs ${
+                            (task.shiftPhase || 'both') === 'schichtanfang' ? 'bg-blue-100 text-blue-800' :
+                            (task.shiftPhase || 'both') === 'schichtende' ? 'bg-purple-100 text-purple-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {(task.shiftPhase || 'both') === 'schichtanfang' ? 'Start' :
+                             (task.shiftPhase || 'both') === 'schichtende' ? 'Ende' : 'Start+Ende'}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-gray-600">{task.description || 'Keine Beschreibung'}</p>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(task)}
+                        >
+                          <Edit size={16} className="text-primary" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(task.id)}
+                          disabled={deleteMutation.isPending}
+                        >
+                          <Trash2 size={16} className="text-red-600" />
+                        </Button>
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-600">{task.description}</p>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEdit(task)}
-                    >
-                      <Edit size={16} className="text-primary" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(task.id)}
-                      disabled={deleteMutation.isPending}
-                    >
-                      <Trash2 size={16} className="text-red-600" />
-                    </Button>
-                  </div>
+                  </CardContent>
+                </Card>
+              );
+            } catch (error) {
+              console.error('Error rendering task:', task, error);
+              return (
+                <div key={task.id} className="p-4 border border-red-200 rounded">
+                  <p className="text-red-600">Fehler beim Anzeigen der Aufgabe: {task.title}</p>
                 </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+              );
+            }
+          })
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-gray-500">Keine Aufgaben gefunden.</p>
+            {searchTerm && (
+              <p className="text-sm text-gray-400 mt-2">
+                Versuchen Sie einen anderen Suchbegriff oder erstellen Sie eine neue Aufgabe.
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* No Tasks Message */}
@@ -426,9 +446,13 @@ export default function TasksManagement() {
       )}
 
       {/* Debug Info */}
-      {tasks && (
+      {true && (
         <div className="mb-4 p-3 bg-yellow-50 rounded">
-          <p className="text-sm">Debug: {tasks.length} Aufgaben geladen, {filteredTasks.length} gefiltert</p>
+          <p className="text-sm">Debug: {tasks?.length || 0} Aufgaben geladen, {filteredTasks?.length || 0} gefiltert</p>
+          <p className="text-xs mt-1">Tasks loading: {tasksLoading ? 'Ja' : 'Nein'}, Categories loading: {categoriesLoading ? 'Ja' : 'Nein'}</p>
+          {tasks && tasks.length > 0 && (
+            <p className="text-xs mt-1">Erste Aufgabe: {tasks[0]?.title}</p>
+          )}
         </div>
       )}
 
