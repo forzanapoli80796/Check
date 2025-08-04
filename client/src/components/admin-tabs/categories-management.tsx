@@ -274,6 +274,15 @@ export default function CategoriesManagement() {
         </Dialog>
       </div>
 
+      {/* DEBUG BOX FOR TASKS */}
+      <div className="mb-6 p-4 bg-red-100 border-2 border-red-500 rounded">
+        <h3 className="font-bold text-red-800">TASKS DEBUG</h3>
+        <p>Tasks Array: {tasks ? `${tasks.length} Aufgaben` : 'undefined'}</p>
+        {tasks && tasks.length > 0 && (
+          <p>Erste Aufgabe: {tasks[0].title}</p>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {categories?.map((category) => (
           <Card key={category.id} className="bg-gray-50 border">
