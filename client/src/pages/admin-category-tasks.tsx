@@ -78,11 +78,10 @@ export default function AdminCategoryTasks() {
 
   // Update task mutation
   const updateMutation = useMutation({
-    mutationFn: ({ id, ...data }: TaskFormData & { id: string }) =>
-      apiRequest(`/api/tasks/${id}`, {
-        method: 'PATCH',
-        body: data
-      }),
+    mutationFn: async ({ id, ...data }: TaskFormData & { id: string }) => {
+      const response = await apiRequest('PUT', `/api/tasks/${id}`, data);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
       setIsDialogOpen(false);
@@ -97,8 +96,10 @@ export default function AdminCategoryTasks() {
 
   // Delete task mutation
   const deleteMutation = useMutation({
-    mutationFn: (id: string) =>
-      apiRequest(`/api/tasks/${id}`, { method: 'DELETE' }),
+    mutationFn: async (id: string) => {
+      const response = await apiRequest('DELETE', `/api/tasks/${id}`);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
       toast({
