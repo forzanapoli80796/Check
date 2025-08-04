@@ -85,6 +85,9 @@ export default function TasksManagementSimple() {
     return <div>Laden...</div>;
   }
 
+  console.log('TASKS DATA:', tasks);
+  console.log('CATEGORIES DATA:', categories);
+
   return (
     <div>
       {/* DEBUG BOX */}
