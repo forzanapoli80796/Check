@@ -274,56 +274,184 @@ export default function CategoriesManagement() {
         </Dialog>
       </div>
 
-      {/* DEBUG BOX FOR TASKS */}
-      <div className="mb-6 p-4 bg-red-100 border-2 border-red-500 rounded">
-        <h3 className="font-bold text-red-800">TASKS DEBUG</h3>
-        <p>Tasks Array: {tasks ? `${tasks.length} Aufgaben` : 'undefined'}</p>
-        {tasks && tasks.length > 0 && (
-          <p>Erste Aufgabe: {tasks[0].title}</p>
-        )}
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {categories?.map((category) => (
-          <Card key={category.id} className="bg-gray-50 border">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-medium">{category.name}</h4>
-                <div className="flex space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate(`/location-selection?categoryId=${category.id}&categoryName=${encodeURIComponent(category.name)}`)}
-                  >
-                    <Plus size={16} className="text-green-600" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEdit(category)}
-                  >
-                    <Edit size={16} className="text-primary" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDelete(category.id)}
-                    disabled={deleteMutation.isPending}
-                  >
-                    <Trash2 size={16} className="text-red-600" />
-                  </Button>
+
+      <div className="space-y-8">
+        {categories?.map((category) => {
+          const categoryTasks = tasks?.filter(task => task.categoryId === category.id) || [];
+          
+          return (
+            <Card key={category.id} className="border">
+              <CardContent className="p-6">
+                {/* Category Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    {getIcon(category.icon)}
+                    <div>
+                      <h4 className="text-lg font-medium">{category.name}</h4>
+                      <p className="text-sm text-gray-600">{category.description}</p>
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigate(`/location-selection?categoryId=${category.id}&categoryName=${encodeURIComponent(category.name)}`)}
+                    >
+                      <Plus size={16} className="text-green-600" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(category)}
+                    >
+                      <Edit size={16} className="text-primary" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(category.id)}
+                      disabled={deleteMutation.isPending}
+                    >
+                      <Trash2 size={16} className="text-red-600" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-              <p className="text-sm text-gray-600 mb-2">
-                {getTaskCount(category.id)} Aufgaben
-              </p>
-              <div className="flex items-center text-sm text-gray-500">
-                {getIcon(category.icon)}
-                <span className="ml-2">{category.description}</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+
+                {/* Tasks Grid */}
+                <div className="grid grid-cols-2 gap-6">
+                  {/* Frühschicht Column */}
+                  <div>
+                    <h5 className="font-medium text-green-700 mb-4 flex items-center">
+                      <span className="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                      Frühschicht
+                    </h5>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Schichtanfang */}
+                      <div>
+                        <h6 className="text-sm font-medium text-blue-600 mb-2">Start</h6>
+                        <div className="space-y-2 min-h-[100px] bg-blue-50 p-3 rounded">
+                          {categoryTasks
+                            .filter(task => 
+                              (task.shift === 'frühschicht' || task.shift === 'both') && 
+                              (task.shiftPhase === 'schichtanfang' || task.shiftPhase === 'both')
+                            )
+                            .map(task => (
+                              <div key={task.id} className="bg-white p-2 rounded border text-xs">
+                                <p className="font-medium">{task.title}</p>
+                                {task.description && (
+                                  <p className="text-gray-600 mt-1">{task.description}</p>
+                                )}
+                              </div>
+                            ))
+                          }
+                          {categoryTasks.filter(task => 
+                            (task.shift === 'frühschicht' || task.shift === 'both') && 
+                            (task.shiftPhase === 'schichtanfang' || task.shiftPhase === 'both')
+                          ).length === 0 && (
+                            <p className="text-gray-400 text-xs">Keine Aufgaben</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Schichtende */}
+                      <div>
+                        <h6 className="text-sm font-medium text-purple-600 mb-2">Ende</h6>
+                        <div className="space-y-2 min-h-[100px] bg-purple-50 p-3 rounded">
+                          {categoryTasks
+                            .filter(task => 
+                              (task.shift === 'frühschicht' || task.shift === 'both') && 
+                              (task.shiftPhase === 'schichtende' || task.shiftPhase === 'both')
+                            )
+                            .map(task => (
+                              <div key={task.id} className="bg-white p-2 rounded border text-xs">
+                                <p className="font-medium">{task.title}</p>
+                                {task.description && (
+                                  <p className="text-gray-600 mt-1">{task.description}</p>
+                                )}
+                              </div>
+                            ))
+                          }
+                          {categoryTasks.filter(task => 
+                            (task.shift === 'frühschicht' || task.shift === 'both') && 
+                            (task.shiftPhase === 'schichtende' || task.shiftPhase === 'both')
+                          ).length === 0 && (
+                            <p className="text-gray-400 text-xs">Keine Aufgaben</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Spätschicht Column */}
+                  <div>
+                    <h5 className="font-medium text-orange-700 mb-4 flex items-center">
+                      <span className="w-3 h-3 bg-orange-500 rounded-full mr-2"></span>
+                      Spätschicht
+                    </h5>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Schichtanfang */}
+                      <div>
+                        <h6 className="text-sm font-medium text-blue-600 mb-2">Start</h6>
+                        <div className="space-y-2 min-h-[100px] bg-blue-50 p-3 rounded">
+                          {categoryTasks
+                            .filter(task => 
+                              (task.shift === 'spätschicht' || task.shift === 'both') && 
+                              (task.shiftPhase === 'schichtanfang' || task.shiftPhase === 'both')
+                            )
+                            .map(task => (
+                              <div key={task.id} className="bg-white p-2 rounded border text-xs">
+                                <p className="font-medium">{task.title}</p>
+                                {task.description && (
+                                  <p className="text-gray-600 mt-1">{task.description}</p>
+                                )}
+                              </div>
+                            ))
+                          }
+                          {categoryTasks.filter(task => 
+                            (task.shift === 'spätschicht' || task.shift === 'both') && 
+                            (task.shiftPhase === 'schichtanfang' || task.shiftPhase === 'both')
+                          ).length === 0 && (
+                            <p className="text-gray-400 text-xs">Keine Aufgaben</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Schichtende */}
+                      <div>
+                        <h6 className="text-sm font-medium text-purple-600 mb-2">Ende</h6>
+                        <div className="space-y-2 min-h-[100px] bg-purple-50 p-3 rounded">
+                          {categoryTasks
+                            .filter(task => 
+                              (task.shift === 'spätschicht' || task.shift === 'both') && 
+                              (task.shiftPhase === 'schichtende' || task.shiftPhase === 'both')
+                            )
+                            .map(task => (
+                              <div key={task.id} className="bg-white p-2 rounded border text-xs">
+                                <p className="font-medium">{task.title}</p>
+                                {task.description && (
+                                  <p className="text-gray-600 mt-1">{task.description}</p>
+                                )}
+                              </div>
+                            ))
+                          }
+                          {categoryTasks.filter(task => 
+                            (task.shift === 'spätschicht' || task.shift === 'both') && 
+                            (task.shiftPhase === 'schichtende' || task.shiftPhase === 'both')
+                          ).length === 0 && (
+                            <p className="text-gray-400 text-xs">Keine Aufgaben</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );
