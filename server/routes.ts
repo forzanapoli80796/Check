@@ -73,6 +73,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const taskData = {
         ...req.body,
         icon: req.body.icon || "clipboard-list", // Default icon
+        estimatedMinutes: String(req.body.estimatedMinutes || 5), // Convert to string
       };
       // Convert old format to new format for backwards compatibility
       if (taskData.shift === 'früh') taskData.shift = 'frühschicht';
@@ -94,6 +95,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updateData = { ...req.body };
       if (updateData.shift === 'früh') updateData.shift = 'frühschicht';
       if (updateData.shift === 'spät') updateData.shift = 'spätschicht';
+      if (updateData.estimatedMinutes !== undefined) {
+        updateData.estimatedMinutes = String(updateData.estimatedMinutes);
+      }
       
       const validatedData = insertTaskSchema.partial().parse(updateData);
       const task = await storage.updateTask(req.params.id, validatedData);
