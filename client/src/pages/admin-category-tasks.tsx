@@ -35,6 +35,13 @@ export default function AdminCategoryTasks() {
   const categoryId = params?.categoryId || "";
   const store = params?.store || "";
   
+  // Redirect if no categoryId
+  useEffect(() => {
+    if (!categoryId) {
+      navigate("/admin");
+    }
+  }, [categoryId, navigate]);
+  
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [formData, setFormData] = useState<TaskFormData>({
@@ -61,6 +68,9 @@ export default function AdminCategoryTasks() {
   // Create task mutation
   const createMutation = useMutation({
     mutationFn: async (data: TaskFormData) => {
+      if (!categoryId) {
+        throw new Error("Keine Kategorie-ID vorhanden");
+      }
       const response = await apiRequest('POST', '/api/tasks', {
         ...data,
         estimatedMinutes: parseInt(data.estimatedMinutes) || 5,
@@ -76,6 +86,13 @@ export default function AdminCategoryTasks() {
       toast({
         title: "Aufgabe erstellt",
         description: "Die neue Aufgabe wurde erfolgreich hinzugefügt."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Fehler beim Erstellen",
+        description: error.message || "Die Aufgabe konnte nicht erstellt werden.",
+        variant: "destructive"
       });
     }
   });

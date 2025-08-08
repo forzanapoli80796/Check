@@ -25,7 +25,7 @@ export default function LocationSelection() {
     if (isAdmin && categoryId) {
       // Admin gets redirected to task management page
       navigate(`/admin-category-tasks/${categoryId}/${locationId}`);
-    } else {
+    } else if (!isAdmin && categoryId) {
       // Normal employee flow
       const params = new URLSearchParams({
         categoryId: categoryId || '',
