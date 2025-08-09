@@ -100,16 +100,31 @@ export default function SubmittedLists() {
     }
   };
 
-  const getShiftBadgeVariant = (shift: string) => {
-    return shift === "schichtanfang" ? "default" : "destructive";
+  const getShiftBadgeVariant = (shiftType: string) => {
+    // Check if it contains "frühschicht" for early shift (green/default)
+    // or "spätschicht" for late shift (blue/secondary)
+    if (!shiftType) return "outline";
+    
+    if (shiftType.includes('frühschicht')) {
+      return "default"; // Green for early shift
+    } else if (shiftType.includes('spätschicht')) {
+      return "secondary"; // Blue for late shift
+    }
+    return "outline";
   };
   
   const formatShiftDisplay = (shiftType: string) => {
-    const currentHour = new Date().getHours();
-    const isEarlyShift = currentHour < 15; // Before 3 PM = Frühschicht
-    const currentShiftPeriod = isEarlyShift ? 'Frühschicht' : 'Spätschicht';
-    const phase = shiftType === 'schichtanfang' ? 'Start' : 'Ende';
-    return `${currentShiftPeriod} (${phase})`;
+    // Parse the actual shiftType string format: "frühschicht_schichtanfang", etc.
+    if (!shiftType) return 'Unbekannt';
+    
+    const parts = shiftType.split('_');
+    if (parts.length !== 2) return shiftType; // Fallback to raw value if format is unexpected
+    
+    const [shift, phase] = parts;
+    const shiftName = shift === 'frühschicht' ? 'Frühschicht' : 'Spätschicht';
+    const phaseName = phase === 'schichtanfang' ? 'Anfang' : 'Ende';
+    
+    return `${shiftName} (${phaseName})`;
   };
 
   const getShiftLabel = (shift: string) => {
