@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -22,7 +23,8 @@ const taskFormSchema = z.object({
   priority: z.enum(["low", "medium", "high"]),
   estimatedMinutes: z.string(),
   shift: z.enum(["frühschicht", "spätschicht", "both"]),
-  shiftPhase: z.enum(["schichtanfang", "schichtende", "both"])
+  shiftPhase: z.enum(["schichtanfang", "schichtende", "both"]),
+  stores: z.array(z.string()).min(1, "Mindestens ein Standort muss ausgewählt werden")
 });
 
 type TaskFormData = z.infer<typeof taskFormSchema>;
@@ -50,7 +52,8 @@ export default function AdminCategoryTasks() {
     priority: "medium",
     estimatedMinutes: "5",
     shift: "both",
-    shiftPhase: "both"
+    shiftPhase: "both",
+    stores: ["JP23", "KP5", "TS17"] // Default to all stores
   });
 
   // Fetch category details
@@ -140,7 +143,8 @@ export default function AdminCategoryTasks() {
       priority: "medium",
       estimatedMinutes: "5",
       shift: "both",
-      shiftPhase: "both"
+      shiftPhase: "both",
+      stores: ["JP23", "KP5", "TS17"]
     });
   };
 
@@ -152,7 +156,8 @@ export default function AdminCategoryTasks() {
       priority: task.priority,
       estimatedMinutes: task.estimatedMinutes || "5",
       shift: task.shift,
-      shiftPhase: task.shiftPhase
+      shiftPhase: task.shiftPhase,
+      stores: task.stores || ["JP23", "KP5", "TS17"]
     });
     setIsDialogOpen(true);
   };
@@ -229,6 +234,18 @@ export default function AdminCategoryTasks() {
         </span>
         <span className="ml-2">{task.estimatedMinutes} Min.</span>
       </div>
+      {task.stores && task.stores.length > 0 && (
+        <div className="flex items-center mt-2 text-xs">
+          <span className="text-gray-600">Standorte: </span>
+          <div className="ml-1 flex gap-1">
+            {task.stores.map(store => (
+              <span key={store} className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
+                {store}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -344,6 +361,33 @@ export default function AdminCategoryTasks() {
                       onChange={(e) => setFormData(prev => ({ ...prev, estimatedMinutes: e.target.value }))}
                       required
                     />
+                  </div>
+                </div>
+                <div>
+                  <Label>Standorte</Label>
+                  <div className="space-y-2 mt-2">
+                    {["JP23", "KP5", "TS17"].map((storeOption) => (
+                      <div key={storeOption} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`store-${storeOption}`}
+                          checked={formData.stores.includes(storeOption)}
+                          onCheckedChange={(checked) => {
+                            setFormData(prev => ({
+                              ...prev,
+                              stores: checked
+                                ? [...prev.stores, storeOption]
+                                : prev.stores.filter(s => s !== storeOption)
+                            }));
+                          }}
+                        />
+                        <Label
+                          htmlFor={`store-${storeOption}`}
+                          className="text-sm font-normal cursor-pointer"
+                        >
+                          {storeOption}
+                        </Label>
+                      </div>
+                    ))}
                   </div>
                 </div>
                 <div className="flex space-x-2">

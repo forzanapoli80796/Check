@@ -35,7 +35,7 @@ Logo usage: Only use the official ForzaCheck logo (FORZACHECK1_black_17538166219
 
 ### Database Schema
 - **Categories**: Work areas like Terminal, Kitchen, Driver, Inventory, Deep Cleaning
-- **Tasks**: Individual checklist items assigned to categories with priority levels
+- **Tasks**: Individual checklist items assigned to categories with priority levels and store-specific assignments (stores array field added 2025-08-09)
 - **Checklists**: Completed task submissions with employee and store information
 - **Teig Production**: Daily dough ball quantity targets per store with weekly planning capability
 
@@ -47,9 +47,11 @@ Logo usage: Only use the official ForzaCheck logo (FORZACHECK1_black_17538166219
 
 ### Core Features
 - **Employee Workflow**: Step-by-step process (Store → Area → Details → Tasks → Success)
+  - Store-specific task filtering: Only shows tasks assigned to the selected store (added 2025-08-09)
 - **Teig Dashboard**: Daily production overview showing required dough ball quantities by store
 - **Betriebsleiter Workflow**: Management-specific task checklist workflow (Store → Details → Tasks → Submit)
 - **Admin Dashboard**: Comprehensive management of categories, tasks, submissions, and weekly dough production planning
+  - Store selection for tasks: Admin can assign tasks to specific stores (JP23, KP5, TS17) during creation/editing
 - **Real-time Updates**: TanStack Query for optimistic updates and cache management
 - **Consistent Branding**: Official ForzaCheck logo integrated across all pages with header component
 

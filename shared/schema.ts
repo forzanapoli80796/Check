@@ -21,6 +21,7 @@ export const tasks = pgTable("tasks", {
   estimatedMinutes: text("estimated_minutes").default("5"),
   shift: text("shift", { enum: ["frühschicht", "spätschicht", "both"] }).notNull().default("both"),
   shiftPhase: text("shift_phase", { enum: ["schichtanfang", "schichtende", "both"] }).notNull().default("both"),
+  stores: text("stores").array().default(sql`ARRAY['JP23', 'KP5', 'TS17']::text[]`), // Array of store codes this task applies to
   attachments: text("attachments").array(),
   createdAt: timestamp("created_at").defaultNow(),
 });

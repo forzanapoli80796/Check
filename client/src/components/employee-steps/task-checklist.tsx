@@ -65,6 +65,11 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
   const filteredTasks = tasks?.filter(task => {
     if (task.categoryId !== currentCategory?.id) return false;
     
+    // Filter by selected store
+    if (task.stores && state.selectedStore && !task.stores.includes(state.selectedStore)) {
+      return false;
+    }
+    
     // Filter by selected shift
     if (task.shift !== 'both' && task.shift !== state.selectedShift) {
       return false;

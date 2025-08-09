@@ -109,8 +109,9 @@ export class DatabaseStorage implements IStorage {
         ...insertTask,
         id: randomUUID(),
         createdAt: new Date(),
-        shift: insertTask.shift || null,
-        phase: insertTask.phase || null,
+        shift: insertTask.shift || "both",
+        shiftPhase: insertTask.shiftPhase || "both",
+        stores: insertTask.stores || ["JP23", "KP5", "TS17"],
         attachments: insertTask.attachments || null,
       })
       .returning();
@@ -122,8 +123,9 @@ export class DatabaseStorage implements IStorage {
       .update(tasks)
       .set({
         ...updateData,
-        shift: updateData.shift || null,
-        phase: updateData.phase || null,
+        shift: updateData.shift || "both",
+        shiftPhase: updateData.shiftPhase || "both",
+        stores: updateData.stores || ["JP23", "KP5", "TS17"],
         attachments: updateData.attachments || null,
       })
       .where(eq(tasks.id, id))
@@ -337,8 +339,9 @@ export class MemStorage implements IStorage {
           priority: taskData.priority,
           categoryId,
           estimatedMinutes: null,
-          shift: null,
-          phase: null,
+          shift: "both",
+          shiftPhase: "both",
+          stores: ["JP23", "KP5", "TS17"],
           attachments: null,
           createdAt: new Date(),
         };
@@ -402,8 +405,9 @@ export class MemStorage implements IStorage {
       description: insertTask.description || null,
       estimatedMinutes: insertTask.estimatedMinutes || null,
       priority: insertTask.priority || "medium",
-      shift: insertTask.shift || null,
-      phase: insertTask.phase || null,
+      shift: insertTask.shift || "both",
+      shiftPhase: insertTask.shiftPhase || "both",
+      stores: insertTask.stores || ["JP23", "KP5", "TS17"],
       attachments: insertTask.attachments || null,
       createdAt: new Date(),
     };

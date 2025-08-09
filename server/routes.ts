@@ -64,6 +64,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/tasks", async (req, res) => {
     const storage = await getStorage();
     const tasks = await storage.getTasks();
+    
+    // Filter by store if provided
+    const { store } = req.query;
+    if (store && typeof store === 'string') {
+      const filteredTasks = tasks.filter(task => 
+        task.stores && task.stores.includes(store)
+      );
+      return res.json(filteredTasks);
+    }
+    
     res.json(tasks);
   });
 
