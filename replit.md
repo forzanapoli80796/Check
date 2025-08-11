@@ -36,7 +36,8 @@ Logo usage: Only use the official ForzaCheck logo (FORZACHECK1_black_17538166219
 ### Database Schema
 - **Categories**: Work areas like Terminal, Kitchen, Driver, Inventory, Deep Cleaning
   - **useShifts** field: Boolean to determine if category uses shift-based workflow (added 2025-08-11)
-  - Categories with simple checklist mode (useShifts=false): "Samstag Reinigung 3", "Betriebsleiter" (updated 2025-08-11)
+  - Categories with simple checklist mode (useShifts=false): "Inventur", "Samstag Reinigung 3", "Betriebsleiter" (updated 2025-08-11)
+  - **Inventur**: Special category with quantity input fields for product counting instead of checkboxes (updated 2025-08-11)
 - **Tasks**: Individual checklist items assigned to categories with priority levels and store-specific assignments (stores array field added 2025-08-09)
 - **Checklists**: Completed task submissions with employee and store information
 - **Teig Production**: Daily dough ball quantity targets per store with weekly planning capability

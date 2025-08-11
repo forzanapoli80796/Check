@@ -32,6 +32,7 @@ export default function EmployeeWorkflow() {
     step: 'store',
     selectedStore: null,
     selectedArea: null,
+    selectedAreaName: null,
     employeeName: '',
     selectedShift: null,
     selectedShiftPhase: null,
@@ -72,8 +73,8 @@ export default function EmployeeWorkflow() {
       case 'shift-phase':
         return <ShiftPhaseSelection state={state} updateState={updateState} />;
       case 'tasks':
-        // Check if this is inventory area
-        if (state.selectedArea === 'inventur') {
+        // Check if this is inventory area by category name
+        if (state.selectedAreaName?.toLowerCase() === 'inventur') {
           return <InventoryChecklist state={state} updateState={updateState} />;
         }
         return <TaskChecklist state={state} updateState={updateState} />;

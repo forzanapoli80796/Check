@@ -59,7 +59,7 @@ export default function InventoryChecklist({ state, updateState }: InventoryChec
         categoryId: inventurCategory.id,
         employeeName: state.employeeName,
         store: state.selectedStore!,
-        shiftType: state.selectedShift!,
+        shiftType: 'keine_schicht', // Inventur has no shifts
         completedTasks,
       };
 
@@ -96,7 +96,16 @@ export default function InventoryChecklist({ state, updateState }: InventoryChec
   });
 
   const inventurCategory = categories?.find(cat => cat.name === "Inventur");
-  const filteredTasks = tasks?.filter(task => task.categoryId === inventurCategory?.id) || [];
+  const filteredTasks = tasks?.filter(task => {
+    if (task.categoryId !== inventurCategory?.id) return false;
+    
+    // Filter by selected store
+    if (task.stores && state.selectedStore && !task.stores.includes(state.selectedStore)) {
+      return false;
+    }
+    
+    return true;
+  }) || [];
 
   const updateInventoryItem = (taskId: string, updates: Partial<InventoryTaskData>) => {
     setInventoryData(prev => {
@@ -127,6 +136,9 @@ export default function InventoryChecklist({ state, updateState }: InventoryChec
       <div className="text-center space-y-2">
         <Package size={48} className="mx-auto text-blue-600" />
         <h2 className="text-2xl font-bold">Inventur - {state.selectedStore}</h2>
+        <p className="text-gray-600">
+          Mitarbeiter: {state.employeeName}
+        </p>
         <p className="text-gray-600">
           Erfassen Sie die Mengen für jeden Artikel
         </p>
