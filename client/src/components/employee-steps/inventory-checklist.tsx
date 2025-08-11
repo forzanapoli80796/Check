@@ -48,18 +48,17 @@ export default function InventoryChecklist({ state, updateState }: InventoryChec
   const submitMutation = useMutation({
     mutationFn: async () => {
       // First create the checklist
-      const inventurCategory = categories?.find(cat => cat.name === "Inventur");
-      if (!inventurCategory) throw new Error("Inventur category not found");
+      if (!state.selectedArea) throw new Error("No category selected");
 
       const completedTasks = Array.from(inventoryData.values())
         .filter(item => item.completed)
         .map(item => item.taskId);
 
       const checklistData: InsertChecklist = {
-        categoryId: inventurCategory.id,
+        categoryId: state.selectedArea,
         employeeName: state.employeeName,
         store: state.selectedStore!,
-        shiftType: 'keine_schicht', // Inventur has no shifts
+        shiftType: 'keine_schicht', // Inventory categories have no shifts
         completedTasks,
       };
 
@@ -95,9 +94,9 @@ export default function InventoryChecklist({ state, updateState }: InventoryChec
     },
   });
 
-  const inventurCategory = categories?.find(cat => cat.categoryType === "inventory");
+  // Use the selected category instead of looking for any inventory category
   const filteredTasks = tasks?.filter(task => {
-    if (task.categoryId !== inventurCategory?.id) return false;
+    if (task.categoryId !== state.selectedArea) return false;
     
     // Filter by selected store
     if (task.stores && state.selectedStore && !task.stores.includes(state.selectedStore)) {
@@ -135,7 +134,7 @@ export default function InventoryChecklist({ state, updateState }: InventoryChec
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       <div className="text-center space-y-2">
         <Package size={48} className="mx-auto text-blue-600" />
-        <h2 className="text-2xl font-bold">Inventur - {state.selectedStore}</h2>
+        <h2 className="text-2xl font-bold">{state.selectedAreaName || 'Mengenerfassung'} - {state.selectedStore}</h2>
         <p className="text-gray-600">
           Mitarbeiter: {state.employeeName}
         </p>
