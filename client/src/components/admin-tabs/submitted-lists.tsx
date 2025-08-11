@@ -63,14 +63,12 @@ export default function SubmittedLists() {
     queryKey: ['/api/tasks']
   });
 
-  const { data: inventoryItems = [], refetch: refetchInventoryItems } = useQuery<InventoryItem[]>({
+  const { data: inventoryItems = [] } = useQuery<InventoryItem[]>({
     queryKey: ['/api/inventory-items/checklist', selectedChecklist?.id],
     queryFn: async () => {
       if (!selectedChecklist?.id) return [];
-      console.log('Fetching inventory items for checklist:', selectedChecklist.id);
       const response = await fetch(`/api/inventory-items/checklist/${selectedChecklist.id}`);
       const data = await response.json();
-      console.log('Inventory items fetched:', data);
       return data;
     },
     enabled: !!selectedChecklist?.id
@@ -142,9 +140,7 @@ export default function SubmittedLists() {
   };
 
   const openChecklistDetails = (checklist: Checklist) => {
-    console.log('Opening checklist details:', checklist);
     setSelectedChecklist(checklist);
-    // Query will automatically refetch due to changed selectedChecklist.id
   };
 
   const closeChecklistDetails = () => {
@@ -335,7 +331,6 @@ export default function SubmittedLists() {
               {(() => {
                 const category = categories?.find(c => c.id === selectedChecklist.categoryId);
                 const isInventur = category?.name?.toLowerCase() === 'inventur';
-                console.log('Category:', category?.name, 'Is Inventur:', isInventur, 'Inventory Items:', inventoryItems);
                 
                 if (isInventur) {
                   return (

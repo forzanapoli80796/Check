@@ -239,6 +239,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get inventory items for a specific checklist
+  app.get("/api/inventory-items/checklist/:checklistId", async (req, res) => {
+    const storage = await getStorage();
+    const items = await storage.getInventoryItemsByChecklist(req.params.checklistId);
+    res.json(items);
+  });
+
   app.post("/api/inventory-items", async (req, res) => {
     try {
       const storage = await getStorage();
