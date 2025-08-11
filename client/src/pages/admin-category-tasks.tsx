@@ -80,10 +80,15 @@ export default function AdminCategoryTasks() {
   });
 
   // Fetch category details
-  const { data: category } = useQuery<Category>({
+  const { data: category, isLoading: categoryLoading } = useQuery<Category>({
     queryKey: [`/api/categories/${categoryId}`],
     enabled: !!categoryId
   });
+  
+  // Debug category loading
+  useEffect(() => {
+    console.log('Category loaded:', category, 'Loading:', categoryLoading, 'CategoryId:', categoryId);
+  }, [category, categoryLoading, categoryId]);
 
   // Fetch tasks for this category
   const { data: tasks } = useQuery<Task[]>({

@@ -25,6 +25,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const categories = await storage.getCategories();
     res.json(categories);
   });
+  
+  app.get("/api/categories/:id", async (req, res) => {
+    const storage = await getStorage();
+    const categories = await storage.getCategories();
+    const category = categories.find(c => c.id === req.params.id);
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+    res.json(category);
+  });
 
   app.post("/api/categories", async (req, res) => {
     try {
