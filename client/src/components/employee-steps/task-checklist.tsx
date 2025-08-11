@@ -42,7 +42,9 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
         categoryId: state.selectedArea,
         employeeName: state.employeeName,
         store: state.selectedStore,
-        shiftType: `${state.selectedShift}_${state.selectedShiftPhase}`,
+        shiftType: state.selectedAreaUseShifts === false 
+          ? 'keine_schicht' 
+          : `${state.selectedShift}_${state.selectedShiftPhase}`,
         completedTasks,
       });
       return response.json();
@@ -70,14 +72,17 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
       return false;
     }
     
-    // Filter by selected shift
-    if (task.shift !== 'both' && task.shift !== state.selectedShift) {
-      return false;
-    }
-    
-    // Filter by selected shift phase
-    if (task.shiftPhase !== 'both' && task.shiftPhase !== state.selectedShiftPhase) {
-      return false;
+    // Only apply shift filtering if category uses shifts
+    if (state.selectedAreaUseShifts !== false) {
+      // Filter by selected shift
+      if (task.shift !== 'both' && task.shift !== state.selectedShift) {
+        return false;
+      }
+      
+      // Filter by selected shift phase
+      if (task.shiftPhase !== 'both' && task.shiftPhase !== state.selectedShiftPhase) {
+        return false;
+      }
     }
     
     return true;
@@ -169,10 +174,12 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
               <p className="text-sm text-gray-600">
                 {state.selectedStore} - {state.selectedAreaName || 'Arbeitsbereich'}
               </p>
-              <p className="text-xs text-gray-500 mt-1">
-                {state.selectedShift === 'frühschicht' ? 'Frühschicht' : 'Spätschicht'} - 
-                {state.selectedShiftPhase === 'schichtanfang' ? ' Start' : ' Ende'}
-              </p>
+              {state.selectedAreaUseShifts !== false && (
+                <p className="text-xs text-gray-500 mt-1">
+                  {state.selectedShift === 'frühschicht' ? 'Frühschicht' : 'Spätschicht'} - 
+                  {state.selectedShiftPhase === 'schichtanfang' ? ' Start' : ' Ende'}
+                </p>
+              )}
             </div>
           </div>
           <div className="text-right">

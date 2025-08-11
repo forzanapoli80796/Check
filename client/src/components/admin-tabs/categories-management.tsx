@@ -5,6 +5,7 @@ import { Plus, Edit, Trash2 } from "lucide-react";
 import * as Icons from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,6 +33,7 @@ export default function CategoriesManagement() {
     name: "",
     description: "",
     icon: "desktop",
+    useShifts: true, // Default: mit Schichten
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -145,6 +147,7 @@ export default function CategoriesManagement() {
       name: "",
       description: "",
       icon: "desktop",
+      useShifts: true,
     });
     setEditingCategory(null);
   };
@@ -155,6 +158,7 @@ export default function CategoriesManagement() {
       name: category.name,
       description: category.description || "",
       icon: category.icon,
+      useShifts: category.useShifts !== false, // Default to true if not set
     });
     setIsDialogOpen(true);
   };
@@ -253,6 +257,31 @@ export default function CategoriesManagement() {
                   </SelectContent>
                 </Select>
               </div>
+              <div>
+                <Label htmlFor="useShifts">Checklisten-Typ</Label>
+                <Select 
+                  value={formData.useShifts ? "shifts" : "simple"} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, useShifts: value === "shifts" }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="shifts">
+                      <div className="flex flex-col items-start">
+                        <span className="font-medium">Mit Schichten</span>
+                        <span className="text-xs text-gray-500">Frühschicht und Spätschicht</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="simple">
+                      <div className="flex flex-col items-start">
+                        <span className="font-medium">Einfache Checkliste</span>
+                        <span className="text-xs text-gray-500">Ohne Schichteinteilung</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="flex space-x-2">
                 <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
                   {editingCategory ? "Aktualisieren" : "Erstellen"}
@@ -281,7 +310,12 @@ export default function CategoriesManagement() {
           <Card key={category.id} className="bg-gray-50 border">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
-                <h4 className="font-medium">{category.name}</h4>
+                <div className="flex flex-col">
+                  <h4 className="font-medium">{category.name}</h4>
+                  <Badge variant={category.useShifts !== false ? "default" : "secondary"} className="mt-1 text-xs w-fit">
+                    {category.useShifts !== false ? "Mit Schichten" : "Einfache Checkliste"}
+                  </Badge>
+                </div>
                 <div className="flex space-x-2">
                   <Button
                     variant="ghost"

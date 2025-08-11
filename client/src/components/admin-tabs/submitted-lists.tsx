@@ -105,7 +105,9 @@ export default function SubmittedLists() {
     // or "spätschicht" for late shift (blue/secondary)
     if (!shiftType) return "outline";
     
-    if (shiftType.includes('frühschicht')) {
+    if (shiftType === 'keine_schicht') {
+      return "outline"; // Neutral for no shifts
+    } else if (shiftType.includes('frühschicht')) {
       return "default"; // Green for early shift
     } else if (shiftType.includes('spätschicht')) {
       return "secondary"; // Blue for late shift
@@ -116,6 +118,11 @@ export default function SubmittedLists() {
   const formatShiftDisplay = (shiftType: string) => {
     // Parse the actual shiftType string format: "frühschicht_schichtanfang", etc.
     if (!shiftType) return 'Unbekannt';
+    
+    // Handle categories without shifts
+    if (shiftType === 'keine_schicht') {
+      return 'Ohne Schichten';
+    }
     
     const parts = shiftType.split('_');
     if (parts.length !== 2) return shiftType; // Fallback to raw value if format is unexpected

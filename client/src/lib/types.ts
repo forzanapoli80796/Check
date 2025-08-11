@@ -7,6 +7,7 @@ export interface EmployeeWorkflowState {
   selectedStore: string | null;
   selectedArea: string | null;
   selectedAreaName?: string | null;
+  selectedAreaUseShifts?: boolean; // Whether the selected category uses shifts
   employeeName: string;
   selectedShift: 'frühschicht' | 'spätschicht' | null;
   selectedShiftPhase: 'schichtanfang' | 'schichtende' | null;

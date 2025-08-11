@@ -8,6 +8,7 @@ export const categories = pgTable("categories", {
   name: text("name").notNull(),
   description: text("description"),
   icon: text("icon").notNull(),
+  useShifts: boolean("use_shifts").notNull().default(true), // true = mit Schichten, false = einfache Checkliste
   createdAt: timestamp("created_at").defaultNow(),
 });
 

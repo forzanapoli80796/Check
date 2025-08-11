@@ -17,8 +17,13 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
     queryKey: ["/api/categories"],
   });
 
-  const selectArea = (categoryId: string, categoryName: string) => {
-    updateState({ selectedArea: categoryId, selectedAreaName: categoryName, step: 'details' });
+  const selectArea = (category: Category) => {
+    updateState({ 
+      selectedArea: category.id, 
+      selectedAreaName: category.name,
+      selectedAreaUseShifts: category.useShifts !== false, // Default to true if not set
+      step: 'details' 
+    });
   };
 
   const goBack = () => {
@@ -69,11 +74,14 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
             <Button
               key={category.id}
               variant="outline"
-              onClick={() => selectArea(category.id, category.name)}
+              onClick={() => selectArea(category)}
               className="selection-button justify-start"
             >
               {getIcon(category.icon)}
               <span className="font-medium">{category.name}</span>
+              {category.useShifts === false && (
+                <span className="ml-auto text-xs text-gray-500">Einfache Checkliste</span>
+              )}
             </Button>
           ))}
         </div>

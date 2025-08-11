@@ -15,9 +15,9 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
   const [name, setName] = useState(state.employeeName);
   const [selectedShift, setSelectedShift] = useState(state.selectedShift);
 
-  // For inventory, skip shift selection
-  const isInventory = state.selectedArea === 'inventur';
-  const isComplete = name.trim() && (isInventory || selectedShift);
+  // Skip shift selection for categories without shifts
+  const useShifts = state.selectedAreaUseShifts !== false;
+  const isComplete = name.trim() && (!useShifts || selectedShift);
 
   const selectShift = (shift: 'frühschicht' | 'spätschicht') => {
     setSelectedShift(shift);
@@ -26,8 +26,9 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
   const proceedToShiftPhase = () => {
     updateState({ 
       employeeName: name.trim(), 
-      selectedShift: isInventory ? 'frühschicht' : selectedShift, // Default for inventory
-      step: isInventory ? 'tasks' : 'shift-phase' // Skip phase selection for inventory
+      selectedShift: !useShifts ? null : selectedShift,
+      selectedShiftPhase: !useShifts ? null : null, // Will be selected in next step if using shifts
+      step: !useShifts ? 'tasks' : 'shift-phase' // Skip phase selection for categories without shifts
     });
   };
 
@@ -57,8 +58,8 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
               className="mt-2"
             />
           </div>
-          {/* Only show shift selection if not inventory */}
-          {!isInventory && (
+          {/* Only show shift selection if category uses shifts */}
+          {useShifts && (
             <div>
               <Label className="block mb-3">Schicht auswählen</Label>
               <div className="grid grid-cols-2 gap-3">
@@ -82,11 +83,11 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
             </div>
           )}
 
-          {/* Info message for inventory */}
-          {isInventory && (
+          {/* Info message for categories without shifts */}
+          {!useShifts && (
             <div className="bg-blue-50 p-3 rounded-lg">
               <p className="text-sm text-blue-800">
-                Bei der Inventur ist keine Schichtauswahl erforderlich.
+                Dieser Bereich hat keine Schichteinteilung - direkt zu den Aufgaben.
               </p>
             </div>
           )}
