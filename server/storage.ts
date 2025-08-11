@@ -88,7 +88,9 @@ export class DatabaseStorage implements IStorage {
       
       // Delete inventory items that reference these tasks
       if (taskIds.length > 0) {
-        await db.delete(inventoryItems).where(sql`task_id = ANY(${taskIds})`);
+        for (const taskId of taskIds) {
+          await db.delete(inventoryItems).where(eq(inventoryItems.taskId, taskId));
+        }
       }
       
       // Delete all checklists for this category
