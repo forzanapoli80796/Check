@@ -2,7 +2,7 @@ import { type Category, type InsertCategory, type Task, type InsertTask, type Ch
 import { randomUUID } from "crypto";
 import { db } from "./db";
 import { categories, tasks, checklists, teigProduction, inventoryItems } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Categories
@@ -82,10 +82,22 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCategory(id: string): Promise<boolean> {
     try {
-      // First delete all tasks that reference this category
+      // Get all tasks for this category
+      const categoryTasks = await db.select().from(tasks).where(eq(tasks.categoryId, id));
+      const taskIds = categoryTasks.map(t => t.id);
+      
+      // Delete inventory items that reference these tasks
+      if (taskIds.length > 0) {
+        await db.delete(inventoryItems).where(sql`task_id = ANY(${taskIds})`);
+      }
+      
+      // Delete all checklists for this category
+      await db.delete(checklists).where(eq(checklists.categoryId, id));
+      
+      // Delete all tasks that reference this category
       await db.delete(tasks).where(eq(tasks.categoryId, id));
       
-      // Then delete the category
+      // Finally delete the category
       const result = await db.delete(categories).where(eq(categories.id, id));
       return (result.rowCount || 0) > 0;
     } catch (error) {
