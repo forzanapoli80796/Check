@@ -184,6 +184,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteChecklist(id: string): Promise<boolean> {
+    // First delete associated inventory items to avoid foreign key constraint violation
+    await db.delete(inventoryItems).where(eq(inventoryItems.checklistId, id));
+    
+    // Then delete the checklist
     const result = await db.delete(checklists).where(eq(checklists.id, id));
     return (result.rowCount || 0) > 0;
   }
@@ -281,12 +285,12 @@ export class MemStorage implements IStorage {
   private initializeDefaultData() {
     // Initialize default categories
     const defaultCategories = [
-      { name: "Terminal", description: "Kassensystem & Kundenbereich", icon: "desktop" },
-      { name: "Küche", description: "Zubereitung & Hygiene", icon: "utensils" },
-      { name: "Fahrer", description: "Fahrzeug & Lieferung", icon: "car" },
-      { name: "Inventur", description: "Bestandsaufnahme", icon: "clipboard-list" },
-      { name: "Sonderreinigung", description: "Tiefenreinigung", icon: "broom" },
-      { name: "Betriebsleiter", description: "Management & Organisation", icon: "briefcase" },
+      { name: "Terminal", description: "Kassensystem & Kundenbereich", icon: "desktop", useShifts: true },
+      { name: "Küche", description: "Zubereitung & Hygiene", icon: "utensils", useShifts: true },
+      { name: "Fahrer", description: "Fahrzeug & Lieferung", icon: "car", useShifts: true },
+      { name: "Inventur", description: "Bestandsaufnahme", icon: "clipboard-list", useShifts: false },
+      { name: "Sonderreinigung", description: "Tiefenreinigung", icon: "broom", useShifts: false },
+      { name: "Betriebsleiter", description: "Management & Organisation", icon: "briefcase", useShifts: false },
     ];
 
     const categoryIds: Record<string, string> = {};
@@ -369,6 +373,7 @@ export class MemStorage implements IStorage {
       ...insertCategory,
       id,
       description: insertCategory.description || null,
+      useShifts: insertCategory.useShifts ?? true,
       createdAt: new Date(),
     };
     this.categories.set(id, category);

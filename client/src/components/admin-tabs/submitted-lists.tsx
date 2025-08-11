@@ -312,7 +312,7 @@ export default function SubmittedLists() {
                 <h4 className="font-medium mb-3">Erledigte Aufgaben</h4>
                 <div className="space-y-2">
                   {Array.isArray(selectedChecklist.completedTasks) && selectedChecklist.completedTasks.length > 0 ? (
-                    selectedChecklist.completedTasks.map((taskId: string) => {
+                    (selectedChecklist.completedTasks as string[]).map((taskId: string) => {
                       const task = tasks.find(t => t.id === taskId);
                       return (
                         <div key={taskId} className="flex items-center space-x-2 p-2 bg-green-50 rounded-lg">
@@ -320,10 +320,10 @@ export default function SubmittedLists() {
                           <span className="text-sm">{task?.title || `Aufgabe ${taskId}`}</span>
                         </div>
                       );
-                    }) as React.ReactNode[]
+                    })
                   ) : (
                     <p className="text-gray-500 text-sm">Keine Aufgaben erledigt</p>
-                  ) as React.ReactNode}
+                  )}
                 </div>
               </div>
 
@@ -354,7 +354,7 @@ export default function SubmittedLists() {
                       ) : (
                         <p className="text-gray-500 text-sm p-3 bg-gray-50 rounded-lg">
                           Keine Mengenangaben erfasst. 
-                          {selectedChecklist.completedTasks?.length > 0 && 
+                          {(selectedChecklist.completedTasks as string[])?.length > 0 && 
                             ' (Hinweis: Mengenerfassung wurde möglicherweise nachträglich hinzugefügt)'}
                         </p>
                       )}
