@@ -421,7 +421,7 @@ export default function AdminCategoryTasks() {
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   />
                 </div>
-                {category?.useShifts !== false && (
+                {category?.useShifts === true && (
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="shift">Schicht</Label>
