@@ -299,7 +299,7 @@ export default function TasksManagement() {
               </div>
 
               {/* Info für Inventur-Arbeitsbereich */}
-              {formData.categoryId && categories?.find(cat => cat.id === formData.categoryId)?.name === "Inventur" && (
+              {formData.categoryId && categories?.find(cat => cat.id === formData.categoryId)?.categoryType === "inventory" && (
                 <div className="bg-blue-50 p-3 rounded-lg">
                   <p className="text-sm text-blue-800">
                     <strong>Inventur-Hinweis:</strong> Erstellen Sie hier nur den Artikel-Namen (z.B. "Pizza Margherita", "Tomatensauce"). 

@@ -73,8 +73,8 @@ export default function EmployeeWorkflow() {
       case 'shift-phase':
         return <ShiftPhaseSelection state={state} updateState={updateState} />;
       case 'tasks':
-        // Check if this is inventory area by category name
-        if (state.selectedAreaName?.toLowerCase() === 'inventur') {
+        // Check if this is inventory area by category type (Option 3)
+        if (state.selectedAreaType === 'inventory') {
           return <InventoryChecklist state={state} updateState={updateState} />;
         }
         return <TaskChecklist state={state} updateState={updateState} />;

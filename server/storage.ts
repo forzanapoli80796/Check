@@ -64,6 +64,7 @@ export class DatabaseStorage implements IStorage {
         ...insertCategory,
         id: randomUUID(),
         createdAt: new Date(),
+        categoryType: insertCategory.categoryType || (insertCategory.useShifts ? "shifts" : "simple"),
       })
       .returning();
     console.log('Created category:', category);
@@ -285,12 +286,12 @@ export class MemStorage implements IStorage {
   private initializeDefaultData() {
     // Initialize default categories
     const defaultCategories = [
-      { name: "Terminal", description: "Kassensystem & Kundenbereich", icon: "desktop", useShifts: true },
-      { name: "Küche", description: "Zubereitung & Hygiene", icon: "utensils", useShifts: true },
-      { name: "Fahrer", description: "Fahrzeug & Lieferung", icon: "car", useShifts: true },
-      { name: "Inventur", description: "Bestandsaufnahme", icon: "clipboard-list", useShifts: false },
-      { name: "Sonderreinigung", description: "Tiefenreinigung", icon: "broom", useShifts: false },
-      { name: "Betriebsleiter", description: "Management & Organisation", icon: "briefcase", useShifts: false },
+      { name: "Terminal", description: "Kassensystem & Kundenbereich", icon: "desktop", useShifts: true, categoryType: "shifts" as const },
+      { name: "Küche", description: "Zubereitung & Hygiene", icon: "utensils", useShifts: true, categoryType: "shifts" as const },
+      { name: "Fahrer", description: "Fahrzeug & Lieferung", icon: "car", useShifts: true, categoryType: "shifts" as const },
+      { name: "Inventur", description: "Bestandsaufnahme", icon: "clipboard-list", useShifts: false, categoryType: "inventory" as const },
+      { name: "Sonderreinigung", description: "Tiefenreinigung", icon: "broom", useShifts: false, categoryType: "simple" as const },
+      { name: "Betriebsleiter", description: "Management & Organisation", icon: "briefcase", useShifts: false, categoryType: "simple" as const },
     ];
 
     const categoryIds: Record<string, string> = {};
@@ -374,6 +375,7 @@ export class MemStorage implements IStorage {
       id,
       description: insertCategory.description || null,
       useShifts: insertCategory.useShifts ?? true,
+      categoryType: insertCategory.categoryType || (insertCategory.useShifts ? "shifts" : "simple"),
       createdAt: new Date(),
     };
     this.categories.set(id, category);

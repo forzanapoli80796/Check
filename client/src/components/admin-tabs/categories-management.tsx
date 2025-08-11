@@ -34,6 +34,7 @@ export default function CategoriesManagement() {
     description: "",
     icon: "desktop",
     useShifts: true, // Default: mit Schichten
+    categoryType: "shifts" as "shifts" | "simple" | "inventory", // Default: Option 1
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -149,6 +150,7 @@ export default function CategoriesManagement() {
       description: "",
       icon: "desktop",
       useShifts: true,
+      categoryType: "shifts",
     });
     setEditingCategory(null);
   };
@@ -160,6 +162,7 @@ export default function CategoriesManagement() {
       description: category.description || "",
       icon: category.icon,
       useShifts: category.useShifts !== false, // Default to true if not set
+      categoryType: category.categoryType || (category.useShifts !== false ? "shifts" : "simple"),
     });
     setIsDialogOpen(true);
   };
@@ -259,10 +262,14 @@ export default function CategoriesManagement() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="useShifts">Checklisten-Typ</Label>
+                <Label htmlFor="categoryType">Checklisten-Typ</Label>
                 <Select 
-                  value={formData.useShifts ? "shifts" : "simple"} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, useShifts: value === "shifts" }))}
+                  value={formData.categoryType || (formData.useShifts ? "shifts" : "simple")} 
+                  onValueChange={(value) => setFormData(prev => ({ 
+                    ...prev, 
+                    categoryType: value as "shifts" | "simple" | "inventory",
+                    useShifts: value === "shifts" 
+                  }))}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -270,14 +277,20 @@ export default function CategoriesManagement() {
                   <SelectContent>
                     <SelectItem value="shifts">
                       <div className="flex flex-col items-start">
-                        <span className="font-medium">Mit Schichten</span>
+                        <span className="font-medium">Option 1: Mit Schichten</span>
                         <span className="text-xs text-gray-500">Frühschicht und Spätschicht</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="simple">
                       <div className="flex flex-col items-start">
-                        <span className="font-medium">Einfache Checkliste</span>
+                        <span className="font-medium">Option 2: Einfache Checkliste</span>
                         <span className="text-xs text-gray-500">Ohne Schichteinteilung</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="inventory">
+                      <div className="flex flex-col items-start">
+                        <span className="font-medium">Option 3: Mit Mengenerfassung</span>
+                        <span className="text-xs text-gray-500">Für Inventur und Bestandsaufnahme</span>
                       </div>
                     </SelectItem>
                   </SelectContent>

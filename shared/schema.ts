@@ -9,6 +9,7 @@ export const categories = pgTable("categories", {
   description: text("description"),
   icon: text("icon").notNull(),
   useShifts: boolean("use_shifts").notNull().default(true), // true = mit Schichten, false = einfache Checkliste
+  categoryType: text("category_type", { enum: ["shifts", "simple", "inventory"] }).notNull().default("shifts"), // Option 1: Mit Schichten, Option 2: Einfache Checkliste, Option 3: Mit Mengenerfassung
   createdAt: timestamp("created_at").defaultNow(),
 });
 

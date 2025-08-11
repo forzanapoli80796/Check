@@ -95,7 +95,7 @@ export default function InventoryChecklist({ state, updateState }: InventoryChec
     },
   });
 
-  const inventurCategory = categories?.find(cat => cat.name === "Inventur");
+  const inventurCategory = categories?.find(cat => cat.categoryType === "inventory");
   const filteredTasks = tasks?.filter(task => {
     if (task.categoryId !== inventurCategory?.id) return false;
     

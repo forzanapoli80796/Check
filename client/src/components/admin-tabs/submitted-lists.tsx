@@ -312,7 +312,7 @@ export default function SubmittedLists() {
                 <h4 className="font-medium mb-3">
                   {(() => {
                     const category = categories?.find(c => c.id === selectedChecklist.categoryId);
-                    const isInventur = category?.name?.toLowerCase() === 'inventur';
+                    const isInventur = category?.categoryType === 'inventory';
                     return isInventur ? 'Erledigte Aufgaben (mit Mengen)' : 'Erledigte Aufgaben';
                   })()}
                 </h4>

@@ -22,12 +22,14 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
       id: category.id, 
       name: category.name, 
       useShifts: category.useShifts,
+      categoryType: category.categoryType,
       actualType: typeof category.useShifts 
     });
     updateState({ 
       selectedArea: category.id, 
       selectedAreaName: category.name,
       selectedAreaUseShifts: category.useShifts !== false, // Default to true if not set
+      selectedAreaType: category.categoryType || (category.useShifts !== false ? "shifts" : "simple"),
       step: 'details' 
     });
   };

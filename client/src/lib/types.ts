@@ -8,6 +8,7 @@ export interface EmployeeWorkflowState {
   selectedArea: string | null;
   selectedAreaName?: string | null;
   selectedAreaUseShifts?: boolean; // Whether the selected category uses shifts
+  selectedAreaType?: 'shifts' | 'simple' | 'inventory'; // The category type (Option 1: shifts, Option 2: simple, Option 3: inventory)
   employeeName: string;
   selectedShift: 'frühschicht' | 'spätschicht' | null;
   selectedShiftPhase: 'schichtanfang' | 'schichtende' | null;
