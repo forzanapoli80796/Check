@@ -309,15 +309,33 @@ export default function SubmittedLists() {
 
               {/* Completed Tasks */}
               <div>
-                <h4 className="font-medium mb-3">Erledigte Aufgaben</h4>
+                <h4 className="font-medium mb-3">
+                  {(() => {
+                    const category = categories?.find(c => c.id === selectedChecklist.categoryId);
+                    const isInventur = category?.name?.toLowerCase() === 'inventur';
+                    return isInventur ? 'Erledigte Aufgaben (mit Mengen)' : 'Erledigte Aufgaben';
+                  })()}
+                </h4>
                 <div className="space-y-2">
                   {Array.isArray(selectedChecklist.completedTasks) && selectedChecklist.completedTasks.length > 0 ? (
                     (selectedChecklist.completedTasks as string[]).map((taskId: string) => {
                       const task = tasks.find(t => t.id === taskId);
+                      const inventoryItem = inventoryItems?.find(item => item.taskId === taskId);
+                      const category = categories?.find(c => c.id === selectedChecklist.categoryId);
+                      const isInventur = category?.name?.toLowerCase() === 'inventur';
+                      
                       return (
-                        <div key={taskId} className="flex items-center space-x-2 p-2 bg-green-50 rounded-lg">
-                          <CheckCircle2 size={16} className="text-green-600" />
-                          <span className="text-sm">{task?.title || `Aufgabe ${taskId}`}</span>
+                        <div key={taskId} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                          <div className="flex items-center space-x-2">
+                            <CheckCircle2 size={16} className="text-green-600" />
+                            <span className="text-sm">{task?.title || `Aufgabe ${taskId}`}</span>
+                          </div>
+                          {isInventur && inventoryItem && (
+                            <div className="flex items-center space-x-1">
+                              <span className="font-bold text-lg">{inventoryItem.quantity}</span>
+                              <span className="text-sm text-gray-600">{inventoryItem.unit}</span>
+                            </div>
+                          )}
                         </div>
                       );
                     })
@@ -326,43 +344,6 @@ export default function SubmittedLists() {
                   )}
                 </div>
               </div>
-
-              {/* Inventory Items for Inventur category */}
-              {(() => {
-                const category = categories?.find(c => c.id === selectedChecklist.categoryId);
-                const isInventur = category?.name?.toLowerCase() === 'inventur';
-                
-                if (isInventur) {
-                  return (
-                    <div>
-                      <h4 className="font-medium mb-3">Inventur-Mengen</h4>
-                      {inventoryItems && inventoryItems.length > 0 ? (
-                        <div className="space-y-2">
-                          {inventoryItems.map((item) => {
-                            const task = tasks.find(t => t.id === item.taskId);
-                            return (
-                              <div key={item.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                                <span className="text-sm font-medium">{task?.title || 'Unbekannter Artikel'}</span>
-                                <div className="flex items-center space-x-1">
-                                  <span className="font-bold text-lg">{item.quantity}</span>
-                                  <span className="text-sm text-gray-600">{item.unit}</span>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <p className="text-gray-500 text-sm p-3 bg-gray-50 rounded-lg">
-                          Keine Mengenangaben erfasst. 
-                          {(selectedChecklist.completedTasks as string[])?.length > 0 && 
-                            ' (Hinweis: Mengenerfassung wurde möglicherweise nachträglich hinzugefügt)'}
-                        </p>
-                      )}
-                    </div>
-                  );
-                }
-                return null;
-              })()}
 
               {/* Task Notes and Images */}
               {((selectedChecklist.taskNotes && typeof selectedChecklist.taskNotes === 'object' && Object.keys(selectedChecklist.taskNotes).length > 0) ||
