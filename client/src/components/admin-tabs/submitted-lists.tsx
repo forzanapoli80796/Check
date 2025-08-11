@@ -63,12 +63,15 @@ export default function SubmittedLists() {
     queryKey: ['/api/tasks']
   });
 
-  const { data: inventoryItems = [] } = useQuery<InventoryItem[]>({
+  const { data: inventoryItems = [], refetch: refetchInventoryItems } = useQuery<InventoryItem[]>({
     queryKey: ['/api/inventory-items/checklist', selectedChecklist?.id],
     queryFn: async () => {
       if (!selectedChecklist?.id) return [];
+      console.log('Fetching inventory items for checklist:', selectedChecklist.id);
       const response = await fetch(`/api/inventory-items/checklist/${selectedChecklist.id}`);
-      return response.json();
+      const data = await response.json();
+      console.log('Inventory items fetched:', data);
+      return data;
     },
     enabled: !!selectedChecklist?.id
   });
@@ -139,7 +142,9 @@ export default function SubmittedLists() {
   };
 
   const openChecklistDetails = (checklist: Checklist) => {
+    console.log('Opening checklist details:', checklist);
     setSelectedChecklist(checklist);
+    // Query will automatically refetch due to changed selectedChecklist.id
   };
 
   const closeChecklistDetails = () => {
@@ -326,26 +331,43 @@ export default function SubmittedLists() {
                 </div>
               </div>
 
-              {/* Inventory Items (if applicable) */}
-              {inventoryItems && inventoryItems.length > 0 && (
-                <div>
-                  <h4 className="font-medium mb-3">Inventur-Artikel</h4>
-                  <div className="space-y-2">
-                    {inventoryItems.map((item) => {
-                      const task = tasks.find(t => t.id === item.taskId);
-                      return (
-                        <div key={item.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                          <span className="text-sm font-medium">{task?.title || 'Unbekannter Artikel'}</span>
-                          <div className="flex items-center space-x-1">
-                            <span className="font-bold">{item.quantity}</span>
-                            <span className="text-sm text-gray-600">{item.unit}</span>
-                          </div>
+              {/* Inventory Items for Inventur category */}
+              {(() => {
+                const category = categories?.find(c => c.id === selectedChecklist.categoryId);
+                const isInventur = category?.name?.toLowerCase() === 'inventur';
+                console.log('Category:', category?.name, 'Is Inventur:', isInventur, 'Inventory Items:', inventoryItems);
+                
+                if (isInventur) {
+                  return (
+                    <div>
+                      <h4 className="font-medium mb-3">Inventur-Mengen</h4>
+                      {inventoryItems && inventoryItems.length > 0 ? (
+                        <div className="space-y-2">
+                          {inventoryItems.map((item) => {
+                            const task = tasks.find(t => t.id === item.taskId);
+                            return (
+                              <div key={item.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                                <span className="text-sm font-medium">{task?.title || 'Unbekannter Artikel'}</span>
+                                <div className="flex items-center space-x-1">
+                                  <span className="font-bold text-lg">{item.quantity}</span>
+                                  <span className="text-sm text-gray-600">{item.unit}</span>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+                      ) : (
+                        <p className="text-gray-500 text-sm p-3 bg-gray-50 rounded-lg">
+                          Keine Mengenangaben erfasst. 
+                          {selectedChecklist.completedTasks?.length > 0 && 
+                            ' (Hinweis: Mengenerfassung wurde möglicherweise nachträglich hinzugefügt)'}
+                        </p>
+                      )}
+                    </div>
+                  );
+                }
+                return null;
+              })()}
 
               {/* Task Notes and Images */}
               {((selectedChecklist.taskNotes && typeof selectedChecklist.taskNotes === 'object' && Object.keys(selectedChecklist.taskNotes).length > 0) ||
