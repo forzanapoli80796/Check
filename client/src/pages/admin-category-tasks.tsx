@@ -17,17 +17,40 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
 
-const taskFormSchema = z.object({
-  title: z.string().min(1, "Titel ist erforderlich"),
-  description: z.string().optional(),
-  priority: z.enum(["low", "medium", "high"]),
-  estimatedMinutes: z.string(),
-  shift: z.enum(["frühschicht", "spätschicht", "both"]),
-  shiftPhase: z.enum(["schichtanfang", "schichtende", "both"]),
-  stores: z.array(z.string()).min(1, "Mindestens ein Standort muss ausgewählt werden")
-});
+// Dynamic schema based on category's useShifts setting
+const createTaskFormSchema = (useShifts: boolean) => {
+  const baseSchema = {
+    title: z.string().min(1, "Titel ist erforderlich"),
+    description: z.string().optional(),
+    priority: z.enum(["low", "medium", "high"]),
+    estimatedMinutes: z.string(),
+    stores: z.array(z.string()).min(1, "Mindestens ein Standort muss ausgewählt werden")
+  };
 
-type TaskFormData = z.infer<typeof taskFormSchema>;
+  if (useShifts) {
+    return z.object({
+      ...baseSchema,
+      shift: z.enum(["frühschicht", "spätschicht", "both"]),
+      shiftPhase: z.enum(["schichtanfang", "schichtende", "both"]),
+    });
+  }
+
+  return z.object({
+    ...baseSchema,
+    shift: z.enum(["frühschicht", "spätschicht", "both"]).default("both"),
+    shiftPhase: z.enum(["schichtanfang", "schichtende", "both"]).default("both"),
+  });
+};
+
+type TaskFormData = {
+  title: string;
+  description?: string;
+  priority: "low" | "medium" | "high";
+  estimatedMinutes: string;
+  shift: "frühschicht" | "spätschicht" | "both";
+  shiftPhase: "schichtanfang" | "schichtende" | "both";
+  stores: string[];
+};
 
 export default function AdminCategoryTasks() {
   const [, navigate] = useLocation();
@@ -164,6 +187,10 @@ export default function AdminCategoryTasks() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Use dynamic schema based on category's useShifts setting
+    const taskFormSchema = createTaskFormSchema(category?.useShifts !== false);
+    
     try {
       const result = taskFormSchema.parse(formData);
       if (editingTask) {
@@ -310,34 +337,36 @@ export default function AdminCategoryTasks() {
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="shift">Schicht</Label>
-                    <Select value={formData.shift} onValueChange={(value) => setFormData(prev => ({ ...prev, shift: value as any }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="frühschicht">Frühschicht</SelectItem>
-                        <SelectItem value="spätschicht">Spätschicht</SelectItem>
-                        <SelectItem value="both">Beide</SelectItem>
-                      </SelectContent>
-                    </Select>
+                {category?.useShifts !== false && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="shift">Schicht</Label>
+                      <Select value={formData.shift} onValueChange={(value) => setFormData(prev => ({ ...prev, shift: value as any }))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="frühschicht">Frühschicht</SelectItem>
+                          <SelectItem value="spätschicht">Spätschicht</SelectItem>
+                          <SelectItem value="both">Beide</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="shiftPhase">Schichtphase</Label>
+                      <Select value={formData.shiftPhase} onValueChange={(value) => setFormData(prev => ({ ...prev, shiftPhase: value as any }))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="schichtanfang">Schichtanfang</SelectItem>
+                          <SelectItem value="schichtende">Schichtende</SelectItem>
+                          <SelectItem value="both">Beide</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  <div>
-                    <Label htmlFor="shiftPhase">Schichtphase</Label>
-                    <Select value={formData.shiftPhase} onValueChange={(value) => setFormData(prev => ({ ...prev, shiftPhase: value as any }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="schichtanfang">Schichtanfang</SelectItem>
-                        <SelectItem value="schichtende">Schichtende</SelectItem>
-                        <SelectItem value="both">Beide</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+                )}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="priority">Priorität</Label>
@@ -414,13 +443,30 @@ export default function AdminCategoryTasks() {
         {/* Tasks Grid */}
         <Card className="border">
           <CardContent className="p-6">
-            <div className="grid grid-cols-2 gap-6">
-              {/* Frühschicht Column */}
+            {category?.useShifts === false ? (
+              // Simple list for categories without shifts
               <div>
-                <h5 className="font-medium text-green-700 mb-4 flex items-center">
-                  <span className="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
-                  Frühschicht
-                </h5>
+                <h5 className="font-medium text-gray-700 mb-4">Alle Aufgaben</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {categoryTasks.map(task => (
+                    <TaskCard key={task.id} task={task} />
+                  ))}
+                  {categoryTasks.length === 0 && (
+                    <p className="text-gray-400 text-sm col-span-full">
+                      Noch keine Aufgaben vorhanden. Klicken Sie auf "Neue Aufgabe" um zu beginnen.
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              // Grid with shifts for categories with shifts
+              <div className="grid grid-cols-2 gap-6">
+                {/* Frühschicht Column */}
+                <div>
+                  <h5 className="font-medium text-green-700 mb-4 flex items-center">
+                    <span className="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                    Frühschicht
+                  </h5>
                 
                 <div className="grid grid-cols-2 gap-4">
                   {/* Schichtanfang */}
@@ -647,6 +693,7 @@ export default function AdminCategoryTasks() {
                 </div>
               </div>
             </div>
+            )}
           </CardContent>
         </Card>
       </main>
