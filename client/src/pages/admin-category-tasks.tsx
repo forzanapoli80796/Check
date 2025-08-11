@@ -52,90 +52,6 @@ type TaskFormData = {
   stores: string[];
 };
 
-// TaskCard component for simple list view (categories without shifts)
-const TaskCard = ({ task }: { task: Task }) => {
-  const [, navigate] = useLocation();
-  const { toast } = useToast();
-  
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      return apiRequest('DELETE', `/api/tasks/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
-      toast({
-        title: "Erfolg",
-        description: "Aufgabe wurde gelöscht"
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Fehler",
-        description: "Aufgabe konnte nicht gelöscht werden",
-        variant: "destructive"
-      });
-    }
-  });
-  
-  const handleEdit = (task: Task) => {
-    const params = new URLSearchParams();
-    params.set('edit', 'true');
-    params.set('taskId', task.id);
-    navigate(`${window.location.pathname}?${params.toString()}`);
-  };
-  
-  const handleDelete = (id: string) => {
-    if (confirm("Möchten Sie diese Aufgabe wirklich löschen?")) {
-      deleteMutation.mutate(id);
-    }
-  };
-  
-  return (
-    <div className="bg-white p-4 rounded-lg border group relative hover:shadow-md transition-shadow">
-      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => handleEdit(task)}
-        >
-          <Edit size={14} />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => handleDelete(task.id)}
-        >
-          <Trash2 size={14} className="text-red-600" />
-        </Button>
-      </div>
-      <h4 className="font-medium text-sm mb-2">{task.title}</h4>
-      {task.description && (
-        <p className="text-gray-600 text-xs mb-2">{task.description}</p>
-      )}
-      <div className="flex items-center gap-2 text-xs">
-        <span className={`px-2 py-1 rounded ${
-          task.priority === 'high' ? 'bg-red-100 text-red-700' :
-          task.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' : 
-          'bg-green-100 text-green-700'
-        }`}>
-          {task.priority === 'high' ? 'Hoch' : 
-           task.priority === 'medium' ? 'Mittel' : 'Niedrig'}
-        </span>
-        <span className="text-gray-500">{task.estimatedMinutes} Min.</span>
-      </div>
-      {task.stores && task.stores.length > 0 && task.stores.length < 3 && (
-        <div className="mt-2 flex gap-1">
-          {task.stores.map(store => (
-            <span key={store} className="text-xs bg-gray-100 px-2 py-0.5 rounded">
-              {store}
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
 export default function AdminCategoryTasks() {
   const [, navigate] = useLocation();
   const [, params] = useRoute("/admin-category-tasks/:categoryId/:store");
@@ -527,6 +443,7 @@ export default function AdminCategoryTasks() {
         {/* Tasks Grid */}
         <Card className="border">
           <CardContent className="p-6">
+            {console.log('Category in render:', category, 'useShifts:', category?.useShifts, 'Is false?:', category?.useShifts === false)}
             {category?.useShifts === false ? (
               // Simple list for categories without shifts
               <div>
