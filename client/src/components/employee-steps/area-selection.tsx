@@ -18,6 +18,12 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
   });
 
   const selectArea = (category: Category) => {
+    console.log('Selected category:', { 
+      id: category.id, 
+      name: category.name, 
+      useShifts: category.useShifts,
+      actualType: typeof category.useShifts 
+    });
     updateState({ 
       selectedArea: category.id, 
       selectedAreaName: category.name,

@@ -68,6 +68,7 @@ export default function CategoriesManagement() {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
+      console.log('Creating category with data:', data);
       const response = await apiRequest("POST", "/api/categories", data);
       return response.json();
     },

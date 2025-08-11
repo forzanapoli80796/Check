@@ -46,7 +46,9 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   async getCategories(): Promise<Category[]> {
-    return await db.select().from(categories);
+    const cats = await db.select().from(categories);
+    console.log('Getting categories from DB:', cats.map(c => ({ id: c.id, name: c.name, useShifts: c.useShifts })));
+    return cats;
   }
 
   async getCategoryById(id: string): Promise<Category | undefined> {
@@ -55,6 +57,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCategory(insertCategory: InsertCategory): Promise<Category> {
+    console.log('Creating category with data:', insertCategory);
     const [category] = await db
       .insert(categories)
       .values({
@@ -63,6 +66,7 @@ export class DatabaseStorage implements IStorage {
         createdAt: new Date(),
       })
       .returning();
+    console.log('Created category:', category);
     return category;
   }
 
