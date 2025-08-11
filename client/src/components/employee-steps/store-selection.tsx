@@ -8,9 +8,20 @@ interface StoreSelectionProps {
   updateState: (updates: Partial<EmployeeWorkflowState>) => void;
 }
 
-export default function StoreSelection({ updateState }: StoreSelectionProps) {
+export default function StoreSelection({ state, updateState }: StoreSelectionProps) {
   const selectStore = (store: string) => {
-    updateState({ selectedStore: store, step: 'area' });
+    // If this is a Betriebsleiter, skip area selection and go directly to details
+    if (state.isBetriebsleiter && state.betriebsleiterCategoryId) {
+      updateState({ 
+        selectedStore: store, 
+        selectedArea: state.betriebsleiterCategoryId,
+        selectedAreaName: 'Betriebsleiter',
+        selectedAreaUseShifts: false,
+        step: 'details' 
+      });
+    } else {
+      updateState({ selectedStore: store, step: 'area' });
+    }
   };
 
   return (

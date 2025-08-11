@@ -13,6 +13,8 @@ export interface EmployeeWorkflowState {
   selectedShiftPhase: 'schichtanfang' | 'schichtende' | null;
   completedTasks: string[];
   totalTasks: number;
+  isBetriebsleiter?: boolean; // Whether the user is a Betriebsleiter
+  betriebsleiterCategoryId?: string; // The ID of the Betriebsleiter category
 }
 
 export interface AdminTabState {

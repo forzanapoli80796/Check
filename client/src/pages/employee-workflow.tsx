@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
@@ -11,10 +12,22 @@ import ShiftPhaseSelection from "@/components/employee-steps/shift-phase-selecti
 import TaskChecklist from "@/components/employee-steps/task-checklist";
 import InventoryChecklist from "@/components/employee-steps/inventory-checklist";
 import SuccessScreen from "@/components/employee-steps/success-screen";
+import type { Category } from "@shared/schema";
 
 
 export default function EmployeeWorkflow() {
   const [, navigate] = useLocation();
+  
+  // Parse URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const roleParam = urlParams.get('role');
+  
+  // Load categories to find Betriebsleiter category
+  const { data: categories = [] } = useQuery<Category[]>({
+    queryKey: ['/api/categories'],
+    enabled: roleParam === 'betriebsleiter'
+  });
+  
   const [state, setState] = useState<EmployeeWorkflowState>({
     step: 'store',
     selectedStore: null,
@@ -25,6 +38,24 @@ export default function EmployeeWorkflow() {
     completedTasks: [],
     totalTasks: 0,
   });
+  
+  // Automatically set area for Betriebsleiter
+  useEffect(() => {
+    if (roleParam === 'betriebsleiter' && categories.length > 0) {
+      const betriebsleiterCategory = categories.find(c => 
+        c.name.toLowerCase().includes('betriebsleiter')
+      );
+      
+      if (betriebsleiterCategory) {
+        // Store the category ID for the area selection
+        setState(prev => ({
+          ...prev,
+          isBetriebsleiter: true,
+          betriebsleiterCategoryId: betriebsleiterCategory.id
+        }));
+      }
+    }
+  }, [roleParam, categories]);
 
   const updateState = (updates: Partial<EmployeeWorkflowState>) => {
     setState(prev => ({ ...prev, ...updates }));

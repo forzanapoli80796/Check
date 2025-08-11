@@ -33,7 +33,12 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
   };
 
   const goBack = () => {
-    updateState({ step: 'area' });
+    // If Betriebsleiter, go back to store selection (they skip area selection)
+    if (state.isBetriebsleiter) {
+      updateState({ step: 'store' });
+    } else {
+      updateState({ step: 'area' });
+    }
   };
 
   useEffect(() => {
@@ -45,14 +50,18 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
       <CardContent className="pt-6">
         <div className="flex items-center mb-6">
           <div className="step-indicator mr-3">3</div>
-          <h2 className="text-xl font-medium">Mitarbeiterdaten</h2>
+          <h2 className="text-xl font-medium">
+            {state.isBetriebsleiter ? 'Betriebsleiter-Daten' : 'Mitarbeiterdaten'}
+          </h2>
         </div>
         <div className="space-y-4">
           <div>
-            <Label htmlFor="employee-name">Vorname</Label>
+            <Label htmlFor="employee-name">
+              {state.isBetriebsleiter ? 'Name' : 'Vorname'}
+            </Label>
             <Input
               id="employee-name"
-              placeholder="Vorname eingeben"
+              placeholder={state.isBetriebsleiter ? 'Name eingeben' : 'Vorname eingeben'}
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="mt-2"

@@ -11,7 +11,8 @@ export default function RoleSelection() {
     } else if (role === 'mitarbeiter') {
       navigate("/employee");
     } else if (role === 'betriebsleiter') {
-      navigate("/betriebsleiter");
+      // Betriebsleiter nutzt jetzt den normalen Employee-Workflow
+      navigate("/employee?role=betriebsleiter");
     } else if (role === 'teig') {
       // Teig führt zur speziellen Teig-Dashboard
       navigate("/teig");
