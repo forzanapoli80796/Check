@@ -322,7 +322,7 @@ export default function SubmittedLists() {
                       const task = tasks.find(t => t.id === taskId);
                       const inventoryItem = inventoryItems?.find(item => item.taskId === taskId);
                       const category = categories?.find(c => c.id === selectedChecklist.categoryId);
-                      const isInventur = category?.name?.toLowerCase() === 'inventur';
+                      const isInventoryCategory = category?.categoryType === 'inventory';
                       
                       return (
                         <div key={taskId} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
@@ -330,7 +330,7 @@ export default function SubmittedLists() {
                             <CheckCircle2 size={16} className="text-green-600" />
                             <span className="text-sm">{task?.title || `Aufgabe ${taskId}`}</span>
                           </div>
-                          {isInventur && inventoryItem && (
+                          {isInventoryCategory && inventoryItem && (
                             <div className="flex items-center space-x-1">
                               <span className="font-bold text-lg">{inventoryItem.quantity}</span>
                               <span className="text-sm text-gray-600">{inventoryItem.unit}</span>
