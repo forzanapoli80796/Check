@@ -164,7 +164,7 @@ export default function SubmittedLists() {
         <div className="flex space-x-3">
           <Select value={storeFilter} onValueChange={setStoreFilter}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue />
+              <SelectValue placeholder="Filiale wählen" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="alle">Alle Filialen</SelectItem>
@@ -175,7 +175,7 @@ export default function SubmittedLists() {
           </Select>
           <Select value={dateFilter} onValueChange={setDateFilter}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue />
+              <SelectValue placeholder="Zeitraum wählen" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="heute">Heute</SelectItem>
