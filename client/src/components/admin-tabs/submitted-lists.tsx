@@ -164,10 +164,10 @@ export default function SubmittedLists() {
         <div className="flex space-x-3">
           <Select value={storeFilter} onValueChange={setStoreFilter}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filiale wählen" />
+              <SelectValue placeholder="Store wählen" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="alle">Alle Filialen</SelectItem>
+              <SelectItem value="alle">Alle Stores</SelectItem>
               {STORES.map(store => (
                 <SelectItem key={store} value={store}>{store}</SelectItem>
               ))}
@@ -197,7 +197,7 @@ export default function SubmittedLists() {
           <TableHeader>
             <TableRow>
               <TableHead>Mitarbeiter</TableHead>
-              <TableHead>Filiale</TableHead>
+              <TableHead>Store</TableHead>
               <TableHead>Bereich</TableHead>
               <TableHead>Schicht</TableHead>
               <TableHead>Aufgaben</TableHead>
@@ -290,7 +290,7 @@ export default function SubmittedLists() {
                   <p className="font-medium">{selectedChecklist.employeeName}</p>
                 </div>
                 <div>
-                  <h4 className="font-medium text-sm text-gray-600 mb-1">Filiale</h4>
+                  <h4 className="font-medium text-sm text-gray-600 mb-1">Store</h4>
                   <p>{selectedChecklist.store}</p>
                 </div>
                 <div>
