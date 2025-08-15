@@ -149,7 +149,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Checklists routes
   app.get("/api/checklists", async (req, res) => {
     const storage = await getStorage();
-    const checklists = await storage.getChecklists();
+    let checklists = await storage.getChecklists();
+    
+    // Filter by store if provided
+    const { store, startDate, endDate } = req.query;
+    
+    if (store && typeof store === 'string' && store !== 'alle') {
+      checklists = checklists.filter(checklist => checklist.store === store);
+    }
+    
+    // Filter by date range if provided
+    if (startDate && endDate) {
+      const start = new Date(startDate as string);
+      const end = new Date(endDate as string);
+      checklists = checklists.filter(checklist => {
+        const submittedDate = new Date(checklist.submittedAt);
+        return submittedDate >= start && submittedDate <= end;
+      });
+    }
+    
     res.json(checklists);
   });
 
