@@ -146,25 +146,6 @@ export default function TeigOverview({ selectedStore }: TeigOverviewProps) {
                   </div>
                 </div>
               )}
-
-              {/* Detaillierte Liste */}
-              <div>
-                <h4 className="font-medium mb-3">Details:</h4>
-                <div className="space-y-2">
-                  {todayRelevantProductions.map((production: TeigProduction) => (
-                    <div key={production.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center">
-                        <MapPin size={16} className="mr-2 text-gray-600" />
-                        <span className="font-medium">{production.store}</span>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-bold">{production.kugelMenge} Kugeln</div>
-                        <div className="text-xs text-gray-500">geplant</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           )}
         </CardContent>
@@ -230,25 +211,6 @@ export default function TeigOverview({ selectedStore }: TeigOverviewProps) {
                   </div>
                 </div>
               )}
-
-              {/* Detaillierte Liste */}
-              <div>
-                <h4 className="font-medium mb-3">Details:</h4>
-                <div className="space-y-2">
-                  {tomorrowRelevantProductions.map((production: TeigProduction) => (
-                    <div key={production.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center">
-                        <MapPin size={16} className="mr-2 text-gray-600" />
-                        <span className="font-medium">{production.store}</span>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-bold">{production.kugelMenge} Kugeln</div>
-                        <div className="text-xs text-gray-500">geplant</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           )}
         </CardContent>
