@@ -103,7 +103,7 @@
 }
 
 .admin-tab {
-  @apply py-4 px-1 border-b-2 font-medium transition-colors cursor-pointer;
+  @apply py-4 px-4 border-b-2 font-medium transition-colors cursor-pointer whitespace-nowrap;
 }
 
 .admin-tab.active {
