@@ -36,13 +36,45 @@ export default function SubmittedLists() {
         if (dateFilter === "heute") {
           const today = new Date();
           today.setHours(0, 0, 0, 0);
+          const tomorrow = new Date(today);
+          tomorrow.setDate(tomorrow.getDate() + 1);
           params.append("startDate", today.toISOString());
-          params.append("endDate", new Date().toISOString());
-        } else if (dateFilter === "woche") {
-          const weekStart = new Date(now);
-          weekStart.setDate(now.getDate() - 7);
-          params.append("startDate", weekStart.toISOString());
-          params.append("endDate", now.toISOString());
+          params.append("endDate", tomorrow.toISOString());
+        } else if (dateFilter === "gestern") {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          yesterday.setHours(0, 0, 0, 0);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          params.append("startDate", yesterday.toISOString());
+          params.append("endDate", today.toISOString());
+        } else if (dateFilter === "vorgestern") {
+          const dayBeforeYesterday = new Date();
+          dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 2);
+          dayBeforeYesterday.setHours(0, 0, 0, 0);
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          yesterday.setHours(0, 0, 0, 0);
+          params.append("startDate", dayBeforeYesterday.toISOString());
+          params.append("endDate", yesterday.toISOString());
+        } else if (dateFilter === "vor3tagen") {
+          const threeDaysAgo = new Date();
+          threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+          threeDaysAgo.setHours(0, 0, 0, 0);
+          const twoDaysAgo = new Date();
+          twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+          twoDaysAgo.setHours(0, 0, 0, 0);
+          params.append("startDate", threeDaysAgo.toISOString());
+          params.append("endDate", twoDaysAgo.toISOString());
+        } else if (dateFilter === "vor4tagen") {
+          const fourDaysAgo = new Date();
+          fourDaysAgo.setDate(fourDaysAgo.getDate() - 4);
+          fourDaysAgo.setHours(0, 0, 0, 0);
+          const threeDaysAgo = new Date();
+          threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+          threeDaysAgo.setHours(0, 0, 0, 0);
+          params.append("startDate", fourDaysAgo.toISOString());
+          params.append("endDate", threeDaysAgo.toISOString());
         }
       }
       
@@ -179,8 +211,11 @@ export default function SubmittedLists() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="heute">Heute</SelectItem>
-              <SelectItem value="woche">Diese Woche</SelectItem>
-              <SelectItem value="alle">Alle Zeit</SelectItem>
+              <SelectItem value="gestern">Gestern</SelectItem>
+              <SelectItem value="vorgestern">Vorgestern</SelectItem>
+              <SelectItem value="vor3tagen">Vor 3 Tagen</SelectItem>
+              <SelectItem value="vor4tagen">Vor 4 Tagen</SelectItem>
+              <SelectItem value="alle">Alle Daten</SelectItem>
             </SelectContent>
           </Select>
         </div>
