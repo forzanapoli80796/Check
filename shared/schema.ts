@@ -38,6 +38,7 @@ export const checklists = pgTable("checklists", {
   images: jsonb("images").default('[]'), // array of image URLs/base64 data for Betriebsleiter
   taskImages: jsonb("task_images").default('{}'), // object mapping taskId to array of images
   taskNotes: jsonb("task_notes").default('{}'), // object mapping taskId to text notes
+  comments: text("comments"), // General comments from employee at the end of checklist
   submittedAt: timestamp("submitted_at").defaultNow(),
 });
 

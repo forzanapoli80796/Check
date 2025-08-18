@@ -71,7 +71,9 @@ export const translations = {
         confirmSubmit: 'Sind Sie sicher, dass Sie die Checkliste einreichen möchten?',
         progress: 'Fortschritt',
         noTasks: 'Keine Aufgaben für diese Schichtphase gefunden.',
-        contactAdmin: 'Bitte wenden Sie sich an Ihren Administrator.'
+        contactAdmin: 'Bitte wenden Sie sich an Ihren Administrator.',
+        commentsLabel: 'Anmerkungen (optional)',
+        commentsPlaceholder: 'Hier können Sie zusätzliche Anmerkungen hinzufügen...'
       },
       inventory: {
         title: 'Inventur',
@@ -266,7 +268,9 @@ export const translations = {
         confirmSubmit: 'Are you sure you want to submit the checklist?',
         progress: 'Progress',
         noTasks: 'No tasks found for this shift phase.',
-        contactAdmin: 'Please contact your administrator.'
+        contactAdmin: 'Please contact your administrator.',
+        commentsLabel: 'Comments (optional)',
+        commentsPlaceholder: 'You can add additional comments here...'
       },
       inventory: {
         title: 'Inventory',

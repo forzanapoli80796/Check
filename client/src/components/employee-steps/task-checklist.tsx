@@ -5,6 +5,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { EmployeeWorkflowState } from "@/lib/types";
@@ -20,6 +22,7 @@ interface TaskChecklistProps {
 export default function TaskChecklist({ state, updateState }: TaskChecklistProps) {
   const { t, language } = useLanguage();
   const [completedTasks, setCompletedTasks] = useState<string[]>(state.completedTasks);
+  const [comments, setComments] = useState<string>("");
   const { toast } = useToast();
 
   const { data: categories, isLoading: categoriesLoading } = useQuery<Category[]>({
@@ -49,6 +52,7 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
           ? 'keine_schicht' 
           : `${state.selectedShift}_${state.selectedShiftPhase}`,
         completedTasks,
+        comments: comments || null,
       });
       return response.json();
     },
@@ -234,6 +238,19 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
             })}
           </div>
         )}
+
+        <div className="mb-6">
+          <Label htmlFor="comments" className="text-sm font-medium mb-2 block">
+            {t.employee.taskCompletion.commentsLabel}
+          </Label>
+          <Textarea
+            id="comments"
+            value={comments}
+            onChange={(e) => setComments(e.target.value)}
+            placeholder={t.employee.taskCompletion.commentsPlaceholder}
+            className="w-full min-h-[100px]"
+          />
+        </div>
 
         <div className="flex space-x-3">
           <Button
