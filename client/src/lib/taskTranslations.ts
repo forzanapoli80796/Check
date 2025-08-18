@@ -45,6 +45,11 @@ export const taskTranslations: Record<string, { title: string; description: stri
     title: 'Support terminal', 
     description: 'Clear tables, clean, bring pizzas to customers, give pizzas to Wolt drivers' 
   },
+  'Terminal unterstützen ': { 
+    title: 'Support terminal', 
+    description: 'Clear tables, clean, bring pizzas to customers, give pizzas to Wolt drivers' 
+  },
+
 
   // Kitchen Tasks
   'Kühlschrank-Temperatur prüfen': { 
@@ -134,6 +139,10 @@ export const taskTranslations: Record<string, { title: string; description: stri
     description: '' 
   },
   'Fahrräder Rein stellen': { 
+    title: 'Bring bicycles inside', 
+    description: '' 
+  },
+  'Fahrräder Rein stellen ': { 
     title: 'Bring bicycles inside', 
     description: '' 
   },
@@ -263,6 +272,10 @@ export const taskTranslations: Record<string, { title: string; description: stri
     title: 'Get vegetable crates to store', 
     description: 'Ask kitchen if vegetables are ordered for tomorrow?' 
   },
+  'Gemüse Kisten ins Store holen ': { 
+    title: 'Get vegetable crates to store', 
+    description: 'Ask kitchen if vegetables are ordered for tomorrow?' 
+  },
   'Leergut': { 
     title: 'Empty bottles', 
     description: 'Bring to drinks storage and sort' 
@@ -352,23 +365,335 @@ export const taskTranslations: Record<string, { title: string; description: stri
   'Oberfläche der Spüle feucht gereinigt': { 
     title: 'Sink surface cleaned', 
     description: '' 
+  },
+  
+  // Additional tasks from database
+  'Abstauben aller Flaschen, alle Elemente am Terminal': {
+    title: 'Dust all bottles, all elements at terminal',
+    description: ''
+  },
+  'Alle Behälter unter Wärmebrücke ausräumen und in die Spülmaschine': {
+    title: 'Empty all containers under heat bridge and put in dishwasher',
+    description: ''
+  },
+  'Alle Flaschen abstauben und schwarze Gitterkorb feucht wischen': {
+    title: 'Dust all bottles and wipe black wire basket',
+    description: ''
+  },
+  'Alle Flächen unter Terminal Tisch 1 und 2 reinigen & sortieren': {
+    title: 'Clean & organize all surfaces under terminal table 1 and 2',
+    description: ''
+  },
+  'Alle Flächen unter dem Terminal und Fahrertisch feucht reinigen (auch die Schubladen ausräumen, feucht wischen)': {
+    title: 'Clean all surfaces under terminal and driver table (also empty drawers, wipe)',
+    description: ''
+  },
+  'Alle GN-Behälter bei bedarf austauschen/spülen': {
+    title: 'Replace/wash all GN containers as needed',
+    description: 'Cheese, fish, ricotta, change GN container EVERY day'
+  },
+  'Alle Schubladen am Terminal sortieren, inkl. das Regal unter dem Wolt Tablet': {
+    title: 'Organize all drawers at terminal, incl. shelf under Wolt tablet',
+    description: ''
+  },
+  'Alle Staubflächen am Whiteboard feucht reinigen': {
+    title: 'Clean all dusty surfaces on whiteboard',
+    description: ''
+  },
+  'Auf dem Getränke Kühlschrank feucht reinigen (Kartons entfernen)': {
+    title: 'Clean on top of drinks fridge (remove boxes)',
+    description: ''
+  },
+  'Blaue Rolle': {
+    title: 'Blue roll',
+    description: 'Always specify number of rolls'
+  },
+  'Bonrollen': {
+    title: 'Receipt rolls',
+    description: 'Specify quantity'
+  },
+  'Die Fläche unter der Wärmebrücke sowie die untere Bodenplatte des Tisches feucht reinigen': {
+    title: 'Clean surface under heat bridge and lower table plate',
+    description: ''
+  },
+  'Die Gummidichtungen beider Kühlschranke feucht abwischen': {
+    title: 'Wipe rubber seals of both refrigerators',
+    description: ''
+  },
+  'Dip Becher/Deckel': {
+    title: 'Dip cups/lids',
+    description: ''
+  },
+  'Dip tüten': {
+    title: 'Dip bags',
+    description: ''
+  },
+  'Dressing Becker/deckel': {
+    title: 'Dressing cups/lids',
+    description: ''
+  },
+  'Edelstahl Behälter Besteck in Spülmaschine': {
+    title: 'Stainless steel cutlery containers in dishwasher',
+    description: ''
+  },
+  'Edelstahl Behälter für Besteck in die Spülmaschine': {
+    title: 'Stainless steel containers for cutlery in dishwasher',
+    description: ''
+  },
+  'Eingangs Tür + Tische': {
+    title: 'Entrance door + tables',
+    description: 'Inside and outside'
+  },
+  'Einweg Besteck': {
+    title: 'Disposable cutlery',
+    description: 'Specify whole/half package e.g. 1.5 packages'
+  },
+  'Etiketten Datum GN': {
+    title: 'Date labels GN',
+    description: 'Always specify number of rolls'
+  },
+  'Etiketten Warenauszeichner': {
+    title: 'Product labels',
+    description: 'Always specify number of rolls'
+  },
+  'Fahreraufgaben Kontrolieren!?': {
+    title: 'Check driver tasks!?',
+    description: 'Drivers have their own Forzacheck, just check'
+  },
+  'Fenster der Trennwand mit Glasreiniger innen/außen': {
+    title: 'Clean partition windows with glass cleaner inside/outside',
+    description: ''
+  },
+  'Flaschen im Flaschenkühlschrank entstauben': {
+    title: 'Dust bottles in bottle fridge',
+    description: ''
+  },
+  'Flaschenkühlschrank Glastür innen/außen mit Glassreiniger': {
+    title: 'Bottle fridge glass door inside/outside with glass cleaner',
+    description: ''
+  },
+  'Flaschenkühlschrank oben, abräumen und nass abwischen': {
+    title: 'Top of bottle fridge, clear and wipe',
+    description: ''
+  },
+  'Füße von den Tischen nass reinigen': {
+    title: 'Clean table legs',
+    description: ''
+  },
+  'Getränke&Dessert Kühlschrank': {
+    title: 'Drinks & dessert fridge',
+    description: ''
+  },
+  'Getränkekühlschrank reinigen inkl. Regalböden': {
+    title: 'Clean drinks fridge including shelves',
+    description: ''
+  },
+  'Gitterkorb für Öl, Salz usw. in die Spülmaschine': {
+    title: 'Wire basket for oil, salt etc. in dishwasher',
+    description: ''
+  },
+  'Glasfläche des Getränke Kühlschranks mit Glasreiniger reinigen': {
+    title: 'Clean glass surface of drinks fridge with glass cleaner',
+    description: ''
+  },
+  'Glasflächen der Eingangstür und der Flügeltüren, innen und außen mit Glasreiniger': {
+    title: 'Glass surfaces of entrance and wing doors, inside and outside with glass cleaner',
+    description: ''
+  },
+  'Gummis am Getränke Kühlschrank': {
+    title: 'Rubber seals on drinks fridge',
+    description: 'Clean Tuesdays and Fridays with microfiber cloth and glass cleaner'
+  },
+  'Handseife': {
+    title: 'Hand soap',
+    description: 'For new soap dispensers'
+  },
+  'Handtuch Papier': {
+    title: 'Paper towels',
+    description: 'For hand drying, always specify package'
+  },
+  'Helm Regal komplett ausräumen und feucht reinigen': {
+    title: 'Completely empty and clean helmet shelf',
+    description: ''
+  },
+  'Hocker Füße nass reinigen': {
+    title: 'Clean stool legs',
+    description: ''
+  },
+  'KAV Kl. und Gr.': {
+    title: 'Small and large cooling display',
+    description: ''
+  },
+  'Kistenhalterung raus, dahinter nass reinigen, Halterung abwischen': {
+    title: 'Remove crate holder, clean behind, wipe holder',
+    description: ''
+  },
+  'Kl. KAV ins Kühlhaus verräumen abtauen und reinigen.': {
+    title: 'Small cooling display to cold room, defrost and clean',
+    description: 'Garnish station'
+  },
+  'Kl. Kühltisch ausräumen innen reinigen': {
+    title: 'Empty small cooling table and clean inside',
+    description: ''
+  },
+  'Knoblauch Mayo': {
+    title: 'Garlic mayo',
+    description: 'Only specify whole bottles'
+  },
+  'Kugelschreiber': {
+    title: 'Pens',
+    description: 'Specify quantity'
+  },
+  'Kühlaufsatzvitrine groß, abtauen und reinigen (innen)': {
+    title: 'Large cooling display, defrost and clean (inside)',
+    description: 'Mondays'
+  },
+  'Lampen an der Decke': {
+    title: 'Ceiling lamps',
+    description: ''
+  },
+  'Leere Teig boxen wegbringen': {
+    title: 'Take away empty dough boxes',
+    description: 'Place correctly, see notice'
+  },
+  'Leergut Kisten abstauben': {
+    title: 'Dust empty bottle crates',
+    description: ''
+  },
+  'Ordnung und Sauberkeit': {
+    title: 'Order and cleanliness',
+    description: 'Check storage areas personally'
+  },
+  'Pflaster': {
+    title: 'Band-aids',
+    description: 'Specify rolls/units'
+  },
+  'Pizza Papier': {
+    title: 'Pizza paper',
+    description: 'Only specify whole package'
+  },
+  'Salatschale/Deckel': {
+    title: 'Salad bowls/lids',
+    description: 'Always specify package'
+  },
+  'Salz Spülmaschine': {
+    title: 'Dishwasher salt',
+    description: 'Specify quantity'
+  },
+  'Sauberkeit und Ordnung': {
+    title: 'Cleanliness and order',
+    description: 'Check storage areas personally (Garage 1, Garage 2)'
+  },
+  'Sauberkeit&Ordnung': {
+    title: 'Cleanliness & order',
+    description: 'Storage and shelves downstairs, garages'
+  },
+  'Schwarzes Gitter (Raumtrenner) abstauben': {
+    title: 'Dust black grid (room divider)',
+    description: ''
+  },
+  'Serviette Gast': {
+    title: 'Guest napkins',
+    description: 'Always specify package quantity'
+  },
+  'Speisekarte': {
+    title: 'Menu',
+    description: 'Less than 50 pieces? Enter 0'
+  },
+  'Spezi': {
+    title: 'Spezi',
+    description: 'Only specify whole crates'
+  },
+  'Spinnweben': {
+    title: 'Cobwebs',
+    description: 'Inside and outside'
+  },
+  'TK Kühlschränke': {
+    title: 'Freezers',
+    description: ''
+  },
+  'Tahin': {
+    title: 'Tahini',
+    description: 'Only specify whole bottles'
+  },
+  'Teigraum/Wandregal vollständig abgeräumt und feucht gereinigt': {
+    title: 'Dough room/wall shelf completely cleared and cleaned',
+    description: ''
+  },
+  'Tesa Rollen': {
+    title: 'Tape rolls',
+    description: 'Always specify quantity'
+  },
+  'Textmarker gelb': {
+    title: 'Yellow highlighter',
+    description: 'Always specify quantity'
+  },
+  'Tomatendose Pumarole': {
+    title: 'Pummarole tomato cans',
+    description: 'Always specify 6-pack'
+  },
+  'Tomatendose San Marzano DOP': {
+    title: 'San Marzano DOP tomato cans',
+    description: 'Always specify 6-pack'
+  },
+  'Trüffel Mayo': {
+    title: 'Truffle mayo',
+    description: 'Only specify whole bottles'
+  },
+  'Unter der Spüle': {
+    title: 'Under the sink',
+    description: ''
+  },
+  'Untere ablagen in der Küche leer räumen': {
+    title: 'Empty lower shelves in kitchen',
+    description: 'Cleaning company will clean'
+  },
+  'Waschmaschine': {
+    title: 'Washing machine',
+    description: 'Lint filter'
+  },
+  'Wohnung allgemein': {
+    title: 'Apartment general',
+    description: ''
+  },
+  'Getränke Lager': {
+    title: 'Drinks storage',
+    description: 'Organize, sweep, sort drink crates'
   }
 };
 
 // Helper function to get translated task or return original if no translation exists
 export function getTranslatedTask(task: { title: string; description?: string }, language: 'de' | 'en') {
   if (language === 'en') {
-    const translation = taskTranslations[task.title];
+    // Try exact match first
+    let translation = taskTranslations[task.title];
+    
+    // If no exact match, try with trimmed title
+    if (!translation) {
+      translation = taskTranslations[task.title.trim()];
+    }
+    
+    // If still no match, try to find a close match (handles trailing spaces, etc.)
+    if (!translation) {
+      const normalizedTitle = task.title.trim().toLowerCase();
+      const matchingKey = Object.keys(taskTranslations).find(
+        key => key.trim().toLowerCase() === normalizedTitle
+      );
+      if (matchingKey) {
+        translation = taskTranslations[matchingKey];
+      }
+    }
+    
     if (translation) {
       return {
         title: translation.title,
         description: translation.description || task.description || ''
       };
     }
-    // If no translation exists, try to provide a basic translation
-    // This is a fallback for tasks not yet translated
+    
+    // If no translation exists, return original
     return {
-      title: task.title, // Keep original if no translation
+      title: task.title,
       description: task.description || ''
     };
   }
