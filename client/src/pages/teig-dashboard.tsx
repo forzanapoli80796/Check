@@ -5,9 +5,11 @@ import { ArrowLeft } from "lucide-react";
 import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
 import TeigOverview from "@/components/teig-overview";
 import { STORES } from "@/lib/types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function TeigDashboard() {
   const [, navigate] = useLocation();
+  const { t } = useLanguage();
   const [selectedStore, setSelectedStore] = useState<string>('');
 
   return (
@@ -26,7 +28,7 @@ export default function TeigDashboard() {
           {/* Store-Auswahl */}
           <div className="mb-6">
             <div className="flex items-center space-x-4">
-              <span className="font-medium">Store auswählen:</span>
+              <span className="font-medium">{t.employee.storeSelection.selectStore}:</span>
               {STORES.map((store) => (
                 <Button
                   key={store}
@@ -42,7 +44,7 @@ export default function TeigDashboard() {
                 size="sm"
                 onClick={() => setSelectedStore('')}
               >
-                Alle Stores
+                {t.teig.allStores}
               </Button>
             </div>
           </div>
@@ -60,7 +62,7 @@ export default function TeigDashboard() {
           className="px-8"
         >
           <ArrowLeft size={16} className="mr-2" />
-          Zurück zur Startseite
+          {t.common.backToStart}
         </Button>
       </div>
     </div>

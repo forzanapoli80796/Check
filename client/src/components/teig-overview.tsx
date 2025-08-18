@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Cookie, MapPin, Calendar } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { TeigProduction } from "@shared/schema";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TeigOverviewProps {
   selectedStore?: string;
@@ -13,8 +14,8 @@ function formatDate(date: Date): string {
   return date.toISOString().split('T')[0];
 }
 
-function formatDisplayDate(date: Date): string {
-  return date.toLocaleDateString('de-DE', { 
+function formatDisplayDate(date: Date, language: string): string {
+  return date.toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US', { 
     weekday: 'long', 
     day: '2-digit', 
     month: '2-digit',
@@ -23,6 +24,7 @@ function formatDisplayDate(date: Date): string {
 }
 
 export default function TeigOverview({ selectedStore }: TeigOverviewProps) {
+  const { t, language } = useLanguage();
   const today = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -50,7 +52,7 @@ export default function TeigOverview({ selectedStore }: TeigOverviewProps) {
     return (
       <Card>
         <CardContent className="pt-6">
-          <div className="text-center">Lade Teig-Daten...</div>
+          <div className="text-center">{t.common.loading}</div>
         </CardContent>
       </Card>
     );
@@ -91,20 +93,20 @@ export default function TeigOverview({ selectedStore }: TeigOverviewProps) {
         <CardHeader>
           <CardTitle className="flex items-center">
             <Cookie className="mr-2" size={20} />
-            Teig-Produktion heute
+            {t.teig.title} {t.teig.today}
           </CardTitle>
           <div className="flex items-center text-sm text-gray-600">
             <Calendar className="mr-1" size={16} />
-            {formatDisplayDate(today)}
+            {formatDisplayDate(today, language)}
           </div>
         </CardHeader>
         <CardContent>
           {todayRelevantProductions.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <Cookie size={48} className="mx-auto mb-4 text-gray-300" />
-              <p>Keine Teig-Produktion für heute geplant</p>
+              <p>{t.teig.noProduction}</p>
               {selectedStore && (
-                <p className="text-sm mt-2">Store: {selectedStore}</p>
+                <p className="text-sm mt-2">{t.teig.store}: {selectedStore}</p>
               )}
             </div>
           ) : (
@@ -113,16 +115,16 @@ export default function TeigOverview({ selectedStore }: TeigOverviewProps) {
               <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-semibold text-orange-900">Gesamt Kugelmenge heute</h3>
+                    <h3 className="font-semibold text-orange-900">{t.teig.totalToday}</h3>
                     <p className="text-sm text-orange-700">
-                      {selectedStore ? `Store ${selectedStore}` : 'Alle Stores'}
+                      {selectedStore ? `${t.teig.store} ${selectedStore}` : t.teig.allStores}
                     </p>
                   </div>
                   <div className="text-right">
                     <div className="text-2xl font-bold text-orange-900">
                       {todayTotalKugeln}
                     </div>
-                    <div className="text-sm text-orange-700">Kugeln</div>
+                    <div className="text-sm text-orange-700">{t.teig.balls}</div>
                   </div>
                 </div>
               </div>
@@ -130,7 +132,7 @@ export default function TeigOverview({ selectedStore }: TeigOverviewProps) {
               {/* Aufschlüsselung nach Store (nur wenn nicht bereits gefiltert) */}
               {!selectedStore && Object.keys(todayProductionsByStore).length > 1 && (
                 <div>
-                  <h4 className="font-medium mb-3">Aufschlüsselung nach Store:</h4>
+                  <h4 className="font-medium mb-3">{t.teig.breakdown}:</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     {Object.entries(todayProductionsByStore).map(([store, amount]) => (
                       <div key={store} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -139,7 +141,7 @@ export default function TeigOverview({ selectedStore }: TeigOverviewProps) {
                           <span className="font-medium">{store}</span>
                         </div>
                         <Badge variant="secondary">
-                          {amount} Kugeln
+                          {amount} {t.teig.balls}
                         </Badge>
                       </div>
                     ))}
@@ -156,20 +158,20 @@ export default function TeigOverview({ selectedStore }: TeigOverviewProps) {
         <CardHeader>
           <CardTitle className="flex items-center">
             <Cookie className="mr-2" size={20} />
-            Teig-Produktion morgen
+            {t.teig.title} {t.teig.tomorrow}
           </CardTitle>
           <div className="flex items-center text-sm text-gray-600">
             <Calendar className="mr-1" size={16} />
-            {formatDisplayDate(tomorrow)}
+            {formatDisplayDate(tomorrow, language)}
           </div>
         </CardHeader>
         <CardContent>
           {tomorrowRelevantProductions.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <Cookie size={48} className="mx-auto mb-4 text-gray-300" />
-              <p>Keine Teig-Produktion für morgen geplant</p>
+              <p>{t.teig.noProduction}</p>
               {selectedStore && (
-                <p className="text-sm mt-2">Store: {selectedStore}</p>
+                <p className="text-sm mt-2">{t.teig.store}: {selectedStore}</p>
               )}
             </div>
           ) : (
@@ -178,16 +180,16 @@ export default function TeigOverview({ selectedStore }: TeigOverviewProps) {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-semibold text-blue-900">Gesamt Kugelmenge morgen</h3>
+                    <h3 className="font-semibold text-blue-900">{t.teig.totalTomorrow}</h3>
                     <p className="text-sm text-blue-700">
-                      {selectedStore ? `Store ${selectedStore}` : 'Alle Stores'}
+                      {selectedStore ? `${t.teig.store} ${selectedStore}` : t.teig.allStores}
                     </p>
                   </div>
                   <div className="text-right">
                     <div className="text-2xl font-bold text-blue-900">
                       {tomorrowTotalKugeln}
                     </div>
-                    <div className="text-sm text-blue-700">Kugeln</div>
+                    <div className="text-sm text-blue-700">{t.teig.balls}</div>
                   </div>
                 </div>
               </div>
@@ -195,7 +197,7 @@ export default function TeigOverview({ selectedStore }: TeigOverviewProps) {
               {/* Aufschlüsselung nach Store (nur wenn nicht bereits gefiltert) */}
               {!selectedStore && Object.keys(tomorrowProductionsByStore).length > 1 && (
                 <div>
-                  <h4 className="font-medium mb-3">Aufschlüsselung nach Store:</h4>
+                  <h4 className="font-medium mb-3">{t.teig.breakdown}:</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     {Object.entries(tomorrowProductionsByStore).map(([store, amount]) => (
                       <div key={store} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -204,7 +206,7 @@ export default function TeigOverview({ selectedStore }: TeigOverviewProps) {
                           <span className="font-medium">{store}</span>
                         </div>
                         <Badge variant="secondary">
-                          {amount} Kugeln
+                          {amount} {t.teig.balls}
                         </Badge>
                       </div>
                     ))}

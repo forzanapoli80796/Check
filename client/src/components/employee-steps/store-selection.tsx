@@ -2,6 +2,7 @@ import { Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { STORES, EmployeeWorkflowState } from "@/lib/types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface StoreSelectionProps {
   state: EmployeeWorkflowState;
@@ -9,6 +10,8 @@ interface StoreSelectionProps {
 }
 
 export default function StoreSelection({ state, updateState }: StoreSelectionProps) {
+  const { t } = useLanguage();
+  
   const selectStore = (store: string) => {
     // If this is a Betriebsleiter, skip area selection and go directly to details
     if (state.isBetriebsleiter && state.betriebsleiterCategoryId) {
@@ -29,7 +32,7 @@ export default function StoreSelection({ state, updateState }: StoreSelectionPro
       <CardContent className="pt-6">
         <div className="flex items-center mb-6">
           <div className="step-indicator mr-3">1</div>
-          <h2 className="text-xl font-medium">Store auswählen</h2>
+          <h2 className="text-xl font-medium">{t.employee.storeSelection.title}</h2>
         </div>
         <div className="grid grid-cols-1 gap-3">
           {STORES.map((store) => (
