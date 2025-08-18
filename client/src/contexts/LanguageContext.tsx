@@ -18,10 +18,14 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem('language', lang);
+    // Update HTML lang attribute for browser translation
+    document.documentElement.lang = lang;
   };
 
   useEffect(() => {
     localStorage.setItem('language', language);
+    // Set initial language attribute for browser translation
+    document.documentElement.lang = language;
   }, [language]);
 
   const value = {

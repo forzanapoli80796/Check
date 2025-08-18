@@ -122,7 +122,7 @@ export default function RoleSelection() {
               <Globe className="text-white" size={24} />
             </div>
             <div className="text-left">
-              <span className="text-lg font-medium text-gray-900 block">
+              <span className="text-lg font-medium text-gray-900 block" translate="no">
                 {language === 'de' ? 'English' : 'Deutsch'}
               </span>
               <span className="text-sm text-gray-500">
