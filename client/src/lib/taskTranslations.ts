@@ -49,6 +49,14 @@ export const taskTranslations: Record<string, { title: string; description: stri
     title: 'Support terminal', 
     description: 'Clear tables, clean, bring pizzas to customers, give pizzas to Wolt drivers' 
   },
+  'Küchen aktiv nach Aufgaben fragen': {
+    title: 'Actively ask kitchen for tasks',
+    description: 'if items from storage are needed'
+  },
+  'Küche aktiv nach Aufgaben fragen': {
+    title: 'Actively ask kitchen for tasks',
+    description: 'if items from storage are needed'
+  },
 
 
   // Kitchen Tasks
@@ -658,6 +666,24 @@ export const taskTranslations: Record<string, { title: string; description: stri
     description: 'Organize, sweep, sort drink crates'
   },
   
+  // Ensure all variations are covered
+  'Blaue Rolle ': {
+    title: 'Blue roll',
+    description: 'Always specify number of rolls'
+  },
+  'Handseife ': {
+    title: 'Hand soap',
+    description: 'For new soap dispensers'
+  },
+  'Serviette Gast ': {
+    title: 'Guest napkins',
+    description: 'Always specify package quantity'
+  },
+  'Wohnung allgemein ': {
+    title: 'Apartment general',
+    description: ''
+  },
+  
   // Additional missing translations from database
   'Geschirr ': {
     title: 'Dishes',
@@ -689,6 +715,150 @@ export const taskTranslations: Record<string, { title: string; description: stri
   }
 };
 
+// Basic automatic translation for common German words
+function autoTranslate(text: string): string {
+  const commonTranslations: { [key: string]: string } = {
+    'reinigen': 'clean',
+    'Reinigen': 'Clean',
+    'sauber': 'clean',
+    'Sauber': 'Clean',
+    'Sauberkeit': 'Cleanliness',
+    'aufräumen': 'tidy up',
+    'Aufräumen': 'Tidy up',
+    'kontrollieren': 'check',
+    'Kontrollieren': 'Check',
+    'kontrolle': 'control',
+    'Kontrolle': 'Control',
+    'überprüfen': 'verify',
+    'Überprüfen': 'Verify',
+    'überprüfung': 'verification',
+    'Überprüfung': 'Verification',
+    'nachfüllen': 'refill',
+    'Nachfüllen': 'Refill',
+    'nachfüllung': 'refill',
+    'Nachfüllung': 'Refill',
+    'auffüllen': 'fill up',
+    'Auffüllen': 'Fill up',
+    'aufgefüllt': 'filled',
+    'Aufgefüllt': 'Filled',
+    'wischen': 'wipe',
+    'Wischen': 'Wipe',
+    'feucht': 'damp',
+    'Feucht': 'Damp',
+    'nass': 'wet',
+    'Nass': 'Wet',
+    'trocken': 'dry',
+    'Trocken': 'Dry',
+    'spülen': 'rinse',
+    'Spülen': 'Rinse',
+    'spülmaschine': 'dishwasher',
+    'Spülmaschine': 'Dishwasher',
+    'geschirr': 'dishes',
+    'Geschirr': 'Dishes',
+    'besteck': 'cutlery',
+    'Besteck': 'Cutlery',
+    'behälter': 'container',
+    'Behälter': 'Container',
+    'kisten': 'boxes',
+    'Kisten': 'Boxes',
+    'kartons': 'cartons',
+    'Kartons': 'Cartons',
+    'flaschen': 'bottles',
+    'Flaschen': 'Bottles',
+    'getränke': 'drinks',
+    'Getränke': 'Drinks',
+    'kühlschrank': 'refrigerator',
+    'Kühlschrank': 'Refrigerator',
+    'kühltisch': 'cooling table',
+    'Kühltisch': 'Cooling table',
+    'kühlhaus': 'cold storage',
+    'Kühlhaus': 'Cold storage',
+    'lager': 'storage',
+    'Lager': 'Storage',
+    'tisch': 'table',
+    'Tisch': 'Table',
+    'tische': 'tables',
+    'Tische': 'Tables',
+    'boden': 'floor',
+    'Boden': 'Floor',
+    'wände': 'walls',
+    'Wände': 'Walls',
+    'fenster': 'window',
+    'Fenster': 'Window',
+    'tür': 'door',
+    'Tür': 'Door',
+    'türen': 'doors',
+    'Türen': 'Doors',
+    'lampen': 'lamps',
+    'Lampen': 'Lamps',
+    'licht': 'light',
+    'Licht': 'Light',
+    'an': 'on',
+    'An': 'On',
+    'aus': 'off',
+    'Aus': 'Off',
+    'alle': 'all',
+    'Alle': 'All',
+    'und': 'and',
+    'oder': 'or',
+    'mit': 'with',
+    'ohne': 'without',
+    'für': 'for',
+    'bei': 'at',
+    'unter': 'under',
+    'über': 'over',
+    'holen': 'fetch',
+    'Holen': 'Fetch',
+    'bringen': 'bring',
+    'Bringen': 'Bring',
+    'stellen': 'place',
+    'Stellen': 'Place',
+    'rein': 'in',
+    'Rein': 'In',
+    'raus': 'out',
+    'Raus': 'Out',
+    'fahrräder': 'bicycles',
+    'Fahrräder': 'Bicycles',
+    'fahrrad': 'bicycle',
+    'Fahrrad': 'Bicycle',
+    'helm': 'helmet',
+    'Helm': 'Helmet',
+    'helme': 'helmets',
+    'Helme': 'Helmets',
+    'küche': 'kitchen',
+    'Küche': 'Kitchen',
+    'küchen': 'kitchen',
+    'Küchen': 'Kitchen',
+    'terminal': 'terminal',
+    'Terminal': 'Terminal',
+    'fahrer': 'driver',
+    'Fahrer': 'Driver',
+    'aktiv': 'actively',
+    'fragen': 'ask',
+    'Fragen': 'Ask',
+    'aufgaben': 'tasks',
+    'Aufgaben': 'Tasks',
+    'unterstützen': 'support',
+    'Unterstützen': 'Support',
+    'gemüse': 'vegetables',
+    'Gemüse': 'Vegetables',
+    'store': 'store',
+    'Store': 'Store',
+    'ins': 'into',
+    'nach': 'for'
+  };
+  
+  let translated = text;
+  
+  // Replace German words with English equivalents
+  for (const [german, english] of Object.entries(commonTranslations)) {
+    const regex = new RegExp(`\\b${german}\\b`, 'g');
+    translated = translated.replace(regex, english);
+  }
+  
+  return translated;
+}
+
 // Helper function to get translated task or return original if no translation exists
 export function getTranslatedTask(task: { title: string; description?: string }, language: 'de' | 'en') {
   if (language === 'en') {
@@ -711,6 +881,12 @@ export function getTranslatedTask(task: { title: string; description?: string },
       }
     }
     
+    // If still no match, try without special characters
+    if (!translation) {
+      const cleanTitle = task.title.replace(/[!?]/g, '').trim();
+      translation = taskTranslations[cleanTitle];
+    }
+    
     if (translation) {
       return {
         title: translation.title,
@@ -718,11 +894,14 @@ export function getTranslatedTask(task: { title: string; description?: string },
       };
     }
     
-    // If no translation exists, log and return original
-    console.warn(`No translation found for task: "${task.title}"`);
+    // If no translation exists, use automatic translation
+    // This ensures ALL tasks get translated, even if not in our dictionary
+    const autoTranslatedTitle = autoTranslate(task.title);
+    const autoTranslatedDescription = task.description ? autoTranslate(task.description) : '';
+    
     return {
-      title: task.title,
-      description: task.description || ''
+      title: autoTranslatedTitle,
+      description: autoTranslatedDescription
     };
   }
   
