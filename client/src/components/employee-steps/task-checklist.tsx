@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { EmployeeWorkflowState } from "@/lib/types";
 import { Task, Category } from "@shared/schema";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getTranslatedTask } from "@/lib/taskTranslations";
 
 interface TaskChecklistProps {
   state: EmployeeWorkflowState;
@@ -16,6 +18,7 @@ interface TaskChecklistProps {
 }
 
 export default function TaskChecklist({ state, updateState }: TaskChecklistProps) {
+  const { t, language } = useLanguage();
   const [completedTasks, setCompletedTasks] = useState<string[]>(state.completedTasks);
   const { toast } = useToast();
 
@@ -170,20 +173,20 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
           <div className="flex items-center">
             <div className="step-indicator mr-3">5</div>
             <div>
-              <h2 className="text-xl font-medium">Aufgaben-Checkliste</h2>
+              <h2 className="text-xl font-medium">{t.employee.taskCompletion.title}</h2>
               <p className="text-sm text-gray-600">
-                {state.selectedStore} - {state.selectedAreaName || 'Arbeitsbereich'}
+                {state.selectedStore} - {t.employee.areaSelection.areas[state.selectedAreaName] || state.selectedAreaName || t.admin.areas.title}
               </p>
               {state.selectedAreaUseShifts !== false && (
                 <p className="text-xs text-gray-500 mt-1">
-                  {state.selectedShift === 'frühschicht' ? 'Frühschicht' : 'Spätschicht'} - 
-                  {state.selectedShiftPhase === 'schichtanfang' ? ' Start' : ' Ende'}
+                  {state.selectedShift === 'frühschicht' ? t.employee.detailsEntry.earlyShift : t.employee.detailsEntry.lateShift} - 
+                  {state.selectedShiftPhase === 'schichtanfang' ? ` ${t.employee.shiftPhase.start}` : ` ${t.employee.shiftPhase.end}`}
                 </p>
               )}
             </div>
           </div>
           <div className="text-right">
-            <div className="text-sm text-gray-600">Fortschritt</div>
+            <div className="text-sm text-gray-600">{t.employee.taskCompletion.progress || 'Fortschritt'}</div>
             <div className="text-lg font-bold text-primary">
               {completedTasks.length}/{filteredTasks.length}
             </div>
@@ -192,19 +195,20 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
 
         {filteredTasks.length === 0 ? (
           <div className="py-12 text-center">
-            <p className="text-gray-500">Keine Aufgaben für diese Schichtphase gefunden.</p>
+            <p className="text-gray-500">{t.employee.taskCompletion.noTasks || 'Keine Aufgaben für diese Schichtphase gefunden.'}</p>
             <p className="text-sm text-gray-400 mt-2">
-              {state.selectedShift === 'frühschicht' ? 'Frühschicht' : 'Spätschicht'} - 
-              {state.selectedShiftPhase === 'schichtanfang' ? ' Start' : ' Ende'}
+              {state.selectedShift === 'frühschicht' ? t.employee.detailsEntry.earlyShift : t.employee.detailsEntry.lateShift} - 
+              {state.selectedShiftPhase === 'schichtanfang' ? ` ${t.employee.shiftPhase.start}` : ` ${t.employee.shiftPhase.end}`}
             </p>
             <p className="text-sm text-gray-400 mt-1">
-              Bitte wenden Sie sich an Ihren Administrator.
+              {t.employee.taskCompletion.contactAdmin || 'Bitte wenden Sie sich an Ihren Administrator.'}
             </p>
           </div>
         ) : (
           <div className="space-y-3 mb-6">
             {filteredTasks.map((task) => {
               const isCompleted = completedTasks.includes(task.id);
+              const translatedTask = getTranslatedTask(task, language);
               return (
                 <div
                 key={task.id}
@@ -220,8 +224,8 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
                     )}
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-medium text-gray-800">{task.title}</h4>
-                    <p className="text-sm text-gray-600">{task.description}</p>
+                    <h4 className="font-medium text-gray-800">{translatedTask.title}</h4>
+                    <p className="text-sm text-gray-600">{translatedTask.description}</p>
                   </div>
                 </div>
                 {getIcon(task.icon)}
@@ -238,11 +242,11 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
             disabled={!canSubmit || submitMutation.isPending}
           >
             <Check className="mr-2" size={16} />
-            {submitMutation.isPending ? "Wird gesendet..." : "Liste absenden"}
+            {submitMutation.isPending ? t.employee.taskCompletion.submitting || "Wird gesendet..." : t.employee.taskCompletion.submit}
           </Button>
           <Button variant="outline" onClick={goBack}>
             <ArrowLeft size={16} className="mr-2" />
-            Zurück
+            {t.common.back}
           </Button>
         </div>
       </CardContent>

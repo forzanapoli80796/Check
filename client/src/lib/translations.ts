@@ -67,7 +67,11 @@ export const translations = {
         unmarkAll: 'Alle abwählen',
         completed: 'erledigt',
         submit: 'Checkliste einreichen',
-        confirmSubmit: 'Sind Sie sicher, dass Sie die Checkliste einreichen möchten?'
+        submitting: 'Wird gesendet...',
+        confirmSubmit: 'Sind Sie sicher, dass Sie die Checkliste einreichen möchten?',
+        progress: 'Fortschritt',
+        noTasks: 'Keine Aufgaben für diese Schichtphase gefunden.',
+        contactAdmin: 'Bitte wenden Sie sich an Ihren Administrator.'
       },
       inventory: {
         title: 'Inventur',
@@ -258,7 +262,11 @@ export const translations = {
         unmarkAll: 'Deselect All',
         completed: 'completed',
         submit: 'Submit Checklist',
-        confirmSubmit: 'Are you sure you want to submit the checklist?'
+        submitting: 'Submitting...',
+        confirmSubmit: 'Are you sure you want to submit the checklist?',
+        progress: 'Progress',
+        noTasks: 'No tasks found for this shift phase.',
+        contactAdmin: 'Please contact your administrator.'
       },
       inventory: {
         title: 'Inventory',
