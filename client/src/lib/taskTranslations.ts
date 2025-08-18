@@ -717,9 +717,41 @@ export const taskTranslations: Record<string, { title: string; description: stri
 
 // Basic automatic translation for common German words
 function autoTranslate(text: string): string {
+  // First, handle complete phrases
+  const phraseTranslations: { [key: string]: string } = {
+    'Abstauben aller Flaschen, alle Elemente am Terminal': 'Dust all bottles, all elements at terminal',
+    'Alle Schubladen am Terminal sortieren, inkl. das Regal unter dem Wolt Tablet': 'Sort all drawers at terminal, incl. shelf under Wolt tablet',
+    'Terminal Theke nass abwischen': 'Wipe terminal counter wet',
+    'Terminal Tisch abräumen, nass reinigen': 'Clear terminal table, clean wet',
+    'Alle Flächen unter dem Terminal und Fahrertisch feucht reinigen': 'Clean all surfaces under terminal and driver table damp',
+    'Alle Flächen unter Terminal Tisch 1 und 2 reinigen & sortieren': 'Clean & sort all surfaces under terminal table 1 and 2',
+    'Terminal Tisch reinigen': 'Clean terminal table',
+    'Gemüse Kisten ins Store holen': 'Get vegetable boxes to store',
+    'Terminal unterstützen': 'Support terminal',
+    'Fahrräder Kontrollieren': 'Check bicycles',
+    'Fahrräder Raus stellen': 'Put bicycles out',
+    'Fahrräder Rein stellen': 'Put bicycles in',
+    'Küche aktiv nach Aufgaben fragen': 'Actively ask kitchen for tasks'
+  };
+  
+  // Check if complete phrase matches
+  for (const [german, english] of Object.entries(phraseTranslations)) {
+    if (text.trim().toLowerCase() === german.toLowerCase()) {
+      return english;
+    }
+  }
+  
   const commonTranslations: { [key: string]: string } = {
+    'abstauben': 'dust',
+    'Abstauben': 'Dust',
     'reinigen': 'clean',
     'Reinigen': 'Clean',
+    'abräumen': 'clear',
+    'Abräumen': 'Clear',
+    'abwischen': 'wipe',
+    'Abwischen': 'Wipe',
+    'sortieren': 'sort',
+    'Sortieren': 'Sort',
     'sauber': 'clean',
     'Sauber': 'Clean',
     'Sauberkeit': 'Cleanliness',
@@ -777,10 +809,16 @@ function autoTranslate(text: string): string {
     'Lager': 'Storage',
     'tisch': 'table',
     'Tisch': 'Table',
+    'theke': 'counter',
+    'Theke': 'Counter',
     'tische': 'tables',
     'Tische': 'Tables',
     'boden': 'floor',
     'Boden': 'Floor',
+    'flächen': 'surfaces',
+    'Flächen': 'Surfaces',
+    'fläche': 'surface',
+    'Fläche': 'Surface',
     'wände': 'walls',
     'Wände': 'Walls',
     'fenster': 'window',
@@ -793,12 +831,22 @@ function autoTranslate(text: string): string {
     'Lampen': 'Lamps',
     'licht': 'light',
     'Licht': 'Light',
+    'schubladen': 'drawers',
+    'Schubladen': 'Drawers',
+    'regal': 'shelf',
+    'Regal': 'Shelf',
+    'elemente': 'elements',
+    'Elemente': 'Elements',
     'an': 'on',
     'An': 'On',
+    'am': 'at',
+    'Am': 'At',
     'aus': 'off',
     'Aus': 'Off',
     'alle': 'all',
     'Alle': 'All',
+    'aller': 'all',
+    'Aller': 'All',
     'und': 'and',
     'oder': 'or',
     'mit': 'with',
@@ -806,13 +854,20 @@ function autoTranslate(text: string): string {
     'für': 'for',
     'bei': 'at',
     'unter': 'under',
+    'Unter': 'Under',
+    'dem': 'the',
+    'Dem': 'The',
+    'das': 'the',
+    'Das': 'The',
+    'inkl.': 'incl.',
+    'Inkl.': 'Incl.',
     'über': 'over',
     'holen': 'fetch',
     'Holen': 'Fetch',
     'bringen': 'bring',
     'Bringen': 'Bring',
-    'stellen': 'place',
-    'Stellen': 'Place',
+    'stellen': 'place/put',
+    'Stellen': 'Place/Put',
     'rein': 'in',
     'Rein': 'In',
     'raus': 'out',
@@ -821,6 +876,8 @@ function autoTranslate(text: string): string {
     'Fahrräder': 'Bicycles',
     'fahrrad': 'bicycle',
     'Fahrrad': 'Bicycle',
+    'fahrertisch': 'driver table',
+    'Fahrertisch': 'Driver table',
     'helm': 'helmet',
     'Helm': 'Helmet',
     'helme': 'helmets',
@@ -844,8 +901,8 @@ function autoTranslate(text: string): string {
     'Gemüse': 'Vegetables',
     'store': 'store',
     'Store': 'Store',
-    'ins': 'into',
-    'nach': 'for'
+    'ins': 'into/to',
+    'nach': 'for/after'
   };
   
   let translated = text;

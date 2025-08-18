@@ -2,7 +2,7 @@
 
 ## Overview
 
-ForzaCheck is a checklist management system designed for retail stores to track task completion across different work areas. The application features role-based access with three user types: employees, managers (Betriebsleiter), and administrators. It provides an intuitive workflow for employees to complete checklists and comprehensive dashboards for supervisors to monitor progress.
+ForzaCheck is a bilingual (German/English) checklist management system designed for retail stores to track task completion across different work areas. The application features role-based access with three user types: employees, managers (Betriebsleiter), and administrators. It provides an intuitive workflow for employees to complete checklists and comprehensive dashboards for supervisors to monitor progress. The system includes a comprehensive translation infrastructure with automatic fallback for untranslated content.
 
 ## User Preferences
 
@@ -53,6 +53,11 @@ Logo usage: Only use the official ForzaCheck logo (FORZACHECK1_black_17538166219
 - **Admin**: Full system management including category and task configuration, weekly dough production planning
 
 ### Core Features
+- **Bilingual Support**: Complete German/English translation system with automatic fallback (added 2025-08-18)
+  - Over 100 task-specific translations in dedicated taskTranslations module
+  - Automatic translation for common German words and phrases
+  - Language persistence via localStorage
+  - Complete UI element translation coverage
 - **Employee Workflow**: Step-by-step process (Store → Area → Details → Tasks → Success)
   - Store-specific task filtering: Only shows tasks assigned to the selected store (added 2025-08-09)
 - **Teig Dashboard**: Daily production overview showing required dough ball quantities by store
