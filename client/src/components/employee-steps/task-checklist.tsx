@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, Check, CalendarDays } from "lucide-react";
 import * as Icons from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { EmployeeWorkflowState } from "@/lib/types";
@@ -23,6 +24,8 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
   const { t, language } = useLanguage();
   const [completedTasks, setCompletedTasks] = useState<string[]>(state.completedTasks);
   const [comments, setComments] = useState<string>("");
+  const [earliestExpiryDate, setEarliestExpiryDate] = useState<string>("");
+  const [productDetails, setProductDetails] = useState<string>("");
   const { toast } = useToast();
 
   const { data: categories, isLoading: categoriesLoading } = useQuery<Category[]>({
@@ -44,7 +47,7 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
       
       console.log('Submitting checklist with categoryId:', state.selectedArea);
       
-      const response = await apiRequest("POST", "/api/checklists", {
+      const submissionData: any = {
         categoryId: state.selectedArea,
         employeeName: state.employeeName,
         store: state.selectedStore,
@@ -53,7 +56,16 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
           : `${state.selectedShift}_${state.selectedShiftPhase}`,
         completedTasks,
         comments: comments || null,
-      });
+      };
+      
+      // Add MHD-Check specific fields
+      const currentCategory = categories?.find(cat => cat.id === state.selectedArea);
+      if (currentCategory?.name === 'MHD-Check') {
+        submissionData.mhdExpiryDate = earliestExpiryDate || null;
+        submissionData.mhdProductDetails = productDetails || null;
+      }
+      
+      const response = await apiRequest("POST", "/api/checklists", submissionData);
       return response.json();
     },
     onSuccess: () => {
@@ -236,6 +248,38 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
               </div>
               );
             })}
+          </div>
+        )}
+
+        {/* MHD-Check specific fields */}
+        {currentCategory?.name === 'MHD-Check' && (
+          <div className="space-y-4 mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div>
+              <Label className="text-sm font-medium mb-2 block">
+                <CalendarDays className="inline mr-2" size={16} />
+                {language === 'de' ? 'Welches MHD ist das jüngste und läuft zuerst ab?' : 'Which expiry date is the earliest and expires first?'}
+              </Label>
+              <Input
+                type="date"
+                value={earliestExpiryDate}
+                onChange={(e) => setEarliestExpiryDate(e.target.value)}
+                className="w-full"
+                required={currentCategory?.name === 'MHD-Check'}
+              />
+            </div>
+            <div>
+              <Label htmlFor="product-details" className="text-sm font-medium mb-2 block">
+                {language === 'de' ? 'Welches Produkt?' : 'Which product?'}
+              </Label>
+              <Textarea
+                id="product-details"
+                value={productDetails}
+                onChange={(e) => setProductDetails(e.target.value)}
+                placeholder={language === 'de' ? 'Geben Sie hier das Produkt ein...' : 'Enter the product here...'}
+                className="w-full min-h-[80px]"
+                required={currentCategory?.name === 'MHD-Check'}
+              />
+            </div>
           </div>
         )}
 

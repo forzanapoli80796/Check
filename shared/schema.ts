@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, jsonb, boolean, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, jsonb, boolean, integer, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -39,6 +39,8 @@ export const checklists = pgTable("checklists", {
   taskImages: jsonb("task_images").default('{}'), // object mapping taskId to array of images
   taskNotes: jsonb("task_notes").default('{}'), // object mapping taskId to text notes
   comments: text("comments"), // General comments from employee at the end of checklist
+  mhdExpiryDate: date("mhd_expiry_date"), // MHD-Check specific: earliest expiry date
+  mhdProductDetails: text("mhd_product_details"), // MHD-Check specific: product details
   submittedAt: timestamp("submitted_at").defaultNow(),
 });
 

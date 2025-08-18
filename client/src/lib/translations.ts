@@ -35,7 +35,8 @@ export const translations = {
           'Betriebsleiter': 'Betriebsleiter',
           'Sonder/Samstagsreinigung': 'Sonder/Samstagsreinigung',
           'Inventur/Non-Food': 'Inventur/Non-Food',
-          'Inventur': 'Inventur'
+          'Inventur': 'Inventur',
+          'MHD-Check': 'MHD-Check'
         }
       },
       detailsEntry: {
@@ -232,7 +233,8 @@ export const translations = {
           'Betriebsleiter': 'Manager',
           'Sonder/Samstagsreinigung': 'Special/Saturday Cleaning',
           'Inventur/Non-Food': 'Inventory/Non-Food',
-          'Inventur': 'Inventory'
+          'Inventur': 'Inventory',
+          'MHD-Check': 'Expiry Check'
         }
       },
       detailsEntry: {

@@ -58,6 +58,19 @@ export const taskTranslations: Record<string, { title: string; description: stri
     description: 'if items from storage are needed'
   },
 
+  // MHD-Check Tasks
+  'Alle Wurstwaren auf MHD überprüft': {
+    title: 'All meat products checked for expiry',
+    description: 'Old items in front, new items in back'
+  },
+  'Alle Käseprodukte auf MHD überprüft': {
+    title: 'All cheese products checked for expiry',
+    description: 'Old items in front, new items in back'
+  },
+  'Käse vegan auf MHD überprüft': {
+    title: 'Vegan cheese checked for expiry',
+    description: 'Old items in front, new items in back'
+  },
 
   // Kitchen Tasks
   'Kühlschrank-Temperatur prüfen': { 

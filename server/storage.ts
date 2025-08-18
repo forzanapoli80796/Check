@@ -193,6 +193,8 @@ export class DatabaseStorage implements IStorage {
         images: insertChecklist.images || null,
         taskImages: insertChecklist.taskImages || null,
         taskNotes: insertChecklist.taskNotes || null,
+        mhdExpiryDate: (insertChecklist as any).mhdExpiryDate || null,
+        mhdProductDetails: (insertChecklist as any).mhdProductDetails || null,
       })
       .returning();
     return checklist;

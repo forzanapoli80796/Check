@@ -174,8 +174,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/checklists", async (req, res) => {
     try {
       const storage = await getStorage();
-      const validatedData = insertChecklistSchema.parse(req.body);
-      const checklist = await storage.createChecklist(validatedData);
+      
+      // Extract MHD-Check specific fields before validation
+      const { mhdExpiryDate, mhdProductDetails, ...baseData } = req.body;
+      
+      // Validate base checklist data
+      const validatedData = insertChecklistSchema.parse(baseData);
+      
+      // Add MHD-Check fields if present
+      const checklistData: any = {
+        ...validatedData,
+        mhdExpiryDate: mhdExpiryDate || null,
+        mhdProductDetails: mhdProductDetails || null
+      };
+      
+      const checklist = await storage.createChecklist(checklistData);
       res.json(checklist);
     } catch (error) {
       console.error("Checklist creation error:", error);
