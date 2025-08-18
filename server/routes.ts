@@ -175,17 +175,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const storage = await getStorage();
       
-      // Extract MHD-Check specific fields before validation
-      const { mhdExpiryDate, mhdProductDetails, ...baseData } = req.body;
+      // Extract special fields before validation
+      const { 
+        mhdExpiryDate, 
+        mhdProductDetails, 
+        lateShiftDate,
+        ballsForTomorrow,
+        newBalls,
+        ...baseData 
+      } = req.body;
       
       // Validate base checklist data
       const validatedData = insertChecklistSchema.parse(baseData);
       
-      // Add MHD-Check fields if present
+      // Add special fields if present
       const checklistData: any = {
         ...validatedData,
         mhdExpiryDate: mhdExpiryDate || null,
-        mhdProductDetails: mhdProductDetails || null
+        mhdProductDetails: mhdProductDetails || null,
+        lateShiftDate: lateShiftDate || null,
+        ballsForTomorrow: ballsForTomorrow || null,
+        newBalls: newBalls || null
       };
       
       const checklist = await storage.createChecklist(checklistData);

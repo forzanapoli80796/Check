@@ -377,6 +377,41 @@ export default function SubmittedLists() {
                 </div>
               )}
 
+              {/* Mengenformular Spätschicht Details */}
+              {categories?.find(c => c.id === selectedChecklist.categoryId)?.name === 'Mengenformular Spätschicht' && (
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 space-y-3">
+                  <h4 className="font-medium text-sm text-purple-800 mb-2">
+                    {language === 'de' ? 'Mengenformular Details' : 'Quantity Form Details'}
+                  </h4>
+                  {(selectedChecklist as any).lateShiftDate && (
+                    <div>
+                      <span className="text-sm font-medium text-gray-600">
+                        {language === 'de' ? 'Datum:' : 'Date:'}
+                      </span>
+                      <span className="ml-2 text-sm font-bold">
+                        {new Date((selectedChecklist as any).lateShiftDate).toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US')}
+                      </span>
+                    </div>
+                  )}
+                  {(selectedChecklist as any).ballsForTomorrow !== null && (
+                    <div>
+                      <span className="text-sm font-medium text-gray-600">
+                        {language === 'de' ? 'Kugeln für morgen:' : 'Balls for tomorrow:'}
+                      </span>
+                      <span className="ml-2 text-sm font-bold">{(selectedChecklist as any).ballsForTomorrow}</span>
+                    </div>
+                  )}
+                  {(selectedChecklist as any).newBalls !== null && (
+                    <div>
+                      <span className="text-sm font-medium text-gray-600">
+                        {language === 'de' ? 'Neue Kugeln:' : 'New balls:'}
+                      </span>
+                      <span className="ml-2 text-sm font-bold">{(selectedChecklist as any).newBalls}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Comments Section */}
               {selectedChecklist.comments && (
                 <div>

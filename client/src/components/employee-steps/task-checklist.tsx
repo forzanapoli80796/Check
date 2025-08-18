@@ -26,6 +26,9 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
   const [comments, setComments] = useState<string>("");
   const [earliestExpiryDate, setEarliestExpiryDate] = useState<string>("");
   const [productDetails, setProductDetails] = useState<string>("");
+  const [lateShiftDate, setLateShiftDate] = useState<string>("");
+  const [ballsForTomorrow, setBallsForTomorrow] = useState<string>("");
+  const [newBalls, setNewBalls] = useState<string>("");
   const { toast } = useToast();
 
   const { data: categories, isLoading: categoriesLoading } = useQuery<Category[]>({
@@ -58,11 +61,15 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
         comments: comments || null,
       };
       
-      // Add MHD-Check specific fields
+      // Add special fields based on category
       const currentCategory = categories?.find(cat => cat.id === state.selectedArea);
       if (currentCategory?.name === 'MHD-Check') {
         submissionData.mhdExpiryDate = earliestExpiryDate || null;
         submissionData.mhdProductDetails = productDetails || null;
+      } else if (currentCategory?.name === 'Mengenformular Spätschicht') {
+        submissionData.lateShiftDate = lateShiftDate || null;
+        submissionData.ballsForTomorrow = ballsForTomorrow ? parseInt(ballsForTomorrow) : null;
+        submissionData.newBalls = newBalls ? parseInt(newBalls) : null;
       }
       
       const response = await apiRequest("POST", "/api/checklists", submissionData);
@@ -278,6 +285,55 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
                 placeholder={language === 'de' ? 'Geben Sie hier das Produkt ein...' : 'Enter the product here...'}
                 className="w-full min-h-[80px]"
                 required={currentCategory?.name === 'MHD-Check'}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Mengenformular Spätschicht specific fields */}
+        {currentCategory?.name === 'Mengenformular Spätschicht' && (
+          <div className="space-y-4 mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div>
+              <Label className="text-sm font-medium mb-2 block">
+                <CalendarDays className="inline mr-2" size={16} />
+                {language === 'de' ? 'Datum wählen' : 'Select Date'}
+              </Label>
+              <Input
+                type="date"
+                value={lateShiftDate}
+                onChange={(e) => setLateShiftDate(e.target.value)}
+                className="w-full"
+                required={currentCategory?.name === 'Mengenformular Spätschicht'}
+              />
+            </div>
+            <div>
+              <Label htmlFor="balls-tomorrow" className="text-sm font-medium mb-2 block">
+                {language === 'de' ? 'Wie viele Kugeln haben wir für morgen?' : 'How many dough balls do we have for tomorrow?'}
+              </Label>
+              <Input
+                id="balls-tomorrow"
+                type="number"
+                min="0"
+                value={ballsForTomorrow}
+                onChange={(e) => setBallsForTomorrow(e.target.value)}
+                placeholder={language === 'de' ? 'Anzahl eingeben...' : 'Enter amount...'}
+                className="w-full"
+                required={currentCategory?.name === 'Mengenformular Spätschicht'}
+              />
+            </div>
+            <div>
+              <Label htmlFor="new-balls" className="text-sm font-medium mb-2 block">
+                {language === 'de' ? 'Wie viele davon sind neu?' : 'How many of them are new?'}
+              </Label>
+              <Input
+                id="new-balls"
+                type="number"
+                min="0"
+                value={newBalls}
+                onChange={(e) => setNewBalls(e.target.value)}
+                placeholder={language === 'de' ? 'Anzahl eingeben...' : 'Enter amount...'}
+                className="w-full"
+                required={currentCategory?.name === 'Mengenformular Spätschicht'}
               />
             </div>
           </div>

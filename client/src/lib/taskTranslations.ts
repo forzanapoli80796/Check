@@ -72,6 +72,16 @@ export const taskTranslations: Record<string, { title: string; description: stri
     description: 'Old items in front, new items in back'
   },
 
+  // Mengenformular Spätschicht Tasks
+  'Kugelmengen erfasst': {
+    title: 'Dough ball quantities recorded',
+    description: 'Number of dough balls for tomorrow counted'
+  },
+  'Neue Kugeln dokumentiert': {
+    title: 'New balls documented',
+    description: 'Number of new balls recorded'
+  },
+
   // Kitchen Tasks
   'Kühlschrank-Temperatur prüfen': { 
     title: 'Check refrigerator temperature', 

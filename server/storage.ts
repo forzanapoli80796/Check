@@ -195,6 +195,9 @@ export class DatabaseStorage implements IStorage {
         taskNotes: insertChecklist.taskNotes || null,
         mhdExpiryDate: (insertChecklist as any).mhdExpiryDate || null,
         mhdProductDetails: (insertChecklist as any).mhdProductDetails || null,
+        lateShiftDate: (insertChecklist as any).lateShiftDate || null,
+        ballsForTomorrow: (insertChecklist as any).ballsForTomorrow || null,
+        newBalls: (insertChecklist as any).newBalls || null,
       })
       .returning();
     return checklist;
@@ -308,6 +311,7 @@ export class MemStorage implements IStorage {
       { name: "Inventur", description: "Bestandsaufnahme", icon: "clipboard-list", useShifts: false, categoryType: "inventory" as const },
       { name: "Sonderreinigung", description: "Tiefenreinigung", icon: "broom", useShifts: false, categoryType: "simple" as const },
       { name: "Betriebsleiter", description: "Management & Organisation", icon: "briefcase", useShifts: false, categoryType: "simple" as const },
+      { name: "Mengenformular Spätschicht", description: "Teigmengen für Spätschicht in der Küche", icon: "calculator", useShifts: false, categoryType: "simple" as const },
     ];
 
     const categoryIds: Record<string, string> = {};
@@ -350,6 +354,10 @@ export class MemStorage implements IStorage {
       // Betriebsleiter tasks
       { categoryName: "Betriebsleiter", title: "Personalplanung prüfen", description: "Schichtpläne kontrollieren und anpassen", icon: "users", priority: "high" as const },
       { categoryName: "Betriebsleiter", title: "Tagesabrechnung", description: "Kassenabrechnungen und Berichte erstellen", icon: "coins", priority: "high" as const },
+      
+      // Mengenformular Spätschicht tasks
+      { categoryName: "Mengenformular Spätschicht", title: "Kugelmengen erfasst", description: "Anzahl der Teigkugeln für morgen gezählt", icon: "clipboard-list", priority: "high" as const },
+      { categoryName: "Mengenformular Spätschicht", title: "Neue Kugeln dokumentiert", description: "Anzahl der neuen Kugeln notiert", icon: "calculator", priority: "high" as const },
     ];
 
     defaultTasks.forEach(taskData => {

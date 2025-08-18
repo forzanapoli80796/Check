@@ -36,7 +36,8 @@ export const translations = {
           'Sonder/Samstagsreinigung': 'Sonder/Samstagsreinigung',
           'Inventur/Non-Food': 'Inventur/Non-Food',
           'Inventur': 'Inventur',
-          'MHD-Check': 'MHD-Check'
+          'MHD-Check': 'MHD-Check',
+          'Mengenformular Spätschicht': 'Mengenformular Spätschicht'
         }
       },
       detailsEntry: {
@@ -234,7 +235,8 @@ export const translations = {
           'Sonder/Samstagsreinigung': 'Special/Saturday Cleaning',
           'Inventur/Non-Food': 'Inventory/Non-Food',
           'Inventur': 'Inventory',
-          'MHD-Check': 'Expiry Check'
+          'MHD-Check': 'Expiry Check',
+          'Mengenformular Spätschicht': 'Late Shift Quantity Form'
         }
       },
       detailsEntry: {
