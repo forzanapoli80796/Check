@@ -274,7 +274,7 @@ export const taskTranslations: Record<string, { title: string; description: stri
   },
   'Gemüse Kisten ins Store holen ': { 
     title: 'Get vegetable crates to store', 
-    description: 'Ask kitchen if vegetables are ordered for tomorrow?' 
+    description: 'Ask kitchen if vegetables are ordered for tomorrow?!' 
   },
   'Leergut': { 
     title: 'Empty bottles', 
@@ -302,10 +302,7 @@ export const taskTranslations: Record<string, { title: string; description: stri
     title: 'Broken dough/pizza?', 
     description: 'Info to terminal' 
   },
-  'Überprüfung und Nachfüllung Papier&Seifen': { 
-    title: 'Check and refill paper & soap', 
-    description: 'Kitchen, dough room, WC' 
-  },
+
   'Inventur/Non-Foodliste': { 
     title: 'Inventory/Non-food list', 
     description: 'Tuesdays' 
@@ -659,6 +656,36 @@ export const taskTranslations: Record<string, { title: string; description: stri
   'Getränke Lager': {
     title: 'Drinks storage',
     description: 'Organize, sweep, sort drink crates'
+  },
+  
+  // Additional missing translations from database
+  'Geschirr ': {
+    title: 'Dishes',
+    description: 'Collect from clearing station and load dishwasher'
+  },
+  'Leere Teig boxen wegbringen ': {
+    title: 'Take away empty dough boxes',
+    description: 'Place correctly, see notice'
+  },
+  'Überprüfung und Nachfüllung Papier&Seifen': {
+    title: 'Check and refill paper & soap',
+    description: 'Kitchen, dough room, WC'
+  },
+  'Ordnung und Sauberkeit ': {
+    title: 'Order and cleanliness',
+    description: 'Check storage areas personally'
+  },
+  'Sauberkeit und Ordnung ': {
+    title: 'Cleanliness and order',
+    description: 'Check storage areas personally'
+  },
+  'Oberflächen/Kühltische ': {
+    title: 'Surfaces/Cooling tables',
+    description: 'Clean with sponge and detergent, finish with clean microfiber cloth'
+  },
+  'Regale / Montags ': {
+    title: 'Shelves / Mondays',
+    description: 'Clear everything, wipe with damp cloth'
   }
 };
 
@@ -691,7 +718,8 @@ export function getTranslatedTask(task: { title: string; description?: string },
       };
     }
     
-    // If no translation exists, return original
+    // If no translation exists, log and return original
+    console.warn(`No translation found for task: "${task.title}"`);
     return {
       title: task.title,
       description: task.description || ''
