@@ -277,11 +277,11 @@ export const taskTranslations: Record<string, { title: string; description: stri
     description: '8x Pummarole Dolce, 6x San Marzano' 
   },
   'Gemüse Kisten ins Store holen': { 
-    title: 'Get vegetable crates to store', 
+    title: 'Bring vegetable crates to storage', 
     description: 'Ask kitchen if vegetables are ordered for tomorrow?' 
   },
   'Gemüse Kisten ins Store holen ': { 
-    title: 'Get vegetable crates to store', 
+    title: 'Bring vegetable crates to storage', 
     description: 'Ask kitchen if vegetables are ordered for tomorrow?!' 
   },
   'Leergut': { 
@@ -326,7 +326,7 @@ export const taskTranslations: Record<string, { title: string; description: stri
     description: 'Mondays' 
   },
   'Regale / Montags': { 
-    title: 'Shelves / Mondays', 
+    title: 'Shelves (Mondays)', 
     description: 'Clear everything, wipe with damp cloth' 
   },
   'Unter der Spüle (alles herausnehmen und Reinigen )': { 
@@ -658,7 +658,7 @@ export const taskTranslations: Record<string, { title: string; description: stri
     description: 'Lint filter'
   },
   'Wohnung allgemein': {
-    title: 'Apartment general',
+    title: 'General apartment areas',
     description: ''
   },
   'Getränke Lager': {
@@ -680,7 +680,7 @@ export const taskTranslations: Record<string, { title: string; description: stri
     description: 'Always specify package quantity'
   },
   'Wohnung allgemein ': {
-    title: 'Apartment general',
+    title: 'General apartment areas',
     description: ''
   },
   
@@ -706,11 +706,11 @@ export const taskTranslations: Record<string, { title: string; description: stri
     description: 'Check storage areas personally'
   },
   'Oberflächen/Kühltische ': {
-    title: 'Surfaces/Cooling tables',
+    title: 'Surfaces and cooling tables',
     description: 'Clean with sponge and detergent, finish with clean microfiber cloth'
   },
   'Regale / Montags ': {
-    title: 'Shelves / Mondays',
+    title: 'Shelves (Mondays)',
     description: 'Clear everything, wipe with damp cloth'
   }
 };
@@ -719,19 +719,19 @@ export const taskTranslations: Record<string, { title: string; description: stri
 function autoTranslate(text: string): string {
   // First, handle complete phrases
   const phraseTranslations: { [key: string]: string } = {
-    'Abstauben aller Flaschen, alle Elemente am Terminal': 'Dust all bottles, all elements at terminal',
-    'Alle Schubladen am Terminal sortieren, inkl. das Regal unter dem Wolt Tablet': 'Sort all drawers at terminal, incl. shelf under Wolt tablet',
-    'Terminal Theke nass abwischen': 'Wipe terminal counter wet',
-    'Terminal Tisch abräumen, nass reinigen': 'Clear terminal table, clean wet',
-    'Alle Flächen unter dem Terminal und Fahrertisch feucht reinigen': 'Clean all surfaces under terminal and driver table damp',
-    'Alle Flächen unter Terminal Tisch 1 und 2 reinigen & sortieren': 'Clean & sort all surfaces under terminal table 1 and 2',
+    'Abstauben aller Flaschen, alle Elemente am Terminal': 'Dust all bottles and terminal elements',
+    'Alle Schubladen am Terminal sortieren, inkl. das Regal unter dem Wolt Tablet': 'Sort all terminal drawers, including shelf under Wolt tablet',
+    'Terminal Theke nass abwischen': 'Wipe terminal counter with wet cloth',
+    'Terminal Tisch abräumen, nass reinigen': 'Clear and wet-clean terminal table',
+    'Alle Flächen unter dem Terminal und Fahrertisch feucht reinigen': 'Clean all surfaces under terminal and driver table with damp cloth',
+    'Alle Flächen unter Terminal Tisch 1 und 2 reinigen & sortieren': 'Clean and organize all surfaces under terminal tables 1 and 2',
     'Terminal Tisch reinigen': 'Clean terminal table',
-    'Gemüse Kisten ins Store holen': 'Get vegetable boxes to store',
-    'Terminal unterstützen': 'Support terminal',
+    'Gemüse Kisten ins Store holen': 'Bring vegetable crates into storage',
+    'Terminal unterstützen': 'Assist at terminal',
     'Fahrräder Kontrollieren': 'Check bicycles',
-    'Fahrräder Raus stellen': 'Put bicycles out',
-    'Fahrräder Rein stellen': 'Put bicycles in',
-    'Küche aktiv nach Aufgaben fragen': 'Actively ask kitchen for tasks'
+    'Fahrräder Raus stellen': 'Put bicycles outside',
+    'Fahrräder Rein stellen': 'Bring bicycles inside',
+    'Küche aktiv nach Aufgaben fragen': 'Actively ask kitchen staff for tasks'
   };
   
   // Check if complete phrase matches
