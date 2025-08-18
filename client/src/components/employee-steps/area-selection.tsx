@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { EmployeeWorkflowState } from "@/lib/types";
 import type { Category } from "@shared/schema";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AreaSelectionProps {
   state: EmployeeWorkflowState;
@@ -13,6 +14,7 @@ interface AreaSelectionProps {
 }
 
 export default function AreaSelection({ state, updateState }: AreaSelectionProps) {
+  const { t } = useLanguage();
   const { data: categories = [], isLoading } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
@@ -58,7 +60,7 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
         <CardContent className="pt-6">
           <div className="flex items-center mb-6">
             <div className="step-indicator mr-3">2</div>
-            <h2 className="text-xl font-medium">Arbeitsbereich auswählen</h2>
+            <h2 className="text-xl font-medium">{t.employee.areaSelection.title}</h2>
           </div>
           <div className="grid grid-cols-1 gap-3">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -70,12 +72,18 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
     );
   }
 
+  // Helper function to translate category names
+  const getTranslatedCategoryName = (categoryName: string) => {
+    const areas = t.employee.areaSelection.areas as Record<string, string>;
+    return areas[categoryName] || categoryName;
+  };
+
   return (
     <Card className="shadow-sm border border-gray-200">
       <CardContent className="pt-6">
         <div className="flex items-center mb-6">
           <div className="step-indicator mr-3">2</div>
-          <h2 className="text-xl font-medium">Arbeitsbereich auswählen</h2>
+          <h2 className="text-xl font-medium">{t.employee.areaSelection.title}</h2>
         </div>
         <div className="grid grid-cols-1 gap-3">
           {categories.map((category) => (
@@ -86,9 +94,9 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
               className="selection-button justify-start"
             >
               {getIcon(category.icon)}
-              <span className="font-medium">{category.name}</span>
+              <span className="font-medium">{getTranslatedCategoryName(category.name)}</span>
               {category.useShifts === false && (
-                <span className="ml-auto text-xs text-gray-500">Einfache Checkliste</span>
+                <span className="ml-auto text-xs text-gray-500">{t.admin.areas.simpleChecklist}</span>
               )}
             </Button>
           ))}
@@ -99,7 +107,7 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
           className="mt-4"
         >
           <ArrowLeft size={16} className="mr-2" />
-          Zurück
+          {t.common.back}
         </Button>
       </CardContent>
     </Card>

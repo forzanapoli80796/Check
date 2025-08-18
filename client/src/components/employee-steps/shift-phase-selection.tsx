@@ -3,6 +3,7 @@ import { Play, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmployeeWorkflowState } from "@/lib/types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ShiftPhaseSelectionProps {
   state: EmployeeWorkflowState;
@@ -10,6 +11,7 @@ interface ShiftPhaseSelectionProps {
 }
 
 export default function ShiftPhaseSelection({ state, updateState }: ShiftPhaseSelectionProps) {
+  const { t } = useLanguage();
   const [selectedPhase, setSelectedPhase] = useState(state.selectedShiftPhase);
 
   const selectPhase = (phase: 'schichtanfang' | 'schichtende') => {
@@ -27,23 +29,23 @@ export default function ShiftPhaseSelection({ state, updateState }: ShiftPhaseSe
     updateState({ step: 'details' });
   };
 
-  const shiftLabel = state.selectedShift === 'frühschicht' ? 'Frühschicht' : 'Spätschicht';
+  const shiftLabel = state.selectedShift === 'frühschicht' ? t.employee.detailsEntry.earlyShift : t.employee.detailsEntry.lateShift;
 
   return (
     <Card className="shadow-sm border border-gray-200">
       <CardContent className="pt-6">
         <div className="flex items-center mb-6">
           <div className="step-indicator mr-3">4</div>
-          <h2 className="text-xl font-medium">Schichtphase auswählen</h2>
+          <h2 className="text-xl font-medium">{t.employee.shiftPhase.title}</h2>
         </div>
         
         <div className="space-y-4">
           <div className="text-center mb-4">
             <p className="text-gray-600">
-              Sie haben <span className="font-semibold">{shiftLabel}</span> ausgewählt.
+              {t.employee.shiftPhase.youSelected} <span className="font-semibold">{shiftLabel}</span>.
             </p>
             <p className="text-gray-600 mt-1">
-              Sind Sie am <span className="font-semibold">Start</span> oder am <span className="font-semibold">Ende</span> der Schicht?
+              {t.employee.shiftPhase.areYouAt} <span className="font-semibold">{t.employee.shiftPhase.start}</span> {t.employee.shiftPhase.or} <span className="font-semibold">{t.employee.shiftPhase.end}</span> {t.employee.shiftPhase.ofShift}?
             </p>
           </div>
 
@@ -55,8 +57,8 @@ export default function ShiftPhaseSelection({ state, updateState }: ShiftPhaseSe
             >
               <div className="flex flex-col items-center">
                 <Play className="text-blue-600 mb-2" size={24} />
-                <span className="font-medium">Start</span>
-                <span className="text-xs text-gray-500 mt-1">der {shiftLabel}</span>
+                <span className="font-medium">{t.employee.shiftPhase.start}</span>
+                <span className="text-xs text-gray-500 mt-1">{t.employee.shiftPhase.ofThe} {shiftLabel}</span>
               </div>
             </Button>
             <Button
@@ -66,15 +68,15 @@ export default function ShiftPhaseSelection({ state, updateState }: ShiftPhaseSe
             >
               <div className="flex flex-col items-center">
                 <Square className="text-purple-600 mb-2" size={24} />
-                <span className="font-medium">Ende</span>
-                <span className="text-xs text-gray-500 mt-1">der {shiftLabel}</span>
+                <span className="font-medium">{t.employee.shiftPhase.end}</span>
+                <span className="text-xs text-gray-500 mt-1">{t.employee.shiftPhase.ofThe} {shiftLabel}</span>
               </div>
             </Button>
           </div>
 
           <div className="bg-blue-50 p-3 rounded-lg mt-4">
             <p className="text-sm text-blue-800">
-              Je nach Schichtphase erhalten Sie unterschiedliche Aufgaben zur Bearbeitung.
+              {t.employee.shiftPhase.differentTasks}
             </p>
           </div>
         </div>
@@ -85,10 +87,10 @@ export default function ShiftPhaseSelection({ state, updateState }: ShiftPhaseSe
             className="flex-1" 
             disabled={!selectedPhase}
           >
-            Weiter zu den Aufgaben
+            {t.employee.shiftPhase.continueToTasks}
           </Button>
           <Button variant="outline" onClick={goBack}>
-            Zurück
+            {t.common.back}
           </Button>
         </div>
       </CardContent>

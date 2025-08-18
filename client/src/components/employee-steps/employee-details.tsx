@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmployeeWorkflowState } from "@/lib/types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface EmployeeDetailsProps {
   state: EmployeeWorkflowState;
@@ -12,6 +13,7 @@ interface EmployeeDetailsProps {
 }
 
 export default function EmployeeDetails({ state, updateState }: EmployeeDetailsProps) {
+  const { t } = useLanguage();
   const [name, setName] = useState(state.employeeName);
   const [selectedShift, setSelectedShift] = useState(state.selectedShift);
 
@@ -51,17 +53,17 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
         <div className="flex items-center mb-6">
           <div className="step-indicator mr-3">3</div>
           <h2 className="text-xl font-medium">
-            {state.isBetriebsleiter ? 'Betriebsleiter-Daten' : 'Mitarbeiterdaten'}
+            {t.employee.detailsEntry.title}
           </h2>
         </div>
         <div className="space-y-4">
           <div>
             <Label htmlFor="employee-name">
-              {state.isBetriebsleiter ? 'Name' : 'Vorname'}
+              {t.employee.detailsEntry.employeeName}
             </Label>
             <Input
               id="employee-name"
-              placeholder={state.isBetriebsleiter ? 'Name eingeben' : 'Vorname eingeben'}
+              placeholder={t.employee.detailsEntry.enterName}
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="mt-2"
@@ -70,7 +72,7 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
           {/* Only show shift selection if category uses shifts */}
           {useShifts && (
             <div>
-              <Label className="block mb-3">Schicht auswählen</Label>
+              <Label className="block mb-3">{t.employee.detailsEntry.shift}</Label>
               <div className="grid grid-cols-2 gap-3">
                 <Button
                   variant="outline"
@@ -78,7 +80,7 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
                   className={`p-3 ${selectedShift === 'frühschicht' ? 'selection-button selected' : 'selection-button'}`}
                 >
                   <span className="text-green-600 mr-2">☀️</span>
-                  Frühschicht
+                  {t.employee.detailsEntry.earlyShift}
                 </Button>
                 <Button
                   variant="outline"
@@ -86,7 +88,7 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
                   className={`p-3 ${selectedShift === 'spätschicht' ? 'selection-button selected' : 'selection-button'}`}
                 >
                   <span className="text-orange-600 mr-2">🌙</span>
-                  Spätschicht
+                  {t.employee.detailsEntry.lateShift}
                 </Button>
               </div>
             </div>
@@ -96,7 +98,7 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
           {!useShifts && (
             <div className="bg-blue-50 p-3 rounded-lg">
               <p className="text-sm text-blue-800">
-                Dieser Bereich hat keine Schichteinteilung - direkt zu den Aufgaben.
+                {t.admin.areas.simpleChecklist}
               </p>
             </div>
           )}
@@ -107,10 +109,10 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
             className="flex-1" 
             disabled={!isComplete}
           >
-            Weiter
+            {t.common.next}
           </Button>
           <Button variant="outline" onClick={goBack}>
-            Zurück
+            {t.common.back}
           </Button>
         </div>
       </CardContent>

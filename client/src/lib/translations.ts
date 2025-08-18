@@ -27,7 +27,16 @@ export const translations = {
       },
       areaSelection: {
         title: 'Arbeitsbereich auswählen',
-        selectArea: 'Wählen Sie einen Bereich'
+        selectArea: 'Wählen Sie einen Bereich',
+        areas: {
+          'Terminal': 'Terminal',
+          'Küche': 'Küche',
+          'Fahrer': 'Fahrer',
+          'Betriebsleiter': 'Betriebsleiter',
+          'Sonder/Samstagsreinigung': 'Sonder/Samstagsreinigung',
+          'Inventur/Non-Food': 'Inventur/Non-Food',
+          'Inventur': 'Inventur'
+        }
       },
       detailsEntry: {
         title: 'Details eingeben',
@@ -39,6 +48,18 @@ export const translations = {
         shiftPhase: 'Schichtphase',
         shiftStart: 'Schichtanfang',
         shiftEnd: 'Schichtende'
+      },
+      shiftPhase: {
+        title: 'Schichtphase auswählen',
+        youSelected: 'Sie haben',
+        areYouAt: 'Sind Sie am',
+        or: 'oder am',
+        ofShift: 'der Schicht',
+        start: 'Start',
+        end: 'Ende',
+        ofThe: 'der',
+        differentTasks: 'Je nach Schichtphase erhalten Sie unterschiedliche Aufgaben zur Bearbeitung.',
+        continueToTasks: 'Weiter zu den Aufgaben'
       },
       taskCompletion: {
         title: 'Aufgaben abschließen',
@@ -197,7 +218,16 @@ export const translations = {
       },
       areaSelection: {
         title: 'Select Work Area',
-        selectArea: 'Choose an area'
+        selectArea: 'Choose an area',
+        areas: {
+          'Terminal': 'Terminal',
+          'Küche': 'Kitchen',
+          'Fahrer': 'Driver',
+          'Betriebsleiter': 'Manager',
+          'Sonder/Samstagsreinigung': 'Special/Saturday Cleaning',
+          'Inventur/Non-Food': 'Inventory/Non-Food',
+          'Inventur': 'Inventory'
+        }
       },
       detailsEntry: {
         title: 'Enter Details',
@@ -209,6 +239,18 @@ export const translations = {
         shiftPhase: 'Shift Phase',
         shiftStart: 'Shift Start',
         shiftEnd: 'Shift End'
+      },
+      shiftPhase: {
+        title: 'Select Shift Phase',
+        youSelected: 'You selected',
+        areYouAt: 'Are you at the',
+        or: 'or the',
+        ofShift: 'of the shift',
+        start: 'Start',
+        end: 'End',
+        ofThe: 'of the',
+        differentTasks: 'You will receive different tasks depending on the shift phase.',
+        continueToTasks: 'Continue to Tasks'
       },
       taskCompletion: {
         title: 'Complete Tasks',

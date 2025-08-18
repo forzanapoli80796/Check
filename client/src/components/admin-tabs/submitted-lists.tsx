@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { de } from "date-fns/locale";
+import { de, enUS } from "date-fns/locale";
 import { Eye, Trash2, X, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,13 +13,21 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { Checklist, Category, Task, InventoryItem } from "@shared/schema";
 import { STORES } from "@/lib/types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function SubmittedLists() {
+  const { t, language } = useLanguage();
   const [storeFilter, setStoreFilter] = useState<string>("alle");
   const [dateFilter, setDateFilter] = useState<string>("heute");
   const [selectedChecklist, setSelectedChecklist] = useState<Checklist | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Helper function to translate category names
+  const getTranslatedCategoryName = (categoryName: string) => {
+    const areas = t.employee.areaSelection.areas as Record<string, string>;
+    return areas[categoryName] || categoryName;
+  };
 
   const { data: checklists, isLoading } = useQuery<Checklist[]>({
     queryKey: ["/api/checklists", storeFilter, dateFilter],
@@ -257,7 +265,7 @@ export default function SubmittedLists() {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  {categories?.find(c => c.id === checklist.categoryId)?.name || 'Unbekannte Kategorie'}
+                  {getTranslatedCategoryName(categories?.find(c => c.id === checklist.categoryId)?.name || 'Unbekannte Kategorie')}
                 </TableCell>
                 <TableCell>
                   <Badge variant={getShiftBadgeVariant(checklist.shiftType)}>
@@ -271,7 +279,7 @@ export default function SubmittedLists() {
                 </TableCell>
                 <TableCell>
                   <span className="text-sm text-gray-600">
-                    {checklist.submittedAt ? format(new Date(checklist.submittedAt), "dd.MM.yyyy HH:mm", { locale: de }) : 'Unbekannt'}
+                    {checklist.submittedAt ? format(new Date(checklist.submittedAt), "dd.MM.yyyy HH:mm", { locale: language === 'de' ? de : enUS }) : 'Unbekannt'}
                   </span>
                 </TableCell>
                 <TableCell>
