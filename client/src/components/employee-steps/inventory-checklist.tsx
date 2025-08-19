@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Category, Task, InsertChecklist, InsertInventoryItem } from "@shared/schema";
 import type { EmployeeWorkflowState } from "@/lib/types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const UNIT_OPTIONS = [
   { value: "stück", label: "Stück" },
@@ -35,6 +36,7 @@ export default function InventoryChecklist({ state, updateState }: InventoryChec
   const [inventoryData, setInventoryData] = useState<Map<string, InventoryTaskData>>(new Map());
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { language } = useLanguage();
 
   const { data: categories } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
@@ -67,7 +69,7 @@ export default function InventoryChecklist({ state, updateState }: InventoryChec
 
       // Then create inventory items for completed tasks
       const inventoryPromises = Array.from(inventoryData.values())
-        .filter(item => item.completed && item.quantity > 0)
+        .filter(item => item.completed && item.quantity >= 0)
         .map(item => {
           const inventoryItem: InsertInventoryItem = {
             checklistId: checklist.id,
@@ -201,12 +203,14 @@ export default function InventoryChecklist({ state, updateState }: InventoryChec
                   variant={itemData.completed ? "default" : "outline"}
                   className="w-full"
                   onClick={() => {
-                    if (itemData.quantity > 0) {
+                    if (itemData.quantity >= 0) {
                       updateInventoryItem(task.id, { completed: !itemData.completed });
                     } else {
                       toast({
-                        title: "Menge erforderlich",
-                        description: "Bitte geben Sie eine Menge größer als 0 an.",
+                        title: language === 'de' ? "Menge erforderlich" : "Quantity required",
+                        description: language === 'de' 
+                          ? "Bitte geben Sie eine gültige Menge an (0 oder mehr)." 
+                          : "Please enter a valid quantity (0 or more).",
                         variant: "destructive",
                       });
                     }
