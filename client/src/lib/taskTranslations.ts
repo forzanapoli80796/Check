@@ -82,6 +82,12 @@ export const taskTranslations: Record<string, { title: string; description: stri
     description: 'Number of new balls recorded'
   },
 
+  // Mengenformular Mittagsschicht Tasks
+  'Kugelmengen für heute erfasst': {
+    title: 'Dough ball quantities for today recorded',
+    description: 'Number of dough balls for today counted'
+  },
+
   // Kitchen Tasks
   'Kühlschrank-Temperatur prüfen': { 
     title: 'Check refrigerator temperature', 

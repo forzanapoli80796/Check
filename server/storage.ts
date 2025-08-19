@@ -198,6 +198,8 @@ export class DatabaseStorage implements IStorage {
         lateShiftDate: (insertChecklist as any).lateShiftDate || null,
         ballsForTomorrow: (insertChecklist as any).ballsForTomorrow || null,
         newBalls: (insertChecklist as any).newBalls || null,
+        lunchShiftDate: (insertChecklist as any).lunchShiftDate || null,
+        ballsForToday: (insertChecklist as any).ballsForToday || null,
       })
       .returning();
     return checklist;
@@ -312,6 +314,7 @@ export class MemStorage implements IStorage {
       { name: "Sonderreinigung", description: "Tiefenreinigung", icon: "broom", useShifts: false, categoryType: "simple" as const },
       { name: "Betriebsleiter", description: "Management & Organisation", icon: "briefcase", useShifts: false, categoryType: "simple" as const },
       { name: "Mengenformular Spätschicht", description: "Teigmengen für Spätschicht in der Küche", icon: "calculator", useShifts: false, categoryType: "simple" as const },
+      { name: "Mengenformular Mittagsschicht", description: "Teigmengen für Mittagsschicht in der Küche", icon: "clipboard-check", useShifts: false, categoryType: "simple" as const },
     ];
 
     const categoryIds: Record<string, string> = {};
@@ -358,6 +361,9 @@ export class MemStorage implements IStorage {
       // Mengenformular Spätschicht tasks
       { categoryName: "Mengenformular Spätschicht", title: "Kugelmengen erfasst", description: "Anzahl der Teigkugeln für morgen gezählt", icon: "clipboard-list", priority: "high" as const },
       { categoryName: "Mengenformular Spätschicht", title: "Neue Kugeln dokumentiert", description: "Anzahl der neuen Kugeln notiert", icon: "calculator", priority: "high" as const },
+      
+      // Mengenformular Mittagsschicht tasks
+      { categoryName: "Mengenformular Mittagsschicht", title: "Kugelmengen für heute erfasst", description: "Anzahl der Teigkugeln für heute gezählt", icon: "clipboard-check", priority: "high" as const },
     ];
 
     defaultTasks.forEach(taskData => {

@@ -37,7 +37,8 @@ export const translations = {
           'Inventur/Non-Food': 'Inventur/Non-Food',
           'Inventur': 'Inventur',
           'MHD-Check': 'MHD-Check',
-          'Mengenformular Spätschicht': 'Mengenformular Spätschicht'
+          'Mengenformular Spätschicht': 'Mengenformular Spätschicht',
+          'Mengenformular Mittagsschicht': 'Mengenformular Mittagsschicht'
         }
       },
       detailsEntry: {
@@ -236,7 +237,8 @@ export const translations = {
           'Inventur/Non-Food': 'Inventory/Non-Food',
           'Inventur': 'Inventory',
           'MHD-Check': 'Expiry Check',
-          'Mengenformular Spätschicht': 'Late Shift Quantity Form'
+          'Mengenformular Spätschicht': 'Late Shift Quantity Form',
+          'Mengenformular Mittagsschicht': 'Lunch Shift Quantity Form'
         }
       },
       detailsEntry: {

@@ -182,6 +182,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lateShiftDate,
         ballsForTomorrow,
         newBalls,
+        lunchShiftDate,
+        ballsForToday,
         ...baseData 
       } = req.body;
       
@@ -195,7 +197,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mhdProductDetails: mhdProductDetails || null,
         lateShiftDate: lateShiftDate || null,
         ballsForTomorrow: ballsForTomorrow || null,
-        newBalls: newBalls || null
+        newBalls: newBalls || null,
+        lunchShiftDate: lunchShiftDate || null,
+        ballsForToday: ballsForToday || null
       };
       
       const checklist = await storage.createChecklist(checklistData);

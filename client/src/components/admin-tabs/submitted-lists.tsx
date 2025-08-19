@@ -412,6 +412,33 @@ export default function SubmittedLists() {
                 </div>
               )}
 
+              {/* Mengenformular Mittagsschicht Details */}
+              {categories?.find(c => c.id === selectedChecklist.categoryId)?.name === 'Mengenformular Mittagsschicht' && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
+                  <h4 className="font-medium text-sm text-green-800 mb-2">
+                    {language === 'de' ? 'Mittagsschicht Mengenformular Details' : 'Lunch Shift Quantity Form Details'}
+                  </h4>
+                  {(selectedChecklist as any).lunchShiftDate && (
+                    <div>
+                      <span className="text-sm font-medium text-gray-600">
+                        {language === 'de' ? 'Datum:' : 'Date:'}
+                      </span>
+                      <span className="ml-2 text-sm font-bold">
+                        {new Date((selectedChecklist as any).lunchShiftDate).toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US')}
+                      </span>
+                    </div>
+                  )}
+                  {(selectedChecklist as any).ballsForToday !== null && (
+                    <div>
+                      <span className="text-sm font-medium text-gray-600">
+                        {language === 'de' ? 'Kugeln für heute:' : 'Balls for today:'}
+                      </span>
+                      <span className="ml-2 text-sm font-bold">{(selectedChecklist as any).ballsForToday}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Comments Section */}
               {selectedChecklist.comments && (
                 <div>

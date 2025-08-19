@@ -29,6 +29,8 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
   const [lateShiftDate, setLateShiftDate] = useState<string>("");
   const [ballsForTomorrow, setBallsForTomorrow] = useState<string>("");
   const [newBalls, setNewBalls] = useState<string>("");
+  const [lunchShiftDate, setLunchShiftDate] = useState<string>("");
+  const [ballsForToday, setBallsForToday] = useState<string>("");
   const { toast } = useToast();
 
   const { data: categories, isLoading: categoriesLoading } = useQuery<Category[]>({
@@ -70,6 +72,9 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
         submissionData.lateShiftDate = lateShiftDate || null;
         submissionData.ballsForTomorrow = ballsForTomorrow ? parseInt(ballsForTomorrow) : null;
         submissionData.newBalls = newBalls ? parseInt(newBalls) : null;
+      } else if (currentCategory?.name === 'Mengenformular Mittagsschicht') {
+        submissionData.lunchShiftDate = lunchShiftDate || null;
+        submissionData.ballsForToday = ballsForToday ? parseInt(ballsForToday) : null;
       }
       
       const response = await apiRequest("POST", "/api/checklists", submissionData);
@@ -334,6 +339,40 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
                 placeholder={language === 'de' ? 'Anzahl eingeben...' : 'Enter amount...'}
                 className="w-full"
                 required={currentCategory?.name === 'Mengenformular Spätschicht'}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Mengenformular Mittagsschicht specific fields */}
+        {currentCategory?.name === 'Mengenformular Mittagsschicht' && (
+          <div className="space-y-4 mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div>
+              <Label className="text-sm font-medium mb-2 block">
+                <CalendarDays className="inline mr-2" size={16} />
+                {language === 'de' ? 'Datum wählen' : 'Select Date'}
+              </Label>
+              <Input
+                type="date"
+                value={lunchShiftDate}
+                onChange={(e) => setLunchShiftDate(e.target.value)}
+                className="w-full"
+                required={currentCategory?.name === 'Mengenformular Mittagsschicht'}
+              />
+            </div>
+            <div>
+              <Label htmlFor="balls-today" className="text-sm font-medium mb-2 block">
+                {language === 'de' ? 'Wie viele Kugeln haben wir für heute?' : 'How many dough balls do we have for today?'}
+              </Label>
+              <Input
+                id="balls-today"
+                type="number"
+                min="0"
+                value={ballsForToday}
+                onChange={(e) => setBallsForToday(e.target.value)}
+                placeholder={language === 'de' ? 'Anzahl eingeben...' : 'Enter amount...'}
+                className="w-full"
+                required={currentCategory?.name === 'Mengenformular Mittagsschicht'}
               />
             </div>
           </div>
