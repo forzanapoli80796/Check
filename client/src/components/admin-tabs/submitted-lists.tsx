@@ -316,12 +316,7 @@ export default function SubmittedLists() {
       <Dialog open={!!selectedChecklist} onOpenChange={closeChecklistDetails}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <span>Checklisten-Details</span>
-              <Button variant="ghost" size="sm" onClick={closeChecklistDetails}>
-                <X size={16} />
-              </Button>
-            </DialogTitle>
+            <DialogTitle>Checklisten-Details</DialogTitle>
           </DialogHeader>
 
           {selectedChecklist && (
