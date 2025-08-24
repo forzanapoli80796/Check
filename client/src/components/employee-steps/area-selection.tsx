@@ -32,8 +32,10 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
       actualType: typeof category.useShifts 
     });
     
-    // Check if this category has subcategories
-    if (category.isSubcategoryParent) {
+    // Check if this category actually has subcategories (not just the flag)
+    const hasSubcategories = allCategories.some(cat => cat.parentId === category.id);
+    
+    if (hasSubcategories || category.isSubcategoryParent) {
       // If it has subcategories, go to subcategory selection
       updateState({ 
         selectedArea: category.id, 

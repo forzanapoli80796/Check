@@ -71,6 +71,15 @@ export class DatabaseStorage implements IStorage {
         isSubcategoryParent: insertCategory.isSubcategoryParent || false,
       })
       .returning();
+    
+    // If this is a subcategory, automatically mark the parent as having subcategories
+    if (category.parentId) {
+      await db
+        .update(categories)
+        .set({ isSubcategoryParent: true })
+        .where(eq(categories.id, category.parentId));
+    }
+    
     console.log('Created category:', category);
     return category;
   }
@@ -85,11 +94,29 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(categories.id, id))
       .returning();
+    
+    // If this became a subcategory, mark the parent as having subcategories
+    if (category && category.parentId && updateData.parentId !== undefined) {
+      await db
+        .update(categories)
+        .set({ isSubcategoryParent: true })
+        .where(eq(categories.id, category.parentId));
+    }
+    
+    // If parentId was removed, check if old parent still has subcategories
+    if (category && updateData.parentId === null) {
+      // This is now a main category, not checking old parent
+    }
+    
     return category || undefined;
   }
 
   async deleteCategory(id: string): Promise<boolean> {
     try {
+      // Get the category to be deleted
+      const [categoryToDelete] = await db.select().from(categories).where(eq(categories.id, id));
+      const parentId = categoryToDelete?.parentId;
+      
       // Check if this category has subcategories
       const subcategories = await db.select().from(categories).where(eq(categories.parentId, id));
       if (subcategories.length > 0) {
@@ -116,6 +143,19 @@ export class DatabaseStorage implements IStorage {
       
       // Finally delete the category
       const result = await db.delete(categories).where(eq(categories.id, id));
+      
+      // If this was a subcategory, check if parent still has other subcategories
+      if (parentId && result.rowCount && result.rowCount > 0) {
+        const remainingSubcategories = await db.select().from(categories).where(eq(categories.parentId, parentId));
+        if (remainingSubcategories.length === 0) {
+          // No more subcategories, update parent
+          await db
+            .update(categories)
+            .set({ isSubcategoryParent: false })
+            .where(eq(categories.id, parentId));
+        }
+      }
+      
       return (result.rowCount || 0) > 0;
     } catch (error) {
       console.error('Error deleting category:', error);
