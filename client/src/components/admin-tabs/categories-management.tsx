@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, ChevronRight } from "lucide-react";
 import * as Icons from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -18,12 +19,17 @@ import { Category, Task } from "@shared/schema";
 
 const ICON_OPTIONS = [
   { value: "desktop", label: "Monitor", icon: Icons.Monitor },
-  { value: "utensils", label: "Utensils", icon: Icons.Utensils },
-  { value: "car", label: "Car", icon: Icons.Car },
-  { value: "clipboard-list", label: "Clipboard", icon: Icons.ClipboardList },
-  { value: "broom", label: "Broom", icon: Icons.Brush },
-  { value: "cog", label: "Settings", icon: Icons.Settings },
-  { value: "users", label: "Users", icon: Icons.Users },
+  { value: "utensils", label: "Besteck", icon: Icons.Utensils },
+  { value: "car", label: "Auto", icon: Icons.Car },
+  { value: "clipboard-list", label: "Checkliste", icon: Icons.ClipboardList },
+  { value: "clipboard-check", label: "Checkliste Check", icon: Icons.ClipboardCheck },
+  { value: "calendar-check", label: "Kalender Check", icon: Icons.CalendarCheck },
+  { value: "calendar-days", label: "Kalender Tage", icon: Icons.CalendarDays },
+  { value: "calculator", label: "Taschenrechner", icon: Icons.Calculator },
+  { value: "broom", label: "Besen", icon: Icons.Brush },
+  { value: "briefcase", label: "Aktentasche", icon: Icons.Briefcase },
+  { value: "cog", label: "Einstellungen", icon: Icons.Settings },
+  { value: "users", label: "Benutzer", icon: Icons.Users },
 ];
 
 export default function CategoriesManagement() {
@@ -33,8 +39,10 @@ export default function CategoriesManagement() {
     name: "",
     description: "",
     icon: "desktop",
-    useShifts: true, // Default: mit Schichten
-    categoryType: "shifts" as "shifts" | "simple" | "inventory", // Default: Option 1
+    useShifts: true,
+    categoryType: "shifts" as "shifts" | "simple" | "inventory",
+    parentId: null as string | null,
+    isSubcategoryParent: false,
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -76,7 +84,6 @@ export default function CategoriesManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
-      // Use setTimeout to ensure DOM operations complete before state changes
       setTimeout(() => {
         setIsDialogOpen(false);
         resetForm();
@@ -102,7 +109,6 @@ export default function CategoriesManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
-      // Use setTimeout to ensure DOM operations complete before state changes
       setTimeout(() => {
         setIsDialogOpen(false);
         resetForm();
@@ -151,6 +157,8 @@ export default function CategoriesManagement() {
       icon: "desktop",
       useShifts: true,
       categoryType: "shifts",
+      parentId: null,
+      isSubcategoryParent: false,
     });
     setEditingCategory(null);
   };
@@ -161,8 +169,10 @@ export default function CategoriesManagement() {
       name: category.name,
       description: category.description || "",
       icon: category.icon,
-      useShifts: category.useShifts !== false, // Default to true if not set
+      useShifts: category.useShifts !== false,
       categoryType: category.categoryType || (category.useShifts !== false ? "shifts" : "simple"),
+      parentId: category.parentId || null,
+      isSubcategoryParent: category.isSubcategoryParent || false,
     });
     setIsDialogOpen(true);
   };
@@ -177,6 +187,17 @@ export default function CategoriesManagement() {
   };
 
   const handleDelete = (id: string) => {
+    // Check if this category has subcategories
+    const hasSubcategories = categories?.some(cat => cat.parentId === id);
+    if (hasSubcategories) {
+      toast({
+        title: "Löschen nicht möglich",
+        description: "Diese Kategorie hat Unterkategorien. Bitte löschen Sie zuerst die Unterkategorien.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (confirm("Sind Sie sicher, dass Sie diesen Arbeitsbereich löschen möchten?")) {
       deleteMutation.mutate(id);
     }
@@ -186,6 +207,10 @@ export default function CategoriesManagement() {
     return tasks?.filter(task => task.categoryId === categoryId).length || 0;
   };
 
+  const getSubcategoriesCount = (categoryId: string) => {
+    return categories?.filter(cat => cat.parentId === categoryId).length || 0;
+  };
+
   const getIcon = (iconName: string) => {
     const iconOption = ICON_OPTIONS.find(opt => opt.value === iconName);
     if (iconOption) {
@@ -193,6 +218,30 @@ export default function CategoriesManagement() {
       return <IconComponent size={20} />;
     }
     return <Icons.Settings size={20} />;
+  };
+
+  // Get main categories (those without parentId)
+  const mainCategories = categories?.filter(cat => !cat.parentId) || [];
+  
+  // Get subcategories for a given parent
+  const getSubcategories = (parentId: string) => {
+    return categories?.filter(cat => cat.parentId === parentId) || [];
+  };
+
+  // Get potential parent categories for the dropdown (exclude current category and its subcategories when editing)
+  const getPotentialParents = () => {
+    if (!categories) return [];
+    
+    // Filter out categories that can't be parents
+    let potentialParents = categories.filter(cat => {
+      // Can't be a parent to itself
+      if (editingCategory && cat.id === editingCategory.id) return false;
+      // Can't be a subcategory (no nested subcategories)
+      if (cat.parentId) return false;
+      return true;
+    });
+    
+    return potentialParents;
   };
 
   if (isLoading) {
@@ -216,7 +265,7 @@ export default function CategoriesManagement() {
               Neuer Arbeitsbereich
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>
                 {editingCategory ? "Arbeitsbereich bearbeiten" : "Neuer Arbeitsbereich"}
@@ -230,6 +279,7 @@ export default function CategoriesManagement() {
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   required
+                  data-testid="input-category-name"
                 />
               </div>
               <div>
@@ -238,12 +288,13 @@ export default function CategoriesManagement() {
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  data-testid="textarea-category-description"
                 />
               </div>
               <div>
                 <Label htmlFor="icon">Icon</Label>
                 <Select value={formData.icon} onValueChange={(value) => setFormData(prev => ({ ...prev, icon: value }))}>
-                  <SelectTrigger>
+                  <SelectTrigger data-testid="select-category-icon">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -261,43 +312,103 @@ export default function CategoriesManagement() {
                   </SelectContent>
                 </Select>
               </div>
+              
+              {/* Parent Category Selection */}
               <div>
-                <Label htmlFor="categoryType">Checklisten-Typ</Label>
+                <Label htmlFor="parentId">Übergeordnete Kategorie (optional)</Label>
                 <Select 
-                  value={formData.categoryType || (formData.useShifts ? "shifts" : "simple")} 
+                  value={formData.parentId || "none"} 
                   onValueChange={(value) => setFormData(prev => ({ 
                     ...prev, 
-                    categoryType: value as "shifts" | "simple" | "inventory",
-                    useShifts: value === "shifts" 
+                    parentId: value === "none" ? null : value,
+                    // If it becomes a subcategory, it can't be a parent
+                    isSubcategoryParent: value === "none" ? prev.isSubcategoryParent : false
                   }))}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger data-testid="select-parent-category">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="shifts">
-                      <div className="flex flex-col items-start">
-                        <span className="font-medium">Option 1: Mit Schichten</span>
-                        <span className="text-xs text-gray-500">Frühschicht und Spätschicht</span>
-                      </div>
+                    <SelectItem value="none">
+                      <span>Keine (Hauptkategorie)</span>
                     </SelectItem>
-                    <SelectItem value="simple">
-                      <div className="flex flex-col items-start">
-                        <span className="font-medium">Option 2: Einfache Checkliste</span>
-                        <span className="text-xs text-gray-500">Ohne Schichteinteilung</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="inventory">
-                      <div className="flex flex-col items-start">
-                        <span className="font-medium">Option 3: Mit Mengenerfassung</span>
-                        <span className="text-xs text-gray-500">Für Inventur und Bestandsaufnahme</span>
-                      </div>
-                    </SelectItem>
+                    {getPotentialParents().map(cat => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        <div className="flex items-center">
+                          {getIcon(cat.icon)}
+                          <span className="ml-2">{cat.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Wählen Sie eine übergeordnete Kategorie, um diese als Unterkategorie zu erstellen.
+                </p>
               </div>
+
+              {/* Only show if not a subcategory */}
+              {!formData.parentId && (
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="isSubcategoryParent"
+                    checked={formData.isSubcategoryParent}
+                    onCheckedChange={(checked) => 
+                      setFormData(prev => ({ ...prev, isSubcategoryParent: checked as boolean }))
+                    }
+                    data-testid="checkbox-subcategory-parent"
+                  />
+                  <Label htmlFor="isSubcategoryParent" className="text-sm cursor-pointer">
+                    Hat Unterkategorien (zeigt Kategorieauswahl)
+                  </Label>
+                </div>
+              )}
+
+              {/* Only show category type if not marked as having subcategories */}
+              {!formData.isSubcategoryParent && (
+                <div>
+                  <Label htmlFor="categoryType">Checklisten-Typ</Label>
+                  <Select 
+                    value={formData.categoryType || (formData.useShifts ? "shifts" : "simple")} 
+                    onValueChange={(value) => setFormData(prev => ({ 
+                      ...prev, 
+                      categoryType: value as "shifts" | "simple" | "inventory",
+                      useShifts: value === "shifts" 
+                    }))}
+                  >
+                    <SelectTrigger data-testid="select-category-type">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="shifts">
+                        <div className="flex flex-col items-start">
+                          <span className="font-medium">Option 1: Mit Schichten</span>
+                          <span className="text-xs text-gray-500">Frühschicht und Spätschicht</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="simple">
+                        <div className="flex flex-col items-start">
+                          <span className="font-medium">Option 2: Einfache Checkliste</span>
+                          <span className="text-xs text-gray-500">Ohne Schichteinteilung</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="inventory">
+                        <div className="flex flex-col items-start">
+                          <span className="font-medium">Option 3: Mit Mengenerfassung</span>
+                          <span className="text-xs text-gray-500">Für Inventur und Bestandsaufnahme</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               <div className="flex space-x-2">
-                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+                <Button 
+                  type="submit" 
+                  disabled={createMutation.isPending || updateMutation.isPending}
+                  data-testid="button-submit-category"
+                >
                   {editingCategory ? "Aktualisieren" : "Erstellen"}
                 </Button>
                 <Button
@@ -308,6 +419,7 @@ export default function CategoriesManagement() {
                     resetForm();
                     setEditingCategory(null);
                   }}
+                  data-testid="button-cancel"
                 >
                   Abbrechen
                 </Button>
@@ -317,55 +429,142 @@ export default function CategoriesManagement() {
         </Dialog>
       </div>
 
+      <div className="space-y-6">
+        {mainCategories.map((category) => {
+          const subcategories = getSubcategories(category.id);
+          const hasSubcategories = subcategories.length > 0;
+          
+          return (
+            <div key={category.id}>
+              {/* Main Category Card */}
+              <Card className={`${hasSubcategories ? 'border-primary' : 'bg-gray-50'} border`}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex flex-col">
+                      <div className="flex items-center">
+                        <h4 className="font-medium">{category.name}</h4>
+                        {category.isSubcategoryParent && (
+                          <Badge variant="outline" className="ml-2 text-xs">
+                            Hauptkategorie
+                          </Badge>
+                        )}
+                      </div>
+                      <Badge variant={category.useShifts !== false ? "default" : "secondary"} className="mt-1 text-xs w-fit">
+                        {category.isSubcategoryParent 
+                          ? `${getSubcategoriesCount(category.id)} Unterkategorien`
+                          : category.useShifts !== false 
+                            ? "Mit Schichten" 
+                            : "Einfache Checkliste"}
+                      </Badge>
+                    </div>
+                    <div className="flex space-x-2">
+                      {!category.isSubcategoryParent && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => navigate(`/location-selection?categoryId=${category.id}&categoryName=${encodeURIComponent(category.name)}&admin=true`)}
+                          title="Aufgaben verwalten"
+                        >
+                          <Plus size={16} className="text-green-600" />
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(category)}
+                        data-testid={`button-edit-${category.id}`}
+                      >
+                        <Edit size={16} className="text-primary" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(category.id)}
+                        disabled={deleteMutation.isPending}
+                        data-testid={`button-delete-${category.id}`}
+                      >
+                        <Trash2 size={16} className="text-red-600" />
+                      </Button>
+                    </div>
+                  </div>
+                  {!category.isSubcategoryParent && (
+                    <p className="text-sm text-gray-600 mb-2">
+                      {getTaskCount(category.id)} Aufgaben
+                    </p>
+                  )}
+                  <div className="flex items-center text-sm text-gray-500">
+                    {getIcon(category.icon)}
+                    <span className="ml-2">{category.description}</span>
+                  </div>
+                </CardContent>
+              </Card>
 
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {categories?.map((category) => (
-          <Card key={category.id} className="bg-gray-50 border">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex flex-col">
-                  <h4 className="font-medium">{category.name}</h4>
-                  <Badge variant={category.useShifts !== false ? "default" : "secondary"} className="mt-1 text-xs w-fit">
-                    {category.useShifts !== false ? "Mit Schichten" : "Einfache Checkliste"}
-                  </Badge>
+              {/* Subcategories */}
+              {hasSubcategories && (
+                <div className="ml-8 mt-2 space-y-2">
+                  {subcategories.map((subcat) => (
+                    <Card key={subcat.id} className="bg-blue-50 border-l-4 border-l-primary">
+                      <CardContent className="p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <ChevronRight size={16} className="text-gray-400 mr-2" />
+                            <div className="flex flex-col">
+                              <h5 className="font-medium text-sm">{subcat.name}</h5>
+                              <div className="flex items-center space-x-2 mt-1">
+                                <Badge variant="secondary" className="text-xs">
+                                  {subcat.categoryType === "inventory" 
+                                    ? "Mit Mengenerfassung"
+                                    : subcat.useShifts !== false 
+                                      ? "Mit Schichten" 
+                                      : "Einfache Checkliste"}
+                                </Badge>
+                                <span className="text-xs text-gray-500">
+                                  {getTaskCount(subcat.id)} Aufgaben
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex space-x-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => navigate(`/location-selection?categoryId=${subcat.id}&categoryName=${encodeURIComponent(subcat.name)}&admin=true`)}
+                              title="Aufgaben verwalten"
+                            >
+                              <Plus size={14} className="text-green-600" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEdit(subcat)}
+                              data-testid={`button-edit-${subcat.id}`}
+                            >
+                              <Edit size={14} className="text-primary" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(subcat.id)}
+                              disabled={deleteMutation.isPending}
+                              data-testid={`button-delete-${subcat.id}`}
+                            >
+                              <Trash2 size={14} className="text-red-600" />
+                            </Button>
+                          </div>
+                        </div>
+                        {subcat.description && (
+                          <p className="text-xs text-gray-500 mt-2 ml-6">
+                            {subcat.description}
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-                <div className="flex space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate(`/location-selection?categoryId=${category.id}&categoryName=${encodeURIComponent(category.name)}&admin=true`)}
-                    title="Aufgaben verwalten"
-                  >
-                    <Plus size={16} className="text-green-600" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEdit(category)}
-                  >
-                    <Edit size={16} className="text-primary" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDelete(category.id)}
-                    disabled={deleteMutation.isPending}
-                  >
-                    <Trash2 size={16} className="text-red-600" />
-                  </Button>
-                </div>
-              </div>
-              <p className="text-sm text-gray-600 mb-2">
-                {getTaskCount(category.id)} Aufgaben
-              </p>
-              <div className="flex items-center text-sm text-gray-500">
-                {getIcon(category.icon)}
-                <span className="ml-2">{category.description}</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
