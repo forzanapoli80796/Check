@@ -49,10 +49,10 @@ export const checklists = pgTable("checklists", {
   submittedAt: timestamp("submitted_at").defaultNow(),
 });
 
-// Teig-Produktions-Tabelle für Wochentage (Montag-Freitag)
+// Teig-Produktions-Tabelle für Wochentage (Montag-Sonntag)
 export const teigProduction = pgTable("teig_production", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  weekday: integer("weekday").notNull(), // 1=Montag, 2=Dienstag, ..., 5=Freitag
+  weekday: integer("weekday").notNull(), // 1=Montag, 2=Dienstag, ..., 7=Sonntag
   store: text("store").notNull(), // JP23, KP5, TS17
   kugelMenge: integer("kugel_menge").notNull(),
   createdAt: timestamp("created_at").defaultNow(),

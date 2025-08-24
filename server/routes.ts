@@ -220,21 +220,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ success: true });
   });
 
-  // Teig Production Template routes
-  app.get("/api/teig-production-templates", async (req, res) => {
+
+  // Teig Production routes
+  app.get("/api/teig-production", async (req, res) => {
     const storage = await getStorage();
-    const { weekday } = req.query;
-    
-    if (weekday !== undefined) {
-      const templates = await storage.getTeigProductionTemplateByWeekday(Number(weekday));
-      res.json(templates);
-    } else {
-      const templates = await storage.getTeigProductionTemplates();
-      res.json(templates);
-    }
+    const productions = await storage.getTeigProduction();
+    res.json(productions);
   });
 
-  app.put("/api/teig-production-templates", async (req, res) => {
+  app.get("/api/teig-production/:weekday/:store", async (req, res) => {
+    const storage = await getStorage();
+    const production = await storage.getTeigProductionByWeekdayStore(Number(req.params.weekday), req.params.store);
+    if (!production) {
+      // Return default if not found
+      return res.json({ weekday: Number(req.params.weekday), store: req.params.store, kugelMenge: 0 });
+    }
+    res.json(production);
+  });
+
+  app.put("/api/teig-production", async (req, res) => {
     try {
       const storage = await getStorage();
       const { weekday, store, kugelMenge } = req.body;
@@ -243,75 +247,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required fields" });
       }
       
-      const template = await storage.updateTeigProductionTemplate(weekday, store, kugelMenge);
-      if (!template) {
-        return res.status(404).json({ message: "Template not found" });
-      }
-      res.json(template);
-    } catch (error) {
-      res.status(400).json({ message: "Invalid template data" });
-    }
-  });
-
-  app.post("/api/teig-production-templates/apply", async (req, res) => {
-    try {
-      const storage = await getStorage();
-      await storage.applyTemplatesForWeek();
-      res.json({ success: true, message: "Templates applied for current week" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to apply templates" });
-    }
-  });
-
-  // Teig Production routes
-  app.get("/api/teig-production", async (req, res) => {
-    const storage = await getStorage();
-    const { date, startDate, endDate } = req.query;
-    
-    if (date) {
-      const productions = await storage.getTeigProductionByDate(date as string);
-      res.json(productions);
-    } else if (startDate && endDate) {
-      const productions = await storage.getTeigProductionByDateRange(startDate as string, endDate as string);
-      res.json(productions);
-    } else {
-      const productions = await storage.getTeigProduction();
-      res.json(productions);
-    }
-  });
-
-  app.post("/api/teig-production", async (req, res) => {
-    try {
-      const storage = await getStorage();
-      const validatedData = insertTeigProductionSchema.parse(req.body);
-      const production = await storage.createTeigProduction(validatedData);
+      const production = await storage.upsertTeigProduction(weekday, store, kugelMenge);
       res.json(production);
     } catch (error) {
       res.status(400).json({ message: "Invalid production data" });
     }
-  });
-
-  app.put("/api/teig-production/:id", async (req, res) => {
-    try {
-      const storage = await getStorage();
-      const validatedData = insertTeigProductionSchema.partial().parse(req.body);
-      const production = await storage.updateTeigProduction(req.params.id, validatedData);
-      if (!production) {
-        return res.status(404).json({ message: "Production record not found" });
-      }
-      res.json(production);
-    } catch (error) {
-      res.status(400).json({ message: "Invalid production data" });
-    }
-  });
-
-  app.delete("/api/teig-production/:id", async (req, res) => {
-    const storage = await getStorage();
-    const success = await storage.deleteTeigProduction(req.params.id);
-    if (!success) {
-      return res.status(404).json({ message: "Production record not found" });
-    }
-    res.json({ success: true });
   });
 
   // Inventory Items routes

@@ -1,7 +1,7 @@
-import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist, type TeigProduction, type InsertTeigProduction, type TeigProductionTemplate, type InsertTeigProductionTemplate, type InventoryItem, type InsertInventoryItem } from "@shared/schema";
+import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist, type TeigProduction, type InsertTeigProduction, type InventoryItem, type InsertInventoryItem } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { categories, tasks, checklists, teigProduction, teigProductionTemplate, inventoryItems } from "@shared/schema";
+import { categories, tasks, checklists, teigProduction, inventoryItems } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 
 export interface IStorage {
@@ -28,19 +28,10 @@ export interface IStorage {
   createChecklist(checklist: InsertChecklist): Promise<Checklist>;
   deleteChecklist(id: string): Promise<boolean>;
 
-  // Teig Production Templates
-  getTeigProductionTemplates(): Promise<TeigProductionTemplate[]>;
-  getTeigProductionTemplateByWeekday(weekday: number): Promise<TeigProductionTemplate[]>;
-  updateTeigProductionTemplate(weekday: number, store: string, kugelMenge: number): Promise<TeigProductionTemplate | undefined>;
-  applyTemplatesForWeek(): Promise<void>;
-  
   // Teig Production
   getTeigProduction(): Promise<TeigProduction[]>;
-  getTeigProductionByDate(date: string): Promise<TeigProduction[]>;
-  getTeigProductionByDateRange(startDate: string, endDate: string): Promise<TeigProduction[]>;
-  createTeigProduction(production: InsertTeigProduction): Promise<TeigProduction>;
-  updateTeigProduction(id: string, production: Partial<InsertTeigProduction>): Promise<TeigProduction | undefined>;
-  deleteTeigProduction(id: string): Promise<boolean>;
+  getTeigProductionByWeekdayStore(weekday: number, store: string): Promise<TeigProduction | undefined>;
+  upsertTeigProduction(weekday: number, store: string, kugelMenge: number): Promise<TeigProduction>;
 
   // Inventory Items
   getInventoryItems(): Promise<InventoryItem[]>;
@@ -220,89 +211,45 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount || 0) > 0;
   }
 
-  async getTeigProductionTemplates(): Promise<TeigProductionTemplate[]> {
-    return await db.select().from(teigProductionTemplate);
-  }
-
-  async getTeigProductionTemplateByWeekday(weekday: number): Promise<TeigProductionTemplate[]> {
-    return await db.select().from(teigProductionTemplate).where(eq(teigProductionTemplate.weekday, weekday));
-  }
-
-  async updateTeigProductionTemplate(weekday: number, store: string, kugelMenge: number): Promise<TeigProductionTemplate | undefined> {
-    const [template] = await db
-      .update(teigProductionTemplate)
-      .set({ kugelMenge, updatedAt: new Date() })
-      .where(sql`${teigProductionTemplate.weekday} = ${weekday} AND ${teigProductionTemplate.store} = ${store}`)
-      .returning();
-    return template || undefined;
-  }
-
-  async applyTemplatesForWeek(): Promise<void> {
-    // Delete existing entries for current week
-    await db.delete(teigProduction);
-    
-    // Get all templates
-    const templates = await this.getTeigProductionTemplates();
-    
-    // Apply templates for current week
-    const today = new Date();
-    const currentWeekday = today.getDay();
-    
-    for (const template of templates) {
-      // Calculate date for this weekday
-      const daysUntilWeekday = (template.weekday - currentWeekday + 7) % 7;
-      const dateForWeekday = new Date(today);
-      dateForWeekday.setDate(today.getDate() - currentWeekday + template.weekday);
-      
-      // Format date as YYYY-MM-DD
-      const dateString = dateForWeekday.toISOString().split('T')[0];
-      
-      // Create production entry from template
-      await this.createTeigProduction({
-        date: dateString,
-        store: template.store,
-        kugelMenge: template.kugelMenge,
-        fromTemplate: true
-      });
-    }
-  }
-
   async getTeigProduction(): Promise<TeigProduction[]> {
     return await db.select().from(teigProduction);
   }
 
-  async getTeigProductionByDate(date: string): Promise<TeigProduction[]> {
-    return await db.select().from(teigProduction).where(eq(teigProduction.date, date));
-  }
-
-  async getTeigProductionByDateRange(startDate: string, endDate: string): Promise<TeigProduction[]> {
-    return await db.select().from(teigProduction); // Simplified for now
-  }
-
-  async createTeigProduction(insertProduction: InsertTeigProduction): Promise<TeigProduction> {
+  async getTeigProductionByWeekdayStore(weekday: number, store: string): Promise<TeigProduction | undefined> {
     const [production] = await db
-      .insert(teigProduction)
-      .values({
-        ...insertProduction,
-        id: randomUUID(),
-        createdAt: new Date(),
-      })
-      .returning();
-    return production;
-  }
-
-  async updateTeigProduction(id: string, updateData: Partial<InsertTeigProduction>): Promise<TeigProduction | undefined> {
-    const [production] = await db
-      .update(teigProduction)
-      .set(updateData)
-      .where(eq(teigProduction.id, id))
-      .returning();
+      .select()
+      .from(teigProduction)
+      .where(sql`${teigProduction.weekday} = ${weekday} AND ${teigProduction.store} = ${store}`);
     return production || undefined;
   }
 
-  async deleteTeigProduction(id: string): Promise<boolean> {
-    const result = await db.delete(teigProduction).where(eq(teigProduction.id, id));
-    return (result.rowCount || 0) > 0;
+  async upsertTeigProduction(weekday: number, store: string, kugelMenge: number): Promise<TeigProduction> {
+    // Try to find existing entry
+    const existing = await this.getTeigProductionByWeekdayStore(weekday, store);
+    
+    if (existing) {
+      // Update existing
+      const [updated] = await db
+        .update(teigProduction)
+        .set({ kugelMenge, updatedAt: new Date() })
+        .where(eq(teigProduction.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      // Create new
+      const [created] = await db
+        .insert(teigProduction)
+        .values({
+          id: randomUUID(),
+          weekday,
+          store,
+          kugelMenge,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
+      return created;
+    }
   }
 
   async getInventoryItems(): Promise<InventoryItem[]> {
@@ -345,7 +292,6 @@ export class MemStorage implements IStorage {
   private tasks: Map<string, Task> = new Map();
   private checklists: Map<string, Checklist> = new Map();
   private teigProductions: Map<string, TeigProduction> = new Map();
-  private teigProductionTemplates: Map<string, TeigProductionTemplate> = new Map();
   private inventoryItems: Map<string, InventoryItem> = new Map();
 
   constructor() {
@@ -572,96 +518,31 @@ export class MemStorage implements IStorage {
     return this.checklists.delete(id);
   }
 
-  // Teig Production Template methods
-  async getTeigProductionTemplates(): Promise<TeigProductionTemplate[]> {
-    return Array.from(this.teigProductionTemplates.values());
-  }
-
-  async getTeigProductionTemplateByWeekday(weekday: number): Promise<TeigProductionTemplate[]> {
-    return Array.from(this.teigProductionTemplates.values()).filter(template => 
-      template.weekday === weekday
-    );
-  }
-
-  async updateTeigProductionTemplate(weekday: number, store: string, kugelMenge: number): Promise<TeigProductionTemplate | undefined> {
-    const templateKey = `${weekday}-${store}`;
-    const template = this.teigProductionTemplates.get(templateKey);
-    if (!template) return undefined;
-    
-    const updatedTemplate = { ...template, kugelMenge, updatedAt: new Date() };
-    this.teigProductionTemplates.set(templateKey, updatedTemplate);
-    return updatedTemplate;
-  }
-
-  async applyTemplatesForWeek(): Promise<void> {
-    // Clear existing productions
-    this.teigProductions.clear();
-    
-    // Apply templates for current week
-    const today = new Date();
-    const currentWeekday = today.getDay();
-    
-    for (const template of Array.from(this.teigProductionTemplates.values())) {
-      // Calculate date for this weekday
-      const dateForWeekday = new Date(today);
-      dateForWeekday.setDate(today.getDate() - currentWeekday + template.weekday);
-      
-      // Format date as YYYY-MM-DD
-      const dateString = dateForWeekday.toISOString().split('T')[0];
-      
-      // Create production entry from template
-      await this.createTeigProduction({
-        date: dateString,
-        store: template.store,
-        kugelMenge: template.kugelMenge,
-        fromTemplate: true
-      });
-    }
-  }
-
   // Teig Production methods
   async getTeigProduction(): Promise<TeigProduction[]> {
-    return Array.from(this.teigProductions.values()).sort((a, b) => 
-      new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
-    );
+    return Array.from(this.teigProductions.values());
   }
 
-  async getTeigProductionByDate(date: string): Promise<TeigProduction[]> {
-    return Array.from(this.teigProductions.values()).filter(production => 
-      production.date === date
-    );
+  async getTeigProductionByWeekdayStore(weekday: number, store: string): Promise<TeigProduction | undefined> {
+    const key = `${weekday}-${store}`;
+    return this.teigProductions.get(key);
   }
 
-  async getTeigProductionByDateRange(startDate: string, endDate: string): Promise<TeigProduction[]> {
-    return Array.from(this.teigProductions.values()).filter(production => {
-      const productionDate = production.date;
-      return productionDate >= startDate && productionDate <= endDate;
-    });
-  }
-
-  async createTeigProduction(insertProduction: InsertTeigProduction): Promise<TeigProduction> {
-    const id = randomUUID();
+  async upsertTeigProduction(weekday: number, store: string, kugelMenge: number): Promise<TeigProduction> {
+    const key = `${weekday}-${store}`;
+    const existing = this.teigProductions.get(key);
+    
     const production: TeigProduction = {
-      ...insertProduction,
-      id,
-      fromTemplate: insertProduction.fromTemplate || false,
-      createdAt: new Date(),
+      id: existing?.id || randomUUID(),
+      weekday,
+      store,
+      kugelMenge,
+      createdAt: existing?.createdAt || new Date(),
+      updatedAt: new Date(),
     };
-    this.teigProductions.set(id, production);
+    
+    this.teigProductions.set(key, production);
     return production;
-  }
-
-  async updateTeigProduction(id: string, updateData: Partial<InsertTeigProduction>): Promise<TeigProduction | undefined> {
-    const production = this.teigProductions.get(id);
-    if (!production) return undefined;
-
-    const updatedProduction = { ...production, ...updateData };
-    this.teigProductions.set(id, updatedProduction);
-    return updatedProduction;
-  }
-
-  async deleteTeigProduction(id: string): Promise<boolean> {
-    return this.teigProductions.delete(id);
   }
 
   // Inventory Items methods

@@ -3,11 +3,10 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Calendar, Save, RefreshCw } from "lucide-react";
+import { Calendar, Save } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { TeigProductionTemplate } from "@shared/schema";
+import { TeigProduction } from "@shared/schema";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const STORES = ['JP23', 'KP5', 'TS17'] as const;
@@ -18,34 +17,34 @@ const WEEKDAYS = [
   { id: 4, name: 'Donnerstag', nameEn: 'Thursday' },
   { id: 5, name: 'Freitag', nameEn: 'Friday' },
   { id: 6, name: 'Samstag', nameEn: 'Saturday' },
-  { id: 0, name: 'Sonntag', nameEn: 'Sunday' },
+  { id: 7, name: 'Sonntag', nameEn: 'Sunday' },
 ];
 
 export default function TeigManagement() {
   const { toast } = useToast();
   const { language } = useLanguage();
-  const [templateValues, setTemplateValues] = useState<Record<string, number>>({});
+  const [values, setValues] = useState<Record<string, number>>({});
 
-  // Fetch templates
-  const { data: templates, isLoading } = useQuery<TeigProductionTemplate[]>({
-    queryKey: ["/api/teig-production-templates"],
+  // Fetch all teig production data
+  const { data: productions, isLoading } = useQuery<TeigProduction[]>({
+    queryKey: ["/api/teig-production"],
   });
 
-  // Initialize template values when data is loaded
+  // Initialize values when data is loaded
   useEffect(() => {
-    if (templates) {
-      const values: Record<string, number> = {};
-      templates.forEach(template => {
-        values[`${template.weekday}-${template.store}`] = template.kugelMenge;
+    if (productions) {
+      const newValues: Record<string, number> = {};
+      productions.forEach(production => {
+        newValues[`${production.weekday}-${production.store}`] = production.kugelMenge;
       });
-      setTemplateValues(values);
+      setValues(newValues);
     }
-  }, [templates]);
+  }, [productions]);
 
-  // Update template mutation
-  const updateTemplateMutation = useMutation({
+  // Save mutation
+  const saveMutation = useMutation({
     mutationFn: async ({ weekday, store, kugelMenge }: { weekday: number; store: string; kugelMenge: number }) => {
-      const response = await apiRequest("PUT", "/api/teig-production-templates", {
+      const response = await apiRequest("PUT", "/api/teig-production", {
         weekday,
         store,
         kugelMenge
@@ -53,37 +52,16 @@ export default function TeigManagement() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/teig-production-templates"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teig-production"] });
       toast({
-        title: language === 'de' ? "Template gespeichert" : "Template saved",
-        description: language === 'de' ? "Die Vorlage wurde erfolgreich aktualisiert." : "The template has been successfully updated.",
+        title: language === 'de' ? "Gespeichert" : "Saved",
+        description: language === 'de' ? "Die Kugelmenge wurde erfolgreich gespeichert." : "The quantity has been successfully saved.",
       });
     },
     onError: () => {
       toast({
         title: language === 'de' ? "Fehler" : "Error",
-        description: language === 'de' ? "Template konnte nicht gespeichert werden." : "Failed to save template.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Apply templates mutation
-  const applyTemplatesMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/teig-production-templates/apply", {});
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: language === 'de' ? "Templates angewendet" : "Templates applied",
-        description: language === 'de' ? "Die Vorlagen wurden für die aktuelle Woche angewendet." : "Templates have been applied for the current week.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: language === 'de' ? "Fehler" : "Error",
-        description: language === 'de' ? "Templates konnten nicht angewendet werden." : "Failed to apply templates.",
+        description: language === 'de' ? "Speichern fehlgeschlagen." : "Failed to save.",
         variant: "destructive",
       });
     },
@@ -92,20 +70,20 @@ export default function TeigManagement() {
   const handleValueChange = (weekday: number, store: string, value: string) => {
     const key = `${weekday}-${store}`;
     const numValue = parseInt(value) || 0;
-    setTemplateValues(prev => ({ ...prev, [key]: numValue }));
+    setValues(prev => ({ ...prev, [key]: numValue }));
   };
 
   const handleSave = (weekday: number, store: string) => {
     const key = `${weekday}-${store}`;
-    const value = templateValues[key] || 0;
-    updateTemplateMutation.mutate({ weekday, store, kugelMenge: value });
+    const value = values[key] || 0;
+    saveMutation.mutate({ weekday, store, kugelMenge: value });
   };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-gray-500">
-          {language === 'de' ? 'Lade Templates...' : 'Loading templates...'}
+          {language === 'de' ? 'Lade Daten...' : 'Loading data...'}
         </div>
       </div>
     );
@@ -115,24 +93,14 @@ export default function TeigManagement() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center">
-              <Calendar className="mr-2" size={20} />
-              {language === 'de' ? 'Teig-Produktions-Vorlagen' : 'Dough Production Templates'}
-            </CardTitle>
-            <Button 
-              onClick={() => applyTemplatesMutation.mutate()}
-              disabled={applyTemplatesMutation.isPending}
-              className="flex items-center"
-            >
-              <RefreshCw className="mr-2" size={16} />
-              {language === 'de' ? 'Templates für Woche anwenden' : 'Apply Templates for Week'}
-            </Button>
-          </div>
+          <CardTitle className="flex items-center">
+            <Calendar className="mr-2" size={20} />
+            {language === 'de' ? 'Teig-Produktionsplanung' : 'Dough Production Planning'}
+          </CardTitle>
           <p className="text-sm text-gray-600 mt-2">
             {language === 'de' 
-              ? 'Definieren Sie die Standard-Kugelmengen für jeden Wochentag. Diese Vorlagen werden automatisch jede Woche angewendet.'
-              : 'Define the standard dough ball quantities for each weekday. These templates will be automatically applied each week.'}
+              ? 'Kugelmengen für jeden Wochentag und jede Filiale. Die Werte bleiben dauerhaft gespeichert.'
+              : 'Dough ball quantities for each weekday and store. Values are permanently saved.'}
           </p>
         </CardHeader>
         <CardContent>
@@ -158,7 +126,7 @@ export default function TeigManagement() {
                     </td>
                     {STORES.map(store => {
                       const key = `${weekday.id}-${store}`;
-                      const value = templateValues[key] || 0;
+                      const value = values[key] || 0;
                       return (
                         <td key={store} className="border p-2">
                           <div className="flex items-center space-x-1">
@@ -168,12 +136,14 @@ export default function TeigManagement() {
                               value={value}
                               onChange={(e) => handleValueChange(weekday.id, store, e.target.value)}
                               className="w-20 text-center"
+                              data-testid={`input-teig-${weekday.id}-${store}`}
                             />
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() => handleSave(weekday.id, store)}
-                              disabled={updateTemplateMutation.isPending}
+                              disabled={saveMutation.isPending}
+                              data-testid={`button-save-${weekday.id}-${store}`}
                             >
                               <Save size={14} />
                             </Button>
@@ -192,23 +162,20 @@ export default function TeigManagement() {
       <Card>
         <CardHeader>
           <CardTitle>
-            {language === 'de' ? 'Hinweise zur Teigplanung' : 'Notes on Dough Planning'}
+            {language === 'de' ? 'Hinweise' : 'Notes'}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2 text-sm text-gray-600">
             <li>• {language === 'de' 
-              ? 'Die Teigplanung löscht sich jede Woche automatisch und wird durch die Vorlagen ersetzt.' 
-              : 'The dough planning resets automatically each week and is replaced by the templates.'}</li>
+              ? 'Die Kugelmengen werden dauerhaft gespeichert und bleiben erhalten.' 
+              : 'The quantities are permanently saved and will be retained.'}</li>
             <li>• {language === 'de' 
-              ? 'Das System verwendet ein festes, wiederkehrendes Gerüst für Montag bis Sonntag.' 
-              : 'The system uses a fixed, recurring structure for Monday to Sunday.'}</li>
+              ? 'Es gibt keine automatische Zurücksetzung oder Vorlagen.' 
+              : 'There is no automatic reset or templates.'}</li>
             <li>• {language === 'de' 
-              ? 'Vorlagen gelten verbindlich für die gesamte Woche.' 
-              : 'Templates are binding for the entire week.'}</li>
-            <li>• {language === 'de' 
-              ? 'Einträge sollten regelmäßig überprüft und bei Bedarf angepasst werden.' 
-              : 'Entries should be regularly reviewed and adjusted as needed.'}</li>
+              ? 'Ändern Sie die Werte nur wenn nötig und speichern Sie jede Änderung einzeln.' 
+              : 'Only change values when necessary and save each change individually.'}</li>
           </ul>
         </CardContent>
       </Card>
