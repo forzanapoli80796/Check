@@ -78,7 +78,11 @@ export class DatabaseStorage implements IStorage {
   async updateCategory(id: string, updateData: Partial<InsertCategory>): Promise<Category | undefined> {
     const [category] = await db
       .update(categories)
-      .set(updateData)
+      .set({
+        ...updateData,
+        parentId: updateData.parentId === undefined ? undefined : updateData.parentId || null,
+        isSubcategoryParent: updateData.isSubcategoryParent === undefined ? undefined : updateData.isSubcategoryParent || false,
+      })
       .where(eq(categories.id, id))
       .returning();
     return category || undefined;
@@ -86,6 +90,13 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCategory(id: string): Promise<boolean> {
     try {
+      // Check if this category has subcategories
+      const subcategories = await db.select().from(categories).where(eq(categories.parentId, id));
+      if (subcategories.length > 0) {
+        console.error('Cannot delete category with subcategories');
+        return false;
+      }
+      
       // Get all tasks for this category
       const categoryTasks = await db.select().from(tasks).where(eq(tasks.categoryId, id));
       const taskIds = categoryTasks.map(t => t.id);
