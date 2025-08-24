@@ -555,6 +555,13 @@ export class MemStorage implements IStorage {
       taskImages: insertChecklist.taskImages || {},
       taskNotes: insertChecklist.taskNotes || {},
       comments: insertChecklist.comments || null,
+      mhdExpiryDate: insertChecklist.mhdExpiryDate || null,
+      mhdProductDetails: insertChecklist.mhdProductDetails || null,
+      lateShiftDate: insertChecklist.lateShiftDate || null,
+      ballsForTomorrow: insertChecklist.ballsForTomorrow || null,
+      newBalls: insertChecklist.newBalls || null,
+      lunchShiftDate: insertChecklist.lunchShiftDate || null,
+      ballsForToday: insertChecklist.ballsForToday || null,
       submittedAt: new Date(),
     };
     this.checklists.set(id, checklist);
@@ -594,7 +601,7 @@ export class MemStorage implements IStorage {
     const today = new Date();
     const currentWeekday = today.getDay();
     
-    for (const template of this.teigProductionTemplates.values()) {
+    for (const template of Array.from(this.teigProductionTemplates.values())) {
       // Calculate date for this weekday
       const dateForWeekday = new Date(today);
       dateForWeekday.setDate(today.getDate() - currentWeekday + template.weekday);
@@ -637,6 +644,7 @@ export class MemStorage implements IStorage {
     const production: TeigProduction = {
       ...insertProduction,
       id,
+      fromTemplate: insertProduction.fromTemplate || false,
       createdAt: new Date(),
     };
     this.teigProductions.set(id, production);

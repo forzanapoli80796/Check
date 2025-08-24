@@ -163,6 +163,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const start = new Date(startDate as string);
       const end = new Date(endDate as string);
       checklists = checklists.filter(checklist => {
+        if (!checklist.submittedAt) return false;
         const submittedDate = new Date(checklist.submittedAt);
         return submittedDate >= start && submittedDate <= end;
       });
