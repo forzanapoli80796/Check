@@ -8,7 +8,6 @@ import { ArrowLeft, Cookie } from "lucide-react";
 import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
 import SubmittedLists from "@/components/admin-tabs/submitted-lists";
 import CategoriesManagement from "@/components/admin-tabs/categories-management";
-import TasksManagement from "@/components/admin-tabs/tasks-management";
 import ErrorBoundary from "@/components/error-boundary";
 import TeigManagement from "@/components/teig-management";
 import { AdminTabState } from "@/lib/types";
@@ -32,12 +31,6 @@ export default function AdminDashboard() {
         return (
           <ErrorBoundary>
             <CategoriesManagement />
-          </ErrorBoundary>
-        );
-      case 'tasks':
-        return (
-          <ErrorBoundary>
-            <TasksManagement />
           </ErrorBoundary>
         );
       case 'teig':
@@ -85,12 +78,6 @@ export default function AdminDashboard() {
               className={`admin-tab ${activeTab === 'categories' ? 'active' : ''}`}
             >
               Arbeitsbereiche
-            </button>
-            <button
-              onClick={() => setActiveTab('tasks')}
-              className={`admin-tab ${activeTab === 'tasks' ? 'active' : ''}`}
-            >
-              Aufgaben
             </button>
             <button
               onClick={() => setActiveTab('teig')}
