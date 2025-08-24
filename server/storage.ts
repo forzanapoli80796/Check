@@ -381,6 +381,7 @@ export class MemStorage implements IStorage {
       const category: Category = {
         id,
         ...cat,
+        iconColor: null,
         parentId: null,
         createdAt: new Date(),
       };
@@ -402,6 +403,7 @@ export class MemStorage implements IStorage {
       const category: Category = {
         id,
         ...cat,
+        iconColor: null,
         parentId: kucheId,
         isSubcategoryParent: false,
         createdAt: new Date(),
@@ -493,6 +495,7 @@ export class MemStorage implements IStorage {
       ...insertCategory,
       id,
       description: insertCategory.description || null,
+      iconColor: insertCategory.iconColor || null,
       useShifts: insertCategory.useShifts ?? true,
       categoryType: insertCategory.categoryType || (insertCategory.useShifts ? "shifts" : "simple"),
       parentId: insertCategory.parentId || null,
@@ -599,6 +602,7 @@ export class MemStorage implements IStorage {
       newBalls: insertChecklist.newBalls || null,
       lunchShiftDate: insertChecklist.lunchShiftDate || null,
       ballsForToday: insertChecklist.ballsForToday || null,
+      completionDate: insertChecklist.completionDate || null,
       submittedAt: new Date(),
     };
     this.checklists.set(id, checklist);
