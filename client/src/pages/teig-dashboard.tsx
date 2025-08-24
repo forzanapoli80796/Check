@@ -1,16 +1,45 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
 import TeigOverview from "@/components/teig-overview";
+import IdealeZubereitung from "@/components/ideale-zubereitung";
 import { STORES } from "@/lib/types";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { TeigProduction } from "@shared/schema";
+
+function getWeekday(date: Date): number {
+  const jsDay = date.getDay();
+  return jsDay === 0 ? 7 : jsDay;
+}
 
 export default function TeigDashboard() {
   const [, navigate] = useLocation();
   const { t } = useLanguage();
   const [selectedStore, setSelectedStore] = useState<string>('');
+  
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowWeekday = getWeekday(tomorrow);
+  
+  // Fetch teig production data
+  const { data: allProductions = [] } = useQuery<TeigProduction[]>({
+    queryKey: ['/api/teig-production'],
+  });
+  
+  // Calculate tomorrow's total for Ideale Zubereitung
+  const tomorrowProductions = allProductions.filter(p => p.weekday === tomorrowWeekday);
+  const tomorrowRelevantProductions = selectedStore 
+    ? tomorrowProductions.filter((p: TeigProduction) => p.store === selectedStore)
+    : tomorrowProductions;
+  
+  const tomorrowTotalKugeln = tomorrowRelevantProductions.reduce((sum: number, production: TeigProduction) => 
+    sum + production.kugelMenge, 0
+  );
+  
+  const relevantStores = selectedStore ? [selectedStore] : [...STORES];
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -49,8 +78,17 @@ export default function TeigDashboard() {
             </div>
           </div>
 
-          {/* Teig-Übersicht */}
-          <TeigOverview selectedStore={selectedStore || undefined} />
+          <div className="space-y-6">
+            {/* Ideale Zubereitung für morgen */}
+            <IdealeZubereitung 
+              kugelMenge={tomorrowTotalKugeln}
+              stores={relevantStores}
+              showDetails={true}
+            />
+            
+            {/* Teig-Übersicht */}
+            <TeigOverview selectedStore={selectedStore || undefined} />
+          </div>
         </div>
       </div>
       

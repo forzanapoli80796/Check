@@ -3,11 +3,13 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Save } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { TeigProduction } from "@shared/schema";
 import { useLanguage } from "@/contexts/LanguageContext";
+import IdealeZubereitung from "@/components/ideale-zubereitung";
 
 const STORES = ['JP23', 'KP5', 'TS17'] as const;
 const WEEKDAYS = [
@@ -24,6 +26,7 @@ export default function TeigManagement() {
   const { toast } = useToast();
   const { language } = useLanguage();
   const [values, setValues] = useState<Record<string, number>>({});
+  const [selectedWeekday, setSelectedWeekday] = useState<number>(1);
 
   // Fetch all teig production data
   const { data: productions, isLoading } = useQuery<TeigProduction[]>({
@@ -89,8 +92,46 @@ export default function TeigManagement() {
     );
   }
 
+  // Calculate total for selected weekday
+  const weekdayProductions = productions?.filter(p => p.weekday === selectedWeekday) || [];
+  const weekdayTotal = weekdayProductions.reduce((sum, prod) => sum + prod.kugelMenge, 0);
+
   return (
     <div className="space-y-6">
+      {/* Ideale Zubereitung Preview */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {language === 'de' ? 'Ideale Zubereitung - Vorschau' : 'Ideal Preparation - Preview'}
+          </CardTitle>
+          <p className="text-sm text-gray-600 mt-2">
+            {language === 'de' 
+              ? 'Wählen Sie einen Wochentag aus, um die optimale Maschinenbeladung zu sehen.'
+              : 'Select a weekday to see the optimal machine loading.'}
+          </p>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={selectedWeekday.toString()} onValueChange={(v) => setSelectedWeekday(parseInt(v))}>
+            <TabsList className="grid w-full grid-cols-7">
+              {WEEKDAYS.map(day => (
+                <TabsTrigger key={day.id} value={day.id.toString()}>
+                  {language === 'de' ? day.name.slice(0, 2) : day.nameEn.slice(0, 3)}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            {WEEKDAYS.map(day => (
+              <TabsContent key={day.id} value={day.id.toString()}>
+                <IdealeZubereitung 
+                  kugelMenge={day.id === selectedWeekday ? weekdayTotal : 0}
+                  stores={STORES as unknown as string[]}
+                  showDetails={true}
+                />
+              </TabsContent>
+            ))}
+          </Tabs>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
