@@ -20,22 +20,21 @@ export default function TeigDashboard() {
   const { t } = useLanguage();
   const [selectedStore, setSelectedStore] = useState<string>('');
   
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowWeekday = getWeekday(tomorrow);
+  const today = new Date();
+  const todayWeekday = getWeekday(today);
   
   // Fetch teig production data
   const { data: allProductions = [] } = useQuery<TeigProduction[]>({
     queryKey: ['/api/teig-production'],
   });
   
-  // Calculate tomorrow's total for Ideale Zubereitung
-  const tomorrowProductions = allProductions.filter(p => p.weekday === tomorrowWeekday);
-  const tomorrowRelevantProductions = selectedStore 
-    ? tomorrowProductions.filter((p: TeigProduction) => p.store === selectedStore)
-    : tomorrowProductions;
+  // Calculate today's total for Ideale Zubereitung
+  const todayProductions = allProductions.filter(p => p.weekday === todayWeekday);
+  const todayRelevantProductions = selectedStore 
+    ? todayProductions.filter((p: TeigProduction) => p.store === selectedStore)
+    : todayProductions;
   
-  const tomorrowTotalKugeln = tomorrowRelevantProductions.reduce((sum: number, production: TeigProduction) => 
+  const todayTotalKugeln = todayRelevantProductions.reduce((sum: number, production: TeigProduction) => 
     sum + production.kugelMenge, 0
   );
   
@@ -79,9 +78,9 @@ export default function TeigDashboard() {
           </div>
 
           <div className="space-y-6">
-            {/* Ideale Zubereitung für morgen */}
+            {/* Ideale Zubereitung für heute */}
             <IdealeZubereitung 
-              kugelMenge={tomorrowTotalKugeln}
+              kugelMenge={todayTotalKugeln}
               stores={relevantStores}
               showDetails={true}
             />
