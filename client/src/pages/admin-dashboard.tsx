@@ -63,13 +63,13 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen napoli-pattern flex flex-col">
       {/* Logo Header */}
-      <div className="flex justify-center py-6">
+      <div className="flex justify-center py-6 bg-white bg-opacity-90">
         <img 
           src={forzaCheckLogo} 
           alt="ForzaCheck Logo" 
-          className="h-16 object-contain"
+          className="h-20 object-contain"
         />
       </div>
       

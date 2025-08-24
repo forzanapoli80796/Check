@@ -102,6 +102,24 @@ const defaultSettings: DesignSettings = {
 };
 
 const presetThemes = {
+  napoli: {
+    name: 'Napoli Pizzeria',
+    colors: {
+      primary: '#00c4e6',
+      secondary: '#0095b6',
+      accent: '#ff0000',
+      background: '#ffffff',
+      foreground: '#1a1a1a',
+      card: '#ffffff',
+      cardForeground: '#1a1a1a',
+      muted: '#f0f9ff',
+      mutedForeground: '#0095b6',
+      destructive: '#dc2626',
+      border: '#00c4e6',
+      gradientStart: '#00c4e6',
+      gradientEnd: '#0095b6',
+    },
+  },
   light: {
     name: 'Hell',
     colors: {
@@ -220,7 +238,19 @@ const fontOptions = [
 export default function DesignManager() {
   const [settings, setSettings] = useState<DesignSettings>(() => {
     const saved = localStorage.getItem('designSettings');
-    return saved ? JSON.parse(saved) : defaultSettings;
+    // Automatisch Napoli Theme laden wenn nichts gespeichert ist
+    if (!saved) {
+      const napoliSettings = {
+        ...defaultSettings,
+        theme: 'napoli' as any,
+        colors: {
+          ...defaultSettings.colors,
+          ...presetThemes.napoli.colors,
+        },
+      };
+      return napoliSettings;
+    }
+    return JSON.parse(saved);
   });
   const [preview, setPreview] = useState(true);
   const { toast } = useToast();
@@ -228,6 +258,12 @@ export default function DesignManager() {
   // Apply settings to document
   useEffect(() => {
     applySettings(settings);
+    // Napoli Theme Class hinzufügen
+    if (settings.theme === 'napoli' || settings.colors.primary === '#00c4e6') {
+      document.body.classList.add('napoli-theme');
+    } else {
+      document.body.classList.remove('napoli-theme');
+    }
   }, [settings]);
 
   const applySettings = (newSettings: DesignSettings) => {
