@@ -44,7 +44,7 @@ Logo usage: Only use the official ForzaCheck logo (FORZACHECK1_black_17538166219
   - **Inventur**: Special category using categoryType="inventory" for quantity input fields for product counting (updated 2025-08-11)
 - **Tasks**: Individual checklist items assigned to categories with priority levels and store-specific assignments (stores array field added 2025-08-09)
 - **Checklists**: Completed task submissions with employee and store information
-- **Teig Production**: Daily dough ball quantity targets per store with weekly planning capability
+- **Teig Production**: Template-based dough ball quantity planning with fixed weekly patterns (Monday-Sunday) that automatically reset each week
 
 ### User Roles
 - **Mitarbeiter (Employee)**: Complete checklists through guided workflow
@@ -61,8 +61,15 @@ Logo usage: Only use the official ForzaCheck logo (FORZACHECK1_black_17538166219
 - **Employee Workflow**: Step-by-step process (Store → Area → Details → Tasks → Success)
   - Store-specific task filtering: Only shows tasks assigned to the selected store (added 2025-08-09)
 - **Teig Dashboard**: Daily production overview showing required dough ball quantities by store
+- **Teig Production Templates** (updated 2025-08-24):
+  - Fixed weekly template system (Monday-Sunday) replaces calendar-based planning
+  - Templates define standard dough ball quantities for each weekday and store
+  - Automatic weekly reset: Production data clears and repopulates from templates
+  - Admin can update template values that persist across weeks
+  - "Apply Templates for Week" button to manually refresh current week's data
+  - No continuous calendar system - focuses on recurring weekly patterns
 - **Betriebsleiter Workflow**: Management-specific task checklist workflow (Store → Details → Tasks → Submit)
-- **Admin Dashboard**: Comprehensive management of categories, tasks, submissions, and weekly dough production planning
+- **Admin Dashboard**: Comprehensive management of categories, tasks, submissions, and template-based dough production
   - Store selection for tasks: Admin can assign tasks to specific stores (JP23, KP5, TS17) during creation/editing
 - **Real-time Updates**: TanStack Query for optimistic updates and cache management
 - **Consistent Branding**: Official ForzaCheck logo integrated across all pages with header component

@@ -49,12 +49,23 @@ export const checklists = pgTable("checklists", {
   submittedAt: timestamp("submitted_at").defaultNow(),
 });
 
-// Teig-Produktions-Tabelle für Kugelmenge-Tracking
+// Teig-Produktions-Template-Tabelle für wiederkehrende Wochentage
+export const teigProductionTemplate = pgTable("teig_production_template", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  weekday: integer("weekday").notNull(), // 0=Sonntag, 1=Montag, ..., 6=Samstag
+  store: text("store").notNull(), // JP23, KP5, TS17
+  kugelMenge: integer("kugel_menge").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Teig-Produktions-Tabelle für aktuelle Woche (wird wöchentlich zurückgesetzt)
 export const teigProduction = pgTable("teig_production", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   date: text("date").notNull(), // Format: YYYY-MM-DD
   store: text("store").notNull(), // JP23, KP5, TS17
   kugelMenge: integer("kugel_menge").notNull(),
+  fromTemplate: boolean("from_template").notNull().default(true), // Wurde von Template generiert
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -83,6 +94,12 @@ export const insertChecklistSchema = createInsertSchema(checklists).omit({
   submittedAt: true,
 });
 
+export const insertTeigProductionTemplateSchema = createInsertSchema(teigProductionTemplate).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertTeigProductionSchema = createInsertSchema(teigProduction).omit({
   id: true,
   createdAt: true,
@@ -101,6 +118,9 @@ export type Task = typeof tasks.$inferSelect;
 
 export type InsertChecklist = z.infer<typeof insertChecklistSchema>;
 export type Checklist = typeof checklists.$inferSelect;
+
+export type InsertTeigProductionTemplate = z.infer<typeof insertTeigProductionTemplateSchema>;
+export type TeigProductionTemplate = typeof teigProductionTemplate.$inferSelect;
 
 export type InsertTeigProduction = z.infer<typeof insertTeigProductionSchema>;
 export type TeigProduction = typeof teigProduction.$inferSelect;

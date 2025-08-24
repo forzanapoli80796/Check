@@ -219,6 +219,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ success: true });
   });
 
+  // Teig Production Template routes
+  app.get("/api/teig-production-templates", async (req, res) => {
+    const storage = await getStorage();
+    const { weekday } = req.query;
+    
+    if (weekday !== undefined) {
+      const templates = await storage.getTeigProductionTemplateByWeekday(Number(weekday));
+      res.json(templates);
+    } else {
+      const templates = await storage.getTeigProductionTemplates();
+      res.json(templates);
+    }
+  });
+
+  app.put("/api/teig-production-templates", async (req, res) => {
+    try {
+      const storage = await getStorage();
+      const { weekday, store, kugelMenge } = req.body;
+      
+      if (weekday === undefined || !store || kugelMenge === undefined) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
+      const template = await storage.updateTeigProductionTemplate(weekday, store, kugelMenge);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      res.json(template);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid template data" });
+    }
+  });
+
+  app.post("/api/teig-production-templates/apply", async (req, res) => {
+    try {
+      const storage = await getStorage();
+      await storage.applyTemplatesForWeek();
+      res.json({ success: true, message: "Templates applied for current week" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to apply templates" });
+    }
+  });
+
   // Teig Production routes
   app.get("/api/teig-production", async (req, res) => {
     const storage = await getStorage();

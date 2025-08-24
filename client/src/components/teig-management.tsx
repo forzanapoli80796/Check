@@ -1,273 +1,217 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Save, Plus, Trash2 } from "lucide-react";
+import { Calendar, Save, RefreshCw } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { TeigProduction, InsertTeigProduction } from "@shared/schema";
+import { TeigProductionTemplate } from "@shared/schema";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-// Helper function to get week dates
-function getWeekDates(weekOffset: number = 0) {
-  const today = new Date();
-  const currentWeek = new Date(today);
-  currentWeek.setDate(today.getDate() - today.getDay() + 1 + (weekOffset * 7)); // Start from Monday
-  
-  const weekDates = [];
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(currentWeek);
-    date.setDate(currentWeek.getDate() + i);
-    weekDates.push(date);
-  }
-  return weekDates;
-}
-
-function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0];
-}
-
-function formatDisplayDate(date: Date): string {
-  return date.toLocaleDateString('de-DE', { 
-    weekday: 'short', 
-    day: '2-digit', 
-    month: '2-digit' 
-  });
-}
-
-// Separate component für Teig-Zellen um Hook-Probleme zu vermeiden
-function TeigCell({ 
-  dateStr, 
-  store, 
-  production, 
-  onSave, 
-  onDelete 
-}: {
-  dateStr: string;
-  store: string;
-  production?: TeigProduction;
-  onSave: (date: string, store: string, amount: number) => void;
-  onDelete: (date: string, store: string) => void;
-}) {
-  const [inputValue, setInputValue] = useState(production?.kugelMenge?.toString() || '');
-
-  return (
-    <td className="border p-2">
-      <div className="flex items-center space-x-1">
-        <Input
-          type="number"
-          min="0"
-          placeholder="0"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          className="w-20 text-center"
-        />
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => {
-            const value = parseInt(inputValue) || 0;
-            if (value > 0) {
-              onSave(dateStr, store, value);
-            }
-          }}
-          disabled={!inputValue || parseInt(inputValue) <= 0}
-        >
-          <Save size={14} />
-        </Button>
-        {production && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => {
-              onDelete(dateStr, store);
-              setInputValue('');
-            }}
-          >
-            <Trash2 size={14} />
-          </Button>
-        )}
-      </div>
-    </td>
-  );
-}
+const STORES = ['JP23', 'KP5', 'TS17'] as const;
+const WEEKDAYS = [
+  { id: 1, name: 'Montag', nameEn: 'Monday' },
+  { id: 2, name: 'Dienstag', nameEn: 'Tuesday' },
+  { id: 3, name: 'Mittwoch', nameEn: 'Wednesday' },
+  { id: 4, name: 'Donnerstag', nameEn: 'Thursday' },
+  { id: 5, name: 'Freitag', nameEn: 'Friday' },
+  { id: 6, name: 'Samstag', nameEn: 'Saturday' },
+  { id: 0, name: 'Sonntag', nameEn: 'Sunday' },
+];
 
 export default function TeigManagement() {
-  const [selectedWeek, setSelectedWeek] = useState(0); // 0 = current week, 1 = next week, etc.
   const { toast } = useToast();
-  
-  const weekDates = getWeekDates(selectedWeek);
-  const startDate = formatDate(weekDates[0]);
-  const endDate = formatDate(weekDates[6]);
+  const { language } = useLanguage();
+  const [templateValues, setTemplateValues] = useState<Record<string, number>>({});
 
-  const { data: productions = [], isLoading } = useQuery({
-    queryKey: ['/api/teig-production', startDate, endDate],
-    queryFn: async () => {
-      const response = await fetch(`/api/teig-production?startDate=${startDate}&endDate=${endDate}`);
-      return response.json();
-    },
+  // Fetch templates
+  const { data: templates, isLoading } = useQuery<TeigProductionTemplate[]>({
+    queryKey: ["/api/teig-production-templates"],
   });
 
-  const createMutation = useMutation({
-    mutationFn: async (data: InsertTeigProduction) => {
-      const response = await fetch('/api/teig-production', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+  // Initialize template values when data is loaded
+  useEffect(() => {
+    if (templates) {
+      const values: Record<string, number> = {};
+      templates.forEach(template => {
+        values[`${template.weekday}-${template.store}`] = template.kugelMenge;
       });
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/teig-production'] });
-      toast({ title: "Kugelmenge gespeichert" });
-    },
-  });
+      setTemplateValues(values);
+    }
+  }, [templates]);
 
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string, data: Partial<InsertTeigProduction> }) => {
-      const response = await fetch(`/api/teig-production/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/teig-production'] });
-      toast({ title: "Kugelmenge aktualisiert" });
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const response = await fetch(`/api/teig-production/${id}`, {
-        method: 'DELETE',
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/teig-production'] });
-      toast({ title: "Eintrag gelöscht" });
-    },
-  });
-
-  const stores = ['JP23', 'KP5', 'TS17'];
-
-  const getProductionForDate = (date: string, store: string): TeigProduction | undefined => {
-    return Array.isArray(productions) ? productions.find((p: TeigProduction) => p.date === date && p.store === store) : undefined;
-  };
-
-  const handleSaveProduction = (date: string, store: string, kugelMenge: number) => {
-    const existingProduction = getProductionForDate(date, store);
-    
-    if (existingProduction) {
-      updateMutation.mutate({
-        id: existingProduction.id,
-        data: { kugelMenge }
-      });
-    } else {
-      createMutation.mutate({
-        date,
+  // Update template mutation
+  const updateTemplateMutation = useMutation({
+    mutationFn: async ({ weekday, store, kugelMenge }: { weekday: number; store: string; kugelMenge: number }) => {
+      const response = await apiRequest("PUT", "/api/teig-production-templates", {
+        weekday,
         store,
         kugelMenge
       });
-    }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/teig-production-templates"] });
+      toast({
+        title: language === 'de' ? "Template gespeichert" : "Template saved",
+        description: language === 'de' ? "Die Vorlage wurde erfolgreich aktualisiert." : "The template has been successfully updated.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'de' ? "Fehler" : "Error",
+        description: language === 'de' ? "Template konnte nicht gespeichert werden." : "Failed to save template.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Apply templates mutation
+  const applyTemplatesMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/teig-production-templates/apply", {});
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: language === 'de' ? "Templates angewendet" : "Templates applied",
+        description: language === 'de' ? "Die Vorlagen wurden für die aktuelle Woche angewendet." : "Templates have been applied for the current week.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'de' ? "Fehler" : "Error",
+        description: language === 'de' ? "Templates konnten nicht angewendet werden." : "Failed to apply templates.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleValueChange = (weekday: number, store: string, value: string) => {
+    const key = `${weekday}-${store}`;
+    const numValue = parseInt(value) || 0;
+    setTemplateValues(prev => ({ ...prev, [key]: numValue }));
   };
 
-  const handleDeleteProduction = (date: string, store: string) => {
-    const existingProduction = getProductionForDate(date, store);
-    if (existingProduction) {
-      deleteMutation.mutate(existingProduction.id);
-    }
+  const handleSave = (weekday: number, store: string) => {
+    const key = `${weekday}-${store}`;
+    const value = templateValues[key] || 0;
+    updateTemplateMutation.mutate({ weekday, store, kugelMenge: value });
   };
 
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="pt-6">
-          <div className="text-center">Lade Teig-Daten...</div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center p-8">
+        <div className="text-gray-500">
+          {language === 'de' ? 'Lade Templates...' : 'Loading templates...'}
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center">
-            <Calendar className="mr-2" size={20} />
-            Teig-Kugelmenge Planung
-          </CardTitle>
-          <div className="flex items-center space-x-2">
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center">
+              <Calendar className="mr-2" size={20} />
+              {language === 'de' ? 'Teig-Produktions-Vorlagen' : 'Dough Production Templates'}
+            </CardTitle>
             <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setSelectedWeek(selectedWeek - 1)}
+              onClick={() => applyTemplatesMutation.mutate()}
+              disabled={applyTemplatesMutation.isPending}
+              className="flex items-center"
             >
-              ← Vorherige Woche
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setSelectedWeek(0)}
-              disabled={selectedWeek === 0}
-            >
-              Aktuelle Woche
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setSelectedWeek(selectedWeek + 1)}
-            >
-              Nächste Woche →
+              <RefreshCw className="mr-2" size={16} />
+              {language === 'de' ? 'Templates für Woche anwenden' : 'Apply Templates for Week'}
             </Button>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr>
-                <th className="border p-2 bg-gray-50 text-left">Store</th>
-                {weekDates.map((date, index) => (
-                  <th key={index} className="border p-2 bg-gray-50 text-center min-w-32">
-                    {formatDisplayDate(date)}
+          <p className="text-sm text-gray-600 mt-2">
+            {language === 'de' 
+              ? 'Definieren Sie die Standard-Kugelmengen für jeden Wochentag. Diese Vorlagen werden automatisch jede Woche angewendet.'
+              : 'Define the standard dough ball quantities for each weekday. These templates will be automatically applied each week.'}
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className="border p-2 bg-gray-50 text-left">
+                    {language === 'de' ? 'Wochentag' : 'Weekday'}
                   </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {stores.map((store) => (
-                <tr key={store}>
-                  <td className="border p-2 font-medium bg-gray-50">{store}</td>
-                  {weekDates.map((date, dateIndex) => {
-                    const dateStr = formatDate(date);
-                    const production = getProductionForDate(dateStr, store);
-                    
-                    return (
-                      <TeigCell
-                        key={dateIndex}
-                        dateStr={dateStr}
-                        store={store}
-                        production={production}
-                        onSave={handleSaveProduction}
-                        onDelete={handleDeleteProduction}
-                      />
-                    );
-                  })}
+                  {STORES.map(store => (
+                    <th key={store} className="border p-2 bg-gray-50 text-center">
+                      {store}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="mt-4 text-sm text-gray-600">
-          <p>Geben Sie die zu produzierende Kugelmenge pro Tag und Store ein. Klicken Sie auf das Speichern-Symbol, um Ihre Eingaben zu bestätigen.</p>
-        </div>
-      </CardContent>
-    </Card>
+              </thead>
+              <tbody>
+                {WEEKDAYS.map(weekday => (
+                  <tr key={weekday.id}>
+                    <td className="border p-2 font-medium">
+                      {language === 'de' ? weekday.name : weekday.nameEn}
+                    </td>
+                    {STORES.map(store => {
+                      const key = `${weekday.id}-${store}`;
+                      const value = templateValues[key] || 0;
+                      return (
+                        <td key={store} className="border p-2">
+                          <div className="flex items-center space-x-1">
+                            <Input
+                              type="number"
+                              min="0"
+                              value={value}
+                              onChange={(e) => handleValueChange(weekday.id, store, e.target.value)}
+                              className="w-20 text-center"
+                            />
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleSave(weekday.id, store)}
+                              disabled={updateTemplateMutation.isPending}
+                            >
+                              <Save size={14} />
+                            </Button>
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {language === 'de' ? 'Hinweise zur Teigplanung' : 'Notes on Dough Planning'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-2 text-sm text-gray-600">
+            <li>• {language === 'de' 
+              ? 'Die Teigplanung löscht sich jede Woche automatisch und wird durch die Vorlagen ersetzt.' 
+              : 'The dough planning resets automatically each week and is replaced by the templates.'}</li>
+            <li>• {language === 'de' 
+              ? 'Das System verwendet ein festes, wiederkehrendes Gerüst für Montag bis Sonntag.' 
+              : 'The system uses a fixed, recurring structure for Monday to Sunday.'}</li>
+            <li>• {language === 'de' 
+              ? 'Vorlagen gelten verbindlich für die gesamte Woche.' 
+              : 'Templates are binding for the entire week.'}</li>
+            <li>• {language === 'de' 
+              ? 'Einträge sollten regelmäßig überprüft und bei Bedarf angepasst werden.' 
+              : 'Entries should be regularly reviewed and adjusted as needed.'}</li>
+          </ul>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
