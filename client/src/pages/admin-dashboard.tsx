@@ -4,12 +4,14 @@ import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-import { ArrowLeft, Cookie } from "lucide-react";
+import { ArrowLeft, Cookie, Palette } from "lucide-react";
 import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
 import SubmittedLists from "@/components/admin-tabs/submitted-lists";
 import CategoriesManagement from "@/components/admin-tabs/categories-management";
+import TasksManagement from "@/components/admin-tabs/tasks-management";
 import ErrorBoundary from "@/components/error-boundary";
 import TeigManagement from "@/components/teig-management";
+import DesignManager from "@/components/admin-tabs/design-manager";
 import { AdminTabState } from "@/lib/types";
 
 
@@ -33,10 +35,22 @@ export default function AdminDashboard() {
             <CategoriesManagement />
           </ErrorBoundary>
         );
+      case 'tasks':
+        return (
+          <ErrorBoundary>
+            <TasksManagement />
+          </ErrorBoundary>
+        );
       case 'teig':
         return (
           <ErrorBoundary>
             <TeigManagement />
+          </ErrorBoundary>
+        );
+      case 'design':
+        return (
+          <ErrorBoundary>
+            <DesignManager />
           </ErrorBoundary>
         );
       default:
@@ -66,7 +80,7 @@ export default function AdminDashboard() {
       {/* Navigation Tabs */}
       <Card className="shadow-sm border border-gray-200 mb-6">
         <div className="border-b">
-          <nav className="flex space-x-8 px-6">
+          <nav className="flex space-x-8 px-6 overflow-x-auto">
             <button
               onClick={() => setActiveTab('submitted')}
               className={`admin-tab ${activeTab === 'submitted' ? 'active' : ''}`}
@@ -80,10 +94,23 @@ export default function AdminDashboard() {
               Arbeitsbereiche
             </button>
             <button
+              onClick={() => setActiveTab('tasks')}
+              className={`admin-tab ${activeTab === 'tasks' ? 'active' : ''}`}
+            >
+              Aufgaben
+            </button>
+            <button
               onClick={() => setActiveTab('teig')}
               className={`admin-tab ${activeTab === 'teig' ? 'active' : ''}`}
             >
               Teig-Planung
+            </button>
+            <button
+              onClick={() => setActiveTab('design')}
+              className={`admin-tab flex items-center gap-2 ${activeTab === 'design' ? 'active' : ''}`}
+            >
+              <Palette className="h-4 w-4" />
+              Design Manager
             </button>
           </nav>
         </div>

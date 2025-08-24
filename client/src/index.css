@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Design Manager CSS Variables */
+:root {
+  --font-family: 'Inter', sans-serif;
+  --heading-font: 'Inter', sans-serif;
+  --animation-speed: 1s;
+  --shadow-intensity: 1;
+  --blur-amount: 10px;
+  --border-radius: 8px;
+  --spacing-unit: 1rem;
+  --max-width: 1280px;
+}
+
 :root {
   /* ForzaCheck CI - Background matches startpage gray-50 */
   --background: hsl(210, 20%, 98%);
@@ -305,4 +317,67 @@
 
 .animation-delay-4000 {
   animation-delay: 4s;
+}
+
+/* Design Manager Dynamic Classes */
+body.animations-enabled * {
+  transition: all calc(var(--animation-speed) * 0.3) ease-in-out;
+}
+
+body.shadows-enabled .card,
+body.shadows-enabled .btn,
+body.shadows-enabled button {
+  box-shadow: 0 calc(4px * var(--shadow-intensity)) calc(6px * var(--shadow-intensity)) rgba(0, 0, 0, calc(0.1 * var(--shadow-intensity)));
+}
+
+body.gradients-enabled .gradient-bg {
+  background: linear-gradient(135deg, var(--gradientStart, var(--primary)), var(--gradientEnd, var(--secondary)));
+}
+
+body.glassmorphism * {
+  backdrop-filter: blur(var(--blur-amount));
+  -webkit-backdrop-filter: blur(var(--blur-amount));
+}
+
+body.glassmorphism .card {
+  background: rgba(255, 255, 255, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+body.neon-glow button:hover,
+body.neon-glow .card:hover {
+  box-shadow: 0 0 20px var(--primary),
+              0 0 40px var(--primary),
+              0 0 60px var(--primary);
+}
+
+body.compact-mode {
+  font-size: 14px;
+}
+
+body.compact-mode .card {
+  padding: 0.5rem;
+}
+
+body.compact-mode button {
+  padding: 0.25rem 0.5rem;
+}
+
+/* Font Application */
+body {
+  font-family: var(--font-family);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--heading-font);
+}
+
+/* Border Radius Application */
+.card, button, input, textarea, select {
+  border-radius: var(--border-radius);
+}
+
+/* Layout Max Width */
+.max-w-6xl {
+  max-width: var(--max-width);
 }

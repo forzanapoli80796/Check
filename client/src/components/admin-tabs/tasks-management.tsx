@@ -356,13 +356,6 @@ export default function TasksManagement() {
         </div>
       )}
 
-      {/* Temporäres Debug */}
-      <div className="mb-4 p-3 bg-red-50 border">
-        <p><strong>DEBUG:</strong> Tasks: {tasks?.length || 0}, Filtered: {filteredTasks?.length || 0}</p>
-        <p>Loading: {tasksLoading ? 'Ja' : 'Nein'}, Search: "{searchTerm}"</p>
-        {tasks && tasks.length > 0 && <p>Erste Aufgabe: {tasks[0]?.title}</p>}
-      </div>
-
       <div className="space-y-4">
         {filteredTasks && filteredTasks.length > 0 ? (
           filteredTasks.map((task) => {
