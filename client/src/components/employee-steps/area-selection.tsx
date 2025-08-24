@@ -60,19 +60,91 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
     updateState({ step: 'store' });
   };
 
-  const getIcon = (iconName: string) => {
+  const getIcon = (iconName: string, color?: string) => {
+    // Erweiterte Icon-Liste mit 50+ Icons
     const iconMap: Record<string, any> = {
+      // Arbeit & Büro
       desktop: Icons.Monitor,
-      utensils: Icons.Utensils,
-      car: Icons.Car,
-      'clipboard-list': Icons.ClipboardList,
-      broom: Icons.Brush,
       briefcase: Icons.Briefcase,
-      cog: Icons.Settings,
+      'clipboard-list': Icons.ClipboardList,
+      'clipboard-check': Icons.ClipboardCheck,
+      'file-text': Icons.FileText,
+      folder: Icons.Folder,
+      archive: Icons.Archive,
+      printer: Icons.Printer,
+      phone: Icons.Phone,
+      
+      // Küche & Essen  
+      utensils: Icons.Utensils,
+      coffee: Icons.Coffee,
+      pizza: Icons.Pizza,
+      cake: Icons.Cake,
+      soup: Icons.Soup,
+      beer: Icons.Beer,
+      wine: Icons.Wine,
+      milk: Icons.Milk,
+      cherry: Icons.Cherry,
+      
+      // Transport & Fahrzeuge
+      car: Icons.Car,
+      truck: Icons.Truck,
+      bike: Icons.Bike,
+      plane: Icons.Plane,
+      train: Icons.Train,
+      ship: Icons.Ship,
+      bus: Icons.Bus,
+      
+      // Reinigung & Wartung
+      broom: Icons.Brush,
+      wrench: Icons.Wrench,
+      hammer: Icons.Hammer,
+      sparkles: Icons.Sparkles,
+      trash: Icons.Trash,
+      recycle: Icons.Recycle,
+      
+      // Zeit & Kalender
+      calendar: Icons.Calendar,
+      'calendar-check': Icons.CalendarCheck,
+      'calendar-days': Icons.CalendarDays,
+      clock: Icons.Clock,
+      timer: Icons.Timer,
+      'alarm-clock': Icons.AlarmClock,
+      
+      // Menschen & Teams
       users: Icons.Users,
+      user: Icons.User,
+      'user-check': Icons.UserCheck,
+      'user-plus': Icons.UserPlus,
+      'users-round': Icons.UsersRound,
+      
+      // Einstellungen & System
+      cog: Icons.Settings,
+      sliders: Icons.Sliders,
+      tool: Icons.Wrench,
+      shield: Icons.Shield,
+      lock: Icons.Lock,
+      key: Icons.Key,
+      
+      // Lager & Inventar
+      package: Icons.Package,
+      box: Icons.Box,
+      warehouse: Icons.Warehouse,
+      'shopping-cart': Icons.ShoppingCart,
+      barcode: Icons.Barcode,
+      calculator: Icons.Calculator,
+      
+      // Verschiedenes
+      star: Icons.Star,
+      heart: Icons.Heart,
+      flag: Icons.Flag,
+      bell: Icons.Bell,
+      bookmark: Icons.Bookmark,
+      tag: Icons.Tag,
+      home: Icons.Home,
+      building: Icons.Building,
     };
     const IconComponent = iconMap[iconName] || Icons.Monitor;
-    return <IconComponent className="text-primary" size={20} />;
+    return <IconComponent style={{ color: color || undefined }} className={!color ? "text-primary" : ""} size={20} />;
   };
 
   if (isLoading) {
@@ -114,7 +186,7 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
               onClick={() => selectArea(category)}
               className="selection-button justify-start"
             >
-              {getIcon(category.icon)}
+              {getIcon(category.icon, category.iconColor || undefined)}
               <span className="font-medium">{getTranslatedCategoryName(category.name)}</span>
               {category.useShifts === false && (
                 <span className="ml-auto text-xs text-gray-500">{t.admin.areas.simpleChecklist}</span>

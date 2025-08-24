@@ -18,18 +18,85 @@ import { apiRequest } from "@/lib/queryClient";
 import { Category, Task } from "@shared/schema";
 
 const ICON_OPTIONS = [
+  // Arbeit & Büro
   { value: "desktop", label: "Monitor", icon: Icons.Monitor },
-  { value: "utensils", label: "Besteck", icon: Icons.Utensils },
-  { value: "car", label: "Auto", icon: Icons.Car },
+  { value: "briefcase", label: "Aktentasche", icon: Icons.Briefcase },
   { value: "clipboard-list", label: "Checkliste", icon: Icons.ClipboardList },
   { value: "clipboard-check", label: "Checkliste Check", icon: Icons.ClipboardCheck },
+  { value: "file-text", label: "Dokument", icon: Icons.FileText },
+  { value: "folder", label: "Ordner", icon: Icons.Folder },
+  { value: "archive", label: "Archiv", icon: Icons.Archive },
+  { value: "printer", label: "Drucker", icon: Icons.Printer },
+  { value: "phone", label: "Telefon", icon: Icons.Phone },
+  
+  // Küche & Essen
+  { value: "utensils", label: "Besteck", icon: Icons.Utensils },
+  { value: "coffee", label: "Kaffee", icon: Icons.Coffee },
+  { value: "pizza", label: "Pizza", icon: Icons.Pizza },
+  { value: "cake", label: "Kuchen", icon: Icons.Cake },
+  { value: "soup", label: "Suppe", icon: Icons.Soup },
+  { value: "beer", label: "Bier", icon: Icons.Beer },
+  { value: "wine", label: "Wein", icon: Icons.Wine },
+  { value: "milk", label: "Milch", icon: Icons.Milk },
+  { value: "cherry", label: "Kirsche", icon: Icons.Cherry },
+  
+  // Transport & Fahrzeuge
+  { value: "car", label: "Auto", icon: Icons.Car },
+  { value: "truck", label: "LKW", icon: Icons.Truck },
+  { value: "bike", label: "Fahrrad", icon: Icons.Bike },
+  { value: "plane", label: "Flugzeug", icon: Icons.Plane },
+  { value: "train", label: "Zug", icon: Icons.Train },
+  { value: "ship", label: "Schiff", icon: Icons.Ship },
+  { value: "bus", label: "Bus", icon: Icons.Bus },
+  
+  // Reinigung & Wartung
+  { value: "broom", label: "Besen", icon: Icons.Brush },
+  { value: "wrench", label: "Schraubenschlüssel", icon: Icons.Wrench },
+  { value: "hammer", label: "Hammer", icon: Icons.Hammer },
+  { value: "sparkles", label: "Funkeln", icon: Icons.Sparkles },
+  { value: "trash", label: "Mülleimer", icon: Icons.Trash },
+  { value: "recycle", label: "Recycling", icon: Icons.Recycle },
+  
+  // Zeit & Kalender
+  { value: "calendar", label: "Kalender", icon: Icons.Calendar },
   { value: "calendar-check", label: "Kalender Check", icon: Icons.CalendarCheck },
   { value: "calendar-days", label: "Kalender Tage", icon: Icons.CalendarDays },
-  { value: "calculator", label: "Taschenrechner", icon: Icons.Calculator },
-  { value: "broom", label: "Besen", icon: Icons.Brush },
-  { value: "briefcase", label: "Aktentasche", icon: Icons.Briefcase },
-  { value: "cog", label: "Einstellungen", icon: Icons.Settings },
+  { value: "clock", label: "Uhr", icon: Icons.Clock },
+  { value: "timer", label: "Timer", icon: Icons.Timer },
+  { value: "alarm-clock", label: "Wecker", icon: Icons.AlarmClock },
+  
+  // Menschen & Teams
   { value: "users", label: "Benutzer", icon: Icons.Users },
+  { value: "user", label: "Person", icon: Icons.User },
+  { value: "user-check", label: "Benutzer Check", icon: Icons.UserCheck },
+  { value: "user-plus", label: "Benutzer Hinzufügen", icon: Icons.UserPlus },
+  { value: "users-round", label: "Team", icon: Icons.UsersRound },
+  
+  // Einstellungen & System
+  { value: "cog", label: "Einstellungen", icon: Icons.Settings },
+  { value: "sliders", label: "Regler", icon: Icons.Sliders },
+  { value: "tool", label: "Werkzeug", icon: Icons.Wrench },
+  { value: "shield", label: "Schild", icon: Icons.Shield },
+  { value: "lock", label: "Schloss", icon: Icons.Lock },
+  { value: "key", label: "Schlüssel", icon: Icons.Key },
+  
+  // Lager & Inventar
+  { value: "package", label: "Paket", icon: Icons.Package },
+  { value: "box", label: "Box", icon: Icons.Box },
+  { value: "warehouse", label: "Lager", icon: Icons.Warehouse },
+  { value: "shopping-cart", label: "Einkaufswagen", icon: Icons.ShoppingCart },
+  { value: "barcode", label: "Barcode", icon: Icons.Barcode },
+  { value: "calculator", label: "Taschenrechner", icon: Icons.Calculator },
+  
+  // Verschiedenes
+  { value: "star", label: "Stern", icon: Icons.Star },
+  { value: "heart", label: "Herz", icon: Icons.Heart },
+  { value: "flag", label: "Flagge", icon: Icons.Flag },
+  { value: "bell", label: "Glocke", icon: Icons.Bell },
+  { value: "bookmark", label: "Lesezeichen", icon: Icons.Bookmark },
+  { value: "tag", label: "Tag", icon: Icons.Tag },
+  { value: "home", label: "Haus", icon: Icons.Home },
+  { value: "building", label: "Gebäude", icon: Icons.Building },
 ];
 
 export default function CategoriesManagement() {
@@ -39,6 +106,7 @@ export default function CategoriesManagement() {
     name: "",
     description: "",
     icon: "desktop",
+    iconColor: "#000000",
     useShifts: true,
     categoryType: "shifts" as "shifts" | "simple" | "inventory",
     parentId: null as string | null,
@@ -155,6 +223,7 @@ export default function CategoriesManagement() {
       name: "",
       description: "",
       icon: "desktop",
+      iconColor: "#000000",
       useShifts: true,
       categoryType: "shifts",
       parentId: null,
@@ -169,6 +238,7 @@ export default function CategoriesManagement() {
       name: category.name,
       description: category.description || "",
       icon: category.icon,
+      iconColor: category.iconColor || "#000000",
       useShifts: category.useShifts !== false,
       categoryType: category.categoryType || (category.useShifts !== false ? "shifts" : "simple"),
       parentId: category.parentId || null,
@@ -211,13 +281,13 @@ export default function CategoriesManagement() {
     return categories?.filter(cat => cat.parentId === categoryId).length || 0;
   };
 
-  const getIcon = (iconName: string) => {
+  const getIcon = (iconName: string, color?: string) => {
     const iconOption = ICON_OPTIONS.find(opt => opt.value === iconName);
     if (iconOption) {
       const IconComponent = iconOption.icon;
-      return <IconComponent size={20} />;
+      return <IconComponent size={20} style={{ color: color || '#000000' }} />;
     }
-    return <Icons.Settings size={20} />;
+    return <Icons.Settings size={20} style={{ color: color || '#000000' }} />;
   };
 
   // Get main categories (those without parentId)
@@ -313,6 +383,40 @@ export default function CategoriesManagement() {
                 </Select>
               </div>
               
+              {/* Icon Color Selection */}
+              <div>
+                <Label htmlFor="iconColor">Icon Farbe</Label>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    id="iconColor"
+                    type="color"
+                    value={formData.iconColor}
+                    onChange={(e) => setFormData(prev => ({ ...prev, iconColor: e.target.value }))}
+                    className="w-20 h-10 cursor-pointer"
+                    data-testid="input-icon-color"
+                  />
+                  <Input
+                    type="text"
+                    value={formData.iconColor}
+                    onChange={(e) => setFormData(prev => ({ ...prev, iconColor: e.target.value }))}
+                    placeholder="#000000"
+                    className="flex-1"
+                    pattern="^#[0-9A-Fa-f]{6}$"
+                    data-testid="input-icon-color-text"
+                  />
+                  <div className="w-10 h-10 rounded border flex items-center justify-center" style={{ backgroundColor: formData.iconColor }}>
+                    {(() => {
+                      const selectedIcon = ICON_OPTIONS.find(opt => opt.value === formData.icon);
+                      if (selectedIcon) {
+                        const IconComponent = selectedIcon.icon;
+                        return <IconComponent size={20} style={{ color: 'white' }} />;
+                      }
+                      return null;
+                    })()}
+                  </div>
+                </div>
+              </div>
+              
               {/* Parent Category Selection */}
               <div>
                 <Label htmlFor="parentId">Übergeordnete Kategorie (optional)</Label>
@@ -335,7 +439,7 @@ export default function CategoriesManagement() {
                     {getPotentialParents().map(cat => (
                       <SelectItem key={cat.id} value={cat.id}>
                         <div className="flex items-center">
-                          {getIcon(cat.icon)}
+                          {getIcon(cat.icon, cat.iconColor || undefined)}
                           <span className="ml-2">{cat.name}</span>
                         </div>
                       </SelectItem>
@@ -493,7 +597,7 @@ export default function CategoriesManagement() {
                     </p>
                   )}
                   <div className="flex items-center text-sm text-gray-500">
-                    {getIcon(category.icon)}
+                    {getIcon(category.icon, category.iconColor || undefined)}
                     <span className="ml-2">{category.description}</span>
                   </div>
                 </CardContent>
