@@ -23,6 +23,7 @@ export default function BetriebsleiterDashboard() {
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
   const [taskImages, setTaskImages] = useState<Record<string, string[]>>({});
   const [taskNotes, setTaskNotes] = useState<Record<string, string>>({});
+  const [completionDate, setCompletionDate] = useState<string>(''); // Datum, wann die Aufgaben erledigt wurden
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ['/api/categories']
@@ -55,6 +56,7 @@ export default function BetriebsleiterDashboard() {
       setCompletedTasks([]);
       setTaskImages({});
       setTaskNotes({});
+      setCompletionDate('');
       queryClient.invalidateQueries({ queryKey: ['/api/checklists'] });
     },
     onError: (error) => {
@@ -212,7 +214,7 @@ export default function BetriebsleiterDashboard() {
     // Alle Bilder zu einem Array zusammenfassen
     const allImages = Object.values(taskImages).flat();
     
-    const checklistData: InsertChecklist & { images?: string[]; taskImages?: Record<string, string[]>; taskNotes?: Record<string, string> } = {
+    const checklistData: InsertChecklist & { images?: string[]; taskImages?: Record<string, string[]>; taskNotes?: Record<string, string>; completionDate?: string } = {
       categoryId: betriebsleiterCategory.id,
       store: selectedStore,
       employeeName: "Betriebsleiter",
@@ -221,6 +223,7 @@ export default function BetriebsleiterDashboard() {
       images: allImages,
       taskImages: taskImages,
       taskNotes: taskNotes,
+      completionDate: completionDate || undefined,
     };
 
     console.log("Submitting checklist:", checklistData);
@@ -318,7 +321,30 @@ export default function BetriebsleiterDashboard() {
             </CardContent>
           </Card>
 
-
+          {/* Datum der Aufgabenerfüllung */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Datum der Aufgabenerfüllung</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Label htmlFor="completion-date">Wann wurden die Aufgaben erledigt?</Label>
+                <Input
+                  id="completion-date"
+                  type="date"
+                  value={completionDate}
+                  onChange={(e) => setCompletionDate(e.target.value)}
+                  max={new Date().toISOString().split('T')[0]} // Maximal heute
+                  className="w-full"
+                />
+                {completionDate && (
+                  <p className="text-sm text-green-600 mt-2">
+                    ✓ Aufgaben wurden am {new Date(completionDate).toLocaleDateString('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} erledigt
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Aufgaben */}
           <Card>
