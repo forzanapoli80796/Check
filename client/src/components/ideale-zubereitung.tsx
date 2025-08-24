@@ -15,34 +15,46 @@ interface MachineLoad {
 }
 
 function calculateOptimalLoads(targetAmount: number): { loads: MachineLoad[], total: number, reserve: number } {
-  // Verfügbare Rezepte (nur diese dürfen verwendet werden!)
+  // Verfügbare Rezepte - große Maschinen werden bevorzugt!
   const machineSizes = [120, 110, 60, 55];
   
   let bestCombination: MachineLoad[] = [];
-  let bestTotal = targetAmount + 1000; // Start mit hohem Wert
+  let bestTotal = targetAmount + 1000;
   let bestReserve = 1000;
+  let bestMachineCount = 1000; // Anzahl der Maschinen tracken
   
-  // Berechne maximale Anzahl für jede Maschinengröße
-  const maxCounts = machineSizes.map(size => Math.ceil(targetAmount / size) + 1);
+  // Maximale Anzahl für jede Maschinengröße
+  const maxCounts = machineSizes.map(size => Math.ceil(targetAmount / size) + 2);
   
-  // Systematisch alle Kombinationen durchprobieren
-  // Verwende verschachtelte Schleifen für alle möglichen Kombinationen
-  for (let count120 = 0; count120 <= Math.min(maxCounts[0], 15); count120++) {
-    for (let count110 = 0; count110 <= Math.min(maxCounts[1], 15); count110++) {
-      for (let count60 = 0; count60 <= Math.min(maxCounts[2], 15); count60++) {
-        for (let count55 = 0; count55 <= Math.min(maxCounts[3], 15); count55++) {
+  // Durchlaufe alle Kombinationen, aber priorisiere große Maschinen
+  // Beginne mit vielen großen Maschinen und wenigen kleinen
+  for (let count120 = Math.min(maxCounts[0], 15); count120 >= 0; count120--) {
+    for (let count110 = Math.min(maxCounts[1], 15); count110 >= 0; count110--) {
+      // 60er und 55er nur wenn nötig (Notfall)
+      for (let count60 = 0; count60 <= Math.min(2, maxCounts[2]); count60++) {
+        for (let count55 = 0; count55 <= Math.min(2, maxCounts[3]); count55++) {
           // Überspringe wenn keine Maschinen verwendet werden
           if (count120 === 0 && count110 === 0 && count60 === 0 && count55 === 0) continue;
           
           // Berechne Gesamtproduktion
           const total = count120 * 120 + count110 * 110 + count60 * 60 + count55 * 55;
           
-          // Wenn diese Kombination das Ziel erreicht und besser ist als die bisherige
+          // Wenn diese Kombination das Ziel erreicht
           if (total >= targetAmount) {
             const reserve = total - targetAmount;
+            const machineCount = count120 + count110 + count60 + count55;
             
-            // Prüfe ob dies die beste Lösung ist (kleinste Reserve)
-            if (reserve < bestReserve) {
+            // Bewertung: Bevorzuge kleine Reserve, aber auch wenige Maschinen
+            // und große Maschinen (120er, 110er) über kleine (60er, 55er)
+            const smallMachinePenalty = (count60 + count55) * 5; // Strafe für kleine Maschinen
+            
+            // Beste Lösung ist: kleinste Reserve + wenigste Maschinen + große Maschinen bevorzugt
+            const isNewBest = 
+              reserve < bestReserve || 
+              (reserve === bestReserve && machineCount < bestMachineCount) ||
+              (reserve <= bestReserve + 50 && machineCount < bestMachineCount - 3); // Akzeptiere etwas mehr Reserve für deutlich weniger Maschinen
+            
+            if (isNewBest) {
               bestCombination = [];
               if (count120 > 0) bestCombination.push({ size: 120, count: count120 });
               if (count110 > 0) bestCombination.push({ size: 110, count: count110 });
@@ -50,10 +62,38 @@ function calculateOptimalLoads(targetAmount: number): { loads: MachineLoad[], to
               if (count55 > 0) bestCombination.push({ size: 55, count: count55 });
               bestTotal = total;
               bestReserve = reserve;
+              bestMachineCount = machineCount;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  // Wenn keine gute Lösung mit großen Maschinen gefunden wurde, erweitere Suche
+  if (bestCombination.length === 0 || bestMachineCount > 10) {
+    // Erweiterte Suche mit mehr kleinen Maschinen
+    for (let count120 = Math.min(maxCounts[0], 10); count120 >= 0; count120--) {
+      for (let count110 = Math.min(maxCounts[1], 10); count110 >= 0; count110--) {
+        for (let count60 = 0; count60 <= Math.min(5, maxCounts[2]); count60++) {
+          for (let count55 = 0; count55 <= Math.min(5, maxCounts[3]); count55++) {
+            if (count120 === 0 && count110 === 0 && count60 === 0 && count55 === 0) continue;
+            
+            const total = count120 * 120 + count110 * 110 + count60 * 60 + count55 * 55;
+            
+            if (total >= targetAmount) {
+              const reserve = total - targetAmount;
+              const machineCount = count120 + count110 + count60 + count55;
               
-              // Wenn perfekte Lösung gefunden (Reserve = 0), können wir aufhören
-              if (reserve === 0) {
-                return { loads: bestCombination, total: bestTotal, reserve: bestReserve };
+              if (reserve < bestReserve || (reserve === bestReserve && machineCount < bestMachineCount)) {
+                bestCombination = [];
+                if (count120 > 0) bestCombination.push({ size: 120, count: count120 });
+                if (count110 > 0) bestCombination.push({ size: 110, count: count110 });
+                if (count60 > 0) bestCombination.push({ size: 60, count: count60 });
+                if (count55 > 0) bestCombination.push({ size: 55, count: count55 });
+                bestTotal = total;
+                bestReserve = reserve;
+                bestMachineCount = machineCount;
               }
             }
           }
