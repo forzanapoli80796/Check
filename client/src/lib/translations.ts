@@ -41,6 +41,14 @@ export const translations = {
           'Mengenformular Mittagsschicht': 'Mengenformular Mittagsschicht'
         }
       },
+      subcategorySelection: {
+        title: 'Kategorie auswählen',
+        subtitle: 'Wählen Sie eine Kategorie für den Küchenbereich',
+        kitchenChecklist: 'Küchen-Checkliste',
+        mhdCheck: 'MHD-Check',
+        lateShiftForm: 'Mengenformular Spätschicht',
+        lunchShiftForm: 'Mengenformular Mittagsschicht'
+      },
       detailsEntry: {
         title: 'Details eingeben',
         employeeName: 'Mitarbeitername',
@@ -240,6 +248,14 @@ export const translations = {
           'Mengenformular Spätschicht': 'Late Shift Quantity Form',
           'Mengenformular Mittagsschicht': 'Lunch Shift Quantity Form'
         }
+      },
+      subcategorySelection: {
+        title: 'Select Category',
+        subtitle: 'Choose a category for the kitchen area',
+        kitchenChecklist: 'Kitchen Checklist',
+        mhdCheck: 'Expiry Check',
+        lateShiftForm: 'Late Shift Quantity Form',
+        lunchShiftForm: 'Lunch Shift Quantity Form'
       },
       detailsEntry: {
         title: 'Enter Details',

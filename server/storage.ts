@@ -8,6 +8,7 @@ export interface IStorage {
   // Categories
   getCategories(): Promise<Category[]>;
   getCategoryById(id: string): Promise<Category | undefined>;
+  getSubcategories(parentId: string): Promise<Category[]>;
   createCategory(category: InsertCategory): Promise<Category>;
   updateCategory(id: string, category: Partial<InsertCategory>): Promise<Category | undefined>;
   deleteCategory(id: string): Promise<boolean>;
@@ -44,8 +45,12 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   async getCategories(): Promise<Category[]> {
     const cats = await db.select().from(categories);
-    console.log('Getting categories from DB:', cats.map(c => ({ id: c.id, name: c.name, useShifts: c.useShifts })));
+    console.log('Getting categories from DB:', cats.map(c => ({ id: c.id, name: c.name, useShifts: c.useShifts, parentId: c.parentId })));
     return cats;
+  }
+
+  async getSubcategories(parentId: string): Promise<Category[]> {
+    return await db.select().from(categories).where(eq(categories.parentId, parentId));
   }
 
   async getCategoryById(id: string): Promise<Category | undefined> {
@@ -62,6 +67,8 @@ export class DatabaseStorage implements IStorage {
         id: randomUUID(),
         createdAt: new Date(),
         categoryType: insertCategory.categoryType || (insertCategory.useShifts ? "shifts" : "simple"),
+        parentId: insertCategory.parentId || null,
+        isSubcategoryParent: insertCategory.isSubcategoryParent || false,
       })
       .returning();
     console.log('Created category:', category);
@@ -305,25 +312,47 @@ export class MemStorage implements IStorage {
   }
 
   private initializeDefaultData() {
-    // Initialize default categories
-    const defaultCategories = [
-      { name: "Terminal", description: "Kassensystem & Kundenbereich", icon: "desktop", useShifts: true, categoryType: "shifts" as const },
-      { name: "Küche", description: "Zubereitung & Hygiene", icon: "utensils", useShifts: true, categoryType: "shifts" as const },
-      { name: "Fahrer", description: "Fahrzeug & Lieferung", icon: "car", useShifts: true, categoryType: "shifts" as const },
-      { name: "Inventur", description: "Bestandsaufnahme", icon: "clipboard-list", useShifts: false, categoryType: "inventory" as const },
-      { name: "Sonderreinigung", description: "Tiefenreinigung", icon: "broom", useShifts: false, categoryType: "simple" as const },
-      { name: "Betriebsleiter", description: "Management & Organisation", icon: "briefcase", useShifts: false, categoryType: "simple" as const },
-      { name: "Mengenformular Spätschicht", description: "Teigmengen für Spätschicht in der Küche", icon: "calculator", useShifts: false, categoryType: "simple" as const },
-      { name: "Mengenformular Mittagsschicht", description: "Teigmengen für Mittagsschicht in der Küche", icon: "clipboard-check", useShifts: false, categoryType: "simple" as const },
-    ];
-
     const categoryIds: Record<string, string> = {};
     
-    defaultCategories.forEach(cat => {
+    // Initialize main categories first
+    const mainCategories = [
+      { name: "Terminal", description: "Kassensystem & Kundenbereich", icon: "desktop", useShifts: true, categoryType: "shifts" as const, isSubcategoryParent: false },
+      { name: "Küche", description: "Zubereitung & Hygiene", icon: "utensils", useShifts: true, categoryType: "shifts" as const, isSubcategoryParent: true },
+      { name: "Fahrer", description: "Fahrzeug & Lieferung", icon: "car", useShifts: true, categoryType: "shifts" as const, isSubcategoryParent: false },
+      { name: "Inventur", description: "Bestandsaufnahme", icon: "clipboard-list", useShifts: false, categoryType: "inventory" as const, isSubcategoryParent: false },
+      { name: "Sonderreinigung", description: "Tiefenreinigung", icon: "broom", useShifts: false, categoryType: "simple" as const, isSubcategoryParent: false },
+      { name: "Betriebsleiter", description: "Management & Organisation", icon: "briefcase", useShifts: false, categoryType: "simple" as const, isSubcategoryParent: false },
+    ];
+    
+    // Create main categories
+    mainCategories.forEach(cat => {
       const id = randomUUID();
       const category: Category = {
         id,
         ...cat,
+        parentId: null,
+        createdAt: new Date(),
+      };
+      this.categories.set(id, category);
+      categoryIds[cat.name] = id;
+    });
+    
+    // Now create subcategories for Küche
+    const kucheId = categoryIds["Küche"];
+    const kucheSubcategories = [
+      { name: "Küche Checkliste", description: "Standard Küchen-Checkliste", icon: "utensils", useShifts: true, categoryType: "shifts" as const },
+      { name: "MHD-Check", description: "Mindesthaltbarkeitsdatum überprüfen", icon: "calendar-check", useShifts: false, categoryType: "simple" as const },
+      { name: "Mengenformular Spätschicht", description: "Teigmengen für Spätschicht", icon: "calculator", useShifts: false, categoryType: "simple" as const },
+      { name: "Mengenformular Mittagsschicht", description: "Teigmengen für Mittagsschicht", icon: "clipboard-check", useShifts: false, categoryType: "simple" as const },
+    ];
+    
+    kucheSubcategories.forEach(cat => {
+      const id = randomUUID();
+      const category: Category = {
+        id,
+        ...cat,
+        parentId: kucheId,
+        isSubcategoryParent: false,
         createdAt: new Date(),
       };
       this.categories.set(id, category);
@@ -337,10 +366,15 @@ export class MemStorage implements IStorage {
       { categoryName: "Terminal", title: "Kundenbereich reinigen", description: "Theke und Wartebereich säubern", icon: "spray-can", priority: "medium" as const },
       { categoryName: "Terminal", title: "Wechselgeld prüfen", description: "Kassenschublade auffüllen", icon: "coins", priority: "high" as const },
       
-      // Küche tasks
-      { categoryName: "Küche", title: "Küchengeräte reinigen", description: "Alle Geräte gründlich säubern", icon: "utensils", priority: "high" as const },
-      { categoryName: "Küche", title: "Temperatur kontrollieren", description: "Kühl- und Gefriergeräte prüfen", icon: "thermometer", priority: "high" as const },
-      { categoryName: "Küche", title: "Arbeitsflächen desinfizieren", description: "Alle Oberflächen mit Desinfektionsmittel reinigen", icon: "spray-can", priority: "high" as const },
+      // Küche Checkliste tasks
+      { categoryName: "Küche Checkliste", title: "Küchengeräte reinigen", description: "Alle Geräte gründlich säubern", icon: "utensils", priority: "high" as const },
+      { categoryName: "Küche Checkliste", title: "Temperatur kontrollieren", description: "Kühl- und Gefriergeräte prüfen", icon: "thermometer", priority: "high" as const },
+      { categoryName: "Küche Checkliste", title: "Arbeitsflächen desinfizieren", description: "Alle Oberflächen mit Desinfektionsmittel reinigen", icon: "spray-can", priority: "high" as const },
+      
+      // MHD-Check tasks
+      { categoryName: "MHD-Check", title: "Alle Wurstwaren auf MHD überprüft", description: "Alte Ware vorne, neue Ware hinten", icon: "clipboard-check", priority: "high" as const },
+      { categoryName: "MHD-Check", title: "Alle Käseprodukte auf MHD überprüft", description: "Alte Ware vorne, neue Ware hinten", icon: "clipboard-check", priority: "high" as const },
+      { categoryName: "MHD-Check", title: "Käse vegan auf MHD überprüft", description: "Alte Ware vorne, neue Ware hinten", icon: "clipboard-check", priority: "high" as const },
       
       // Fahrer tasks  
       { categoryName: "Fahrer", title: "Fahrzeug checken", description: "Lichter, Bremsen und Reifen prüfen", icon: "car", priority: "high" as const },
@@ -398,6 +432,10 @@ export class MemStorage implements IStorage {
     return this.categories.get(id);
   }
 
+  async getSubcategories(parentId: string): Promise<Category[]> {
+    return Array.from(this.categories.values()).filter(cat => cat.parentId === parentId);
+  }
+
   async createCategory(insertCategory: InsertCategory): Promise<Category> {
     const id = randomUUID();
     const category: Category = {
@@ -406,6 +444,8 @@ export class MemStorage implements IStorage {
       description: insertCategory.description || null,
       useShifts: insertCategory.useShifts ?? true,
       categoryType: insertCategory.categoryType || (insertCategory.useShifts ? "shifts" : "simple"),
+      parentId: insertCategory.parentId || null,
+      isSubcategoryParent: insertCategory.isSubcategoryParent || false,
       createdAt: new Date(),
     };
     this.categories.set(id, category);

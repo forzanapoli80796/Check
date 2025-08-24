@@ -36,6 +36,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(category);
   });
 
+  app.get("/api/categories/:id/subcategories", async (req, res) => {
+    const storage = await getStorage();
+    const subcategories = await storage.getSubcategories(req.params.id);
+    res.json(subcategories);
+  });
+
   app.post("/api/categories", async (req, res) => {
     try {
       const storage = await getStorage();

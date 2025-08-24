@@ -15,9 +15,12 @@ interface AreaSelectionProps {
 
 export default function AreaSelection({ state, updateState }: AreaSelectionProps) {
   const { t } = useLanguage();
-  const { data: categories = [], isLoading } = useQuery<Category[]>({
+  const { data: allCategories = [], isLoading } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
+
+  // Filter out subcategories - only show main categories (those without parentId)
+  const categories = allCategories.filter(cat => !cat.parentId);
 
   const selectArea = (category: Category) => {
     console.log('Selected category:', { 
@@ -25,15 +28,30 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
       name: category.name, 
       useShifts: category.useShifts,
       categoryType: category.categoryType,
+      isSubcategoryParent: category.isSubcategoryParent,
       actualType: typeof category.useShifts 
     });
-    updateState({ 
-      selectedArea: category.id, 
-      selectedAreaName: category.name,
-      selectedAreaUseShifts: category.useShifts !== false, // Default to true if not set
-      selectedAreaType: category.categoryType || (category.useShifts !== false ? "shifts" : "simple"),
-      step: 'details' 
-    });
+    
+    // Check if this category has subcategories
+    if (category.isSubcategoryParent) {
+      // If it has subcategories, go to subcategory selection
+      updateState({ 
+        selectedArea: category.id, 
+        selectedAreaName: category.name,
+        selectedAreaHasSubcategories: true,
+        step: 'subcategory' 
+      });
+    } else {
+      // Otherwise, proceed to details
+      updateState({ 
+        selectedArea: category.id, 
+        selectedAreaName: category.name,
+        selectedAreaUseShifts: category.useShifts !== false,
+        selectedAreaType: category.categoryType || (category.useShifts !== false ? "shifts" : "simple"),
+        selectedAreaHasSubcategories: false,
+        step: 'details' 
+      });
+    }
   };
 
   const goBack = () => {
@@ -47,6 +65,7 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
       car: Icons.Car,
       'clipboard-list': Icons.ClipboardList,
       broom: Icons.Brush,
+      briefcase: Icons.Briefcase,
       cog: Icons.Settings,
       users: Icons.Users,
     };

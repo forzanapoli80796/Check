@@ -7,6 +7,7 @@ import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
 import { EmployeeWorkflowState } from "@/lib/types";
 import StoreSelection from "@/components/employee-steps/store-selection";
 import AreaSelection from "@/components/employee-steps/area-selection";
+import SubcategorySelection from "@/components/employee-steps/subcategory-selection";
 import EmployeeDetails from "@/components/employee-steps/employee-details";
 import ShiftPhaseSelection from "@/components/employee-steps/shift-phase-selection";
 import TaskChecklist from "@/components/employee-steps/task-checklist";
@@ -68,6 +69,8 @@ export default function EmployeeWorkflow() {
         return <StoreSelection state={state} updateState={updateState} />;
       case 'area':
         return <AreaSelection state={state} updateState={updateState} />;
+      case 'subcategory':
+        return <SubcategorySelection state={state} updateState={updateState} />;
       case 'details':
         return <EmployeeDetails state={state} updateState={updateState} />;
       case 'shift-phase':
