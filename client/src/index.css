@@ -61,55 +61,248 @@
   }
 }
 
-/* Custom styles for ForzaCheck */
-.step-indicator {
-  @apply bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-medium;
+/* Custom styles for ForzaCheck - PREMIUM DESIGN */
+
+/* Animated Gradient Background */
+.gradient-bg {
+  background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c);
+  background-size: 400% 400%;
+  animation: gradient 15s ease infinite;
 }
 
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Modern Step Indicator with Shadow */
+.step-indicator {
+  @apply bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full w-10 h-10 flex items-center justify-center text-sm font-bold shadow-lg;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+}
+
+/* Stylische Role Buttons mit Gradient und Animation */
 .role-button {
-  @apply w-full p-4 rounded-lg transition-colors flex items-center justify-center space-x-3 text-white font-medium text-lg;
+  @apply w-full p-6 rounded-xl transition-all flex items-center justify-center space-x-3 text-white font-bold text-lg shadow-xl hover:shadow-2xl transform hover:-translate-y-1;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .role-button.mitarbeiter {
-  @apply bg-primary hover:bg-blue-700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.role-button.mitarbeiter:hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b3aa0 100%);
+  transform: translateY(-4px);
 }
 
 .role-button.betriebsleiter {
-  @apply bg-secondary hover:bg-green-700;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.role-button.betriebsleiter:hover {
+  background: linear-gradient(135deg, #e878f2 0%, #f03e56 100%);
+  transform: translateY(-4px);
 }
 
 .role-button.admin {
-  @apply bg-accent hover:bg-orange-600;
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
 }
 
+.role-button.admin:hover {
+  background: linear-gradient(135deg, #f85a7f 0%, #ffd520 100%);
+  transform: translateY(-4px);
+}
+
+.role-button.teig {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.role-button.teig:hover {
+  background: linear-gradient(135deg, #3a9df8 0%, #00d4e6 100%);
+  transform: translateY(-4px);
+}
+
+/* Modern Selection Buttons */
 .selection-button {
-  @apply p-4 border-2 border-gray-200 rounded-lg hover:border-primary hover:bg-blue-50 transition-all flex items-center space-x-3 cursor-pointer;
+  @apply p-4 border-2 border-gray-200 rounded-xl hover:border-purple-400 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 transition-all flex items-center space-x-3 cursor-pointer shadow-sm hover:shadow-lg;
+  transition: all 0.3s ease;
+}
+
+.selection-button:hover {
+  transform: translateX(4px);
 }
 
 .selection-button.selected {
-  @apply border-primary bg-blue-50;
+  @apply border-purple-500 bg-gradient-to-r from-purple-50 to-pink-50 shadow-md;
 }
 
+/* Modern Task Items mit Animation */
 .task-item {
-  @apply flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer;
+  @apply flex items-center p-4 border-2 border-gray-200 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all cursor-pointer shadow-sm hover:shadow-md;
+  transition: all 0.3s ease;
+}
+
+.task-item:hover {
+  transform: translateX(4px);
+  border-color: #a78bfa;
 }
 
 .task-item.completed {
-  @apply bg-green-50 border-secondary;
+  @apply bg-gradient-to-r from-green-50 to-emerald-50 border-green-400 shadow-md;
+  animation: checkComplete 0.5s ease;
 }
 
+@keyframes checkComplete {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Priority Badge Styles */
+.priority-high {
+  @apply bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md;
+}
+
+.priority-medium {
+  @apply bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md;
+}
+
+.priority-low {
+  @apply bg-gradient-to-r from-green-400 to-teal-400 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md;
+}
+
+/* Modern Stats Cards mit Gradient */
 .stats-card {
-  @apply bg-card p-6 rounded-lg shadow-md;
+  @apply bg-white p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all;
+  background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%);
+  border: 1px solid rgba(147, 51, 234, 0.1);
 }
 
+.stats-card:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #ffffff 0%, #faf5ff 100%);
+}
+
+/* Stylische Admin Tabs */
 .admin-tab {
-  @apply py-4 px-4 border-b-2 font-medium transition-colors cursor-pointer whitespace-nowrap;
+  @apply py-4 px-6 border-b-4 font-bold transition-all cursor-pointer whitespace-nowrap rounded-t-lg;
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-tab:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(147, 51, 234, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.admin-tab:hover:before {
+  left: 100%;
 }
 
 .admin-tab.active {
-  @apply border-primary text-primary;
+  @apply text-purple-600;
+  border-image: linear-gradient(90deg, #7c3aed, #ec4899) 1;
+  background: linear-gradient(to bottom, rgba(147, 51, 234, 0.05), transparent);
 }
 
 .admin-tab:not(.active) {
-  @apply border-transparent text-gray-500 hover:text-gray-700;
+  @apply border-transparent text-gray-600 hover:text-purple-500;
+}
+
+/* Card Hover Effects */
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-2xl;
+  background: linear-gradient(145deg, #ffffff, #f3f4f6);
+}
+
+.card-hover:hover {
+  transform: translateY(-4px) rotateX(2deg);
+  background: linear-gradient(145deg, #ffffff, #faf5ff);
+}
+
+/* Fancy Loading Animation */
+@keyframes pulse-gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.loading-gradient {
+  background: linear-gradient(90deg, #f3f4f6, #e5e7eb, #f3f4f6);
+  background-size: 200% 100%;
+  animation: pulse-gradient 1.5s ease infinite;
+}
+
+/* Success Animation */
+.success-checkmark {
+  animation: successPop 0.6s ease;
+}
+
+@keyframes successPop {
+  0% { transform: scale(0) rotate(45deg); opacity: 0; }
+  50% { transform: scale(1.2) rotate(-10deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* Error Shake Animation */
+.error-shake {
+  animation: shake 0.5s;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+/* Floating Action Button */
+.fab {
+  @apply fixed bottom-8 right-8 w-14 h-14 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-2xl flex items-center justify-center transition-all;
+  animation: float 3s ease-in-out infinite;
+}
+
+.fab:hover {
+  box-shadow: 0 20px 40px rgba(147, 51, 234, 0.4);
+  transform: scale(1.1);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Blob Animation für Background */
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
 }

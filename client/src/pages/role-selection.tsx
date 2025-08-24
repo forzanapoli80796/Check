@@ -26,8 +26,15 @@ export default function RoleSelection() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
-      <div className="max-w-md w-full mx-auto px-4">
+    <div className="min-h-screen gradient-bg flex flex-col items-center justify-center relative overflow-hidden">
+      {/* Animated Background Circles */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-40 left-40 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+      </div>
+      
+      <div className="max-w-md w-full mx-auto px-4 relative z-10">
         {/* Logo */}
         <div className="text-center mb-12">
           <img 
@@ -47,10 +54,10 @@ export default function RoleSelection() {
         <div className="space-y-4">
           <button
             onClick={() => selectRole('mitarbeiter')}
-            className="w-full flex items-center p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200"
+            className="role-button mitarbeiter"
           >
-            <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mr-4">
-              <User className="text-white" size={24} />
+            <div className="w-12 h-12 bg-white bg-opacity-30 rounded-full flex items-center justify-center">
+              <User className="text-white drop-shadow-lg" size={28} />
             </div>
             <div className="text-left">
               <span className="text-lg font-medium text-gray-900 block">
@@ -64,10 +71,10 @@ export default function RoleSelection() {
           
           <button
             onClick={() => selectRole('betriebsleiter')}
-            className="w-full flex items-center p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200"
+            className="role-button betriebsleiter"
           >
-            <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mr-4">
-              <Shield className="text-white" size={24} />
+            <div className="w-12 h-12 bg-white bg-opacity-30 rounded-full flex items-center justify-center">
+              <Shield className="text-white drop-shadow-lg" size={28} />
             </div>
             <div className="text-left">
               <span className="text-lg font-medium text-gray-900 block">
@@ -81,10 +88,10 @@ export default function RoleSelection() {
           
           <button
             onClick={() => selectRole('teig')}
-            className="w-full flex items-center p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200"
+            className="role-button teig"
           >
-            <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center mr-4">
-              <Cookie className="text-white" size={24} />
+            <div className="w-12 h-12 bg-white bg-opacity-30 rounded-full flex items-center justify-center">
+              <Cookie className="text-white drop-shadow-lg" size={28} />
             </div>
             <div className="text-left">
               <span className="text-lg font-medium text-gray-900 block">
@@ -98,10 +105,10 @@ export default function RoleSelection() {
           
           <button
             onClick={() => selectRole('admin')}
-            className="w-full flex items-center p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200"
+            className="role-button admin"
           >
-            <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mr-4">
-              <Settings className="text-white" size={24} />
+            <div className="w-12 h-12 bg-white bg-opacity-30 rounded-full flex items-center justify-center">
+              <Settings className="text-white drop-shadow-lg" size={28} />
             </div>
             <div className="text-left">
               <span className="text-lg font-medium text-gray-900 block">
