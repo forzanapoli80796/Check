@@ -19,57 +19,55 @@ function calculateOptimalLoads(targetAmount: number): { loads: MachineLoad[], to
   const machineSizes = [120, 110, 60, 55];
   
   let bestCombination: MachineLoad[] = [];
-  let bestTotal = Infinity;
-  let bestReserve = Infinity;
+  let bestTotal = targetAmount + 1000; // Start mit hohem Wert
+  let bestReserve = 1000;
   
-  // Rekursive Funktion um die beste Kombination zu finden
-  function findBestCombination(remaining: number, currentLoads: MachineLoad[], startIndex: number = 0): void {
-    // Wenn wir genug Kugeln haben
-    if (remaining <= 0) {
-      const total = currentLoads.reduce((sum, load) => sum + (load.size * load.count), 0);
-      const reserve = total - targetAmount;
-      
-      // Nur akzeptieren wenn Reserve >= 0 und kleiner als bisherige beste
-      if (reserve >= 0 && reserve < bestReserve) {
-        bestCombination = currentLoads.map(load => ({...load}));
-        bestTotal = total;
-        bestReserve = reserve;
-      }
-      return;
-    }
-    
-    // Versuche jede Maschinengröße ab startIndex
-    for (let i = startIndex; i < machineSizes.length; i++) {
-      const size = machineSizes[i];
-      
-      // Berechne wie viele Ladungen dieser Größe wir maximal brauchen könnten
-      const maxCount = Math.ceil(remaining / size);
-      
-      // Versuche verschiedene Anzahlen (1 bis maxCount, aber limitiert auf 10)
-      for (let count = 1; count <= Math.min(maxCount, 10); count++) {
-        const newLoads = [...currentLoads];
-        const existingLoad = newLoads.find(l => l.size === size);
-        
-        if (existingLoad) {
-          existingLoad.count += count;
-        } else {
-          newLoads.push({ size, count });
+  // Berechne maximale Anzahl für jede Maschinengröße
+  const maxCounts = machineSizes.map(size => Math.ceil(targetAmount / size) + 1);
+  
+  // Systematisch alle Kombinationen durchprobieren
+  // Verwende verschachtelte Schleifen für alle möglichen Kombinationen
+  for (let count120 = 0; count120 <= Math.min(maxCounts[0], 15); count120++) {
+    for (let count110 = 0; count110 <= Math.min(maxCounts[1], 15); count110++) {
+      for (let count60 = 0; count60 <= Math.min(maxCounts[2], 15); count60++) {
+        for (let count55 = 0; count55 <= Math.min(maxCounts[3], 15); count55++) {
+          // Überspringe wenn keine Maschinen verwendet werden
+          if (count120 === 0 && count110 === 0 && count60 === 0 && count55 === 0) continue;
+          
+          // Berechne Gesamtproduktion
+          const total = count120 * 120 + count110 * 110 + count60 * 60 + count55 * 55;
+          
+          // Wenn diese Kombination das Ziel erreicht und besser ist als die bisherige
+          if (total >= targetAmount) {
+            const reserve = total - targetAmount;
+            
+            // Prüfe ob dies die beste Lösung ist (kleinste Reserve)
+            if (reserve < bestReserve) {
+              bestCombination = [];
+              if (count120 > 0) bestCombination.push({ size: 120, count: count120 });
+              if (count110 > 0) bestCombination.push({ size: 110, count: count110 });
+              if (count60 > 0) bestCombination.push({ size: 60, count: count60 });
+              if (count55 > 0) bestCombination.push({ size: 55, count: count55 });
+              bestTotal = total;
+              bestReserve = reserve;
+              
+              // Wenn perfekte Lösung gefunden (Reserve = 0), können wir aufhören
+              if (reserve === 0) {
+                return { loads: bestCombination, total: bestTotal, reserve: bestReserve };
+              }
+            }
+          }
         }
-        
-        findBestCombination(remaining - (size * count), newLoads, i);
       }
     }
   }
   
-  // Starte die Suche
-  findBestCombination(targetAmount, []);
-  
-  // Fallback: Wenn keine optimale Lösung gefunden wurde, verwende einen einfachen Greedy-Ansatz
-  if (bestCombination.length === 0 || bestReserve > targetAmount * 0.5) {
+  // Fallback falls keine Lösung gefunden wurde (sollte nicht passieren)
+  if (bestCombination.length === 0) {
     const loads: MachineLoad[] = [];
     let remaining = targetAmount;
     
-    // Verwende größte Maschinen zuerst
+    // Greedy Ansatz als Fallback
     for (const size of machineSizes) {
       if (remaining >= size) {
         const count = Math.floor(remaining / size);
@@ -80,9 +78,8 @@ function calculateOptimalLoads(targetAmount: number): { loads: MachineLoad[], to
       }
     }
     
-    // Füge eine weitere Ladung hinzu um den Rest abzudecken
+    // Füge eine Maschine hinzu für den Rest
     if (remaining > 0) {
-      // Finde die kleinste Maschine die den Rest abdeckt
       for (const size of machineSizes) {
         if (size >= remaining) {
           const existingLoad = loads.find(l => l.size === size);
@@ -91,12 +88,11 @@ function calculateOptimalLoads(targetAmount: number): { loads: MachineLoad[], to
           } else {
             loads.push({ size, count: 1 });
           }
-          remaining = 0;
           break;
         }
       }
       
-      // Wenn immer noch Rest, verwende die kleinste Maschine
+      // Notfall: verwende kleinste Maschine
       if (remaining > 0) {
         const existingLoad = loads.find(l => l.size === 55);
         if (existingLoad) {
@@ -108,13 +104,8 @@ function calculateOptimalLoads(targetAmount: number): { loads: MachineLoad[], to
     }
     
     const total = loads.reduce((sum, load) => sum + (load.size * load.count), 0);
-    bestCombination = loads;
-    bestTotal = total;
-    bestReserve = total - targetAmount;
+    return { loads, total, reserve: total - targetAmount };
   }
-  
-  // Sortiere nach Größe (absteigend)
-  bestCombination.sort((a, b) => b.size - a.size);
   
   return { loads: bestCombination, total: bestTotal, reserve: bestReserve };
 }
