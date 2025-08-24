@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Cookie, MapPin, Calendar } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
 import { TeigProduction } from "@shared/schema";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -10,8 +9,11 @@ interface TeigOverviewProps {
   selectedStore?: string;
 }
 
-function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0];
+function getWeekday(date: Date): number {
+  // Convert JavaScript day (0=Sunday, 1=Monday, ..., 6=Saturday)
+  // to our system (1=Monday, 2=Tuesday, ..., 7=Sunday)
+  const jsDay = date.getDay();
+  return jsDay === 0 ? 7 : jsDay;
 }
 
 function formatDisplayDate(date: Date, language: string): string {
@@ -29,26 +31,15 @@ export default function TeigOverview({ selectedStore }: TeigOverviewProps) {
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
   
-  const todayStr = formatDate(today);
-  const tomorrowStr = formatDate(tomorrow);
+  const todayWeekday = getWeekday(today);
+  const tomorrowWeekday = getWeekday(tomorrow);
 
-  const { data: todayProductions = [], isLoading: todayLoading } = useQuery({
-    queryKey: ['/api/teig-production', todayStr],
-    queryFn: async () => {
-      const response = await fetch(`/api/teig-production?date=${todayStr}`);
-      return response.json();
-    },
+  // Fetch all teig production data
+  const { data: allProductions = [], isLoading } = useQuery<TeigProduction[]>({
+    queryKey: ['/api/teig-production'],
   });
 
-  const { data: tomorrowProductions = [], isLoading: tomorrowLoading } = useQuery({
-    queryKey: ['/api/teig-production', tomorrowStr],
-    queryFn: async () => {
-      const response = await fetch(`/api/teig-production?date=${tomorrowStr}`);
-      return response.json();
-    },
-  });
-
-  if (todayLoading || tomorrowLoading) {
+  if (isLoading) {
     return (
       <Card>
         <CardContent className="pt-6">
@@ -58,10 +49,11 @@ export default function TeigOverview({ selectedStore }: TeigOverviewProps) {
     );
   }
 
-  // Filter by selected store if provided for today
-  const todayRelevantProductions = Array.isArray(todayProductions) ? (selectedStore 
+  // Filter productions for today
+  const todayProductions = allProductions.filter(p => p.weekday === todayWeekday);
+  const todayRelevantProductions = selectedStore 
     ? todayProductions.filter((p: TeigProduction) => p.store === selectedStore)
-    : todayProductions) : [];
+    : todayProductions;
 
   const todayTotalKugeln = todayRelevantProductions.reduce((sum: number, production: TeigProduction) => 
     sum + production.kugelMenge, 0
@@ -72,10 +64,11 @@ export default function TeigOverview({ selectedStore }: TeigOverviewProps) {
     return acc;
   }, {});
 
-  // Filter by selected store if provided for tomorrow
-  const tomorrowRelevantProductions = Array.isArray(tomorrowProductions) ? (selectedStore 
+  // Filter productions for tomorrow
+  const tomorrowProductions = allProductions.filter(p => p.weekday === tomorrowWeekday);
+  const tomorrowRelevantProductions = selectedStore 
     ? tomorrowProductions.filter((p: TeigProduction) => p.store === selectedStore)
-    : tomorrowProductions) : [];
+    : tomorrowProductions;
 
   const tomorrowTotalKugeln = tomorrowRelevantProductions.reduce((sum: number, production: TeigProduction) => 
     sum + production.kugelMenge, 0
