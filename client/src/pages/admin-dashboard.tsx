@@ -4,14 +4,13 @@ import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-import { ArrowLeft, Cookie, Palette } from "lucide-react";
+import { ArrowLeft, Cookie } from "lucide-react";
 import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
 import SubmittedLists from "@/components/admin-tabs/submitted-lists";
 import CategoriesManagement from "@/components/admin-tabs/categories-management";
 import TasksManagement from "@/components/admin-tabs/tasks-management";
 import ErrorBoundary from "@/components/error-boundary";
 import TeigManagement from "@/components/teig-management";
-import DesignManager from "@/components/admin-tabs/design-manager";
 import { AdminTabState } from "@/lib/types";
 
 
@@ -47,12 +46,6 @@ export default function AdminDashboard() {
             <TeigManagement />
           </ErrorBoundary>
         );
-      case 'design':
-        return (
-          <ErrorBoundary>
-            <DesignManager />
-          </ErrorBoundary>
-        );
       default:
         return (
           <ErrorBoundary>
@@ -63,13 +56,13 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen napoli-pattern flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Logo Header */}
-      <div className="flex justify-center py-6 bg-white bg-opacity-90">
+      <div className="flex justify-center py-6">
         <img 
           src={forzaCheckLogo} 
           alt="ForzaCheck Logo" 
-          className="h-20 object-contain"
+          className="h-16 object-contain"
         />
       </div>
       
@@ -104,13 +97,6 @@ export default function AdminDashboard() {
               className={`admin-tab ${activeTab === 'teig' ? 'active' : ''}`}
             >
               Teig-Planung
-            </button>
-            <button
-              onClick={() => setActiveTab('design')}
-              className={`admin-tab flex items-center gap-2 ${activeTab === 'design' ? 'active' : ''}`}
-            >
-              <Palette className="h-4 w-4" />
-              Design Manager
             </button>
           </nav>
         </div>

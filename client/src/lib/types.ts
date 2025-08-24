@@ -20,7 +20,7 @@ export interface EmployeeWorkflowState {
 }
 
 export interface AdminTabState {
-  activeTab: 'submitted' | 'categories' | 'tasks' | 'teig' | 'design';
+  activeTab: 'submitted' | 'categories' | 'tasks' | 'teig';
 }
 
 export const STORES = ['JP23', 'KP5', 'TS17'] as const;
