@@ -49,6 +49,7 @@ export const checklists = pgTable("checklists", {
   newBalls: integer("new_balls"), // Spätschicht: How many are new
   lunchShiftDate: date("lunch_shift_date"), // Mittagsschicht Mengenformular: selected date
   ballsForToday: integer("balls_for_today"), // Mittagsschicht: How many balls for today
+  completionDate: date("completion_date"), // Betriebsleiter: When tasks were actually completed
   submittedAt: timestamp("submitted_at").defaultNow(),
 });
 
