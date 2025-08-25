@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,6 @@ import { ArrowLeft } from "lucide-react";
 import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
 import TeigOverview from "@/components/teig-overview";
 import IdealeZubereitung from "@/components/ideale-zubereitung";
-import { STORES } from "@/lib/types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { TeigProduction } from "@shared/schema";
 
@@ -18,7 +16,6 @@ function getWeekday(date: Date): number {
 export default function TeigDashboard() {
   const [, navigate] = useLocation();
   const { t } = useLanguage();
-  const [selectedStore, setSelectedStore] = useState<string>('');
   
   const today = new Date();
   const todayWeekday = getWeekday(today);
@@ -28,17 +25,12 @@ export default function TeigDashboard() {
     queryKey: ['/api/teig-production'],
   });
   
-  // Calculate today's total for Ideale Zubereitung
+  // Calculate today's total for Ideale Zubereitung - always for all stores
   const todayProductions = allProductions.filter(p => p.weekday === todayWeekday);
-  const todayRelevantProductions = selectedStore 
-    ? todayProductions.filter((p: TeigProduction) => p.store === selectedStore)
-    : todayProductions;
   
-  const todayTotalKugeln = todayRelevantProductions.reduce((sum: number, production: TeigProduction) => 
+  const todayTotalKugeln = todayProductions.reduce((sum: number, production: TeigProduction) => 
     sum + production.kugelMenge, 0
   );
-  
-  const relevantStores = selectedStore ? [selectedStore] : [...STORES];
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -53,40 +45,17 @@ export default function TeigDashboard() {
       
       <div className="flex-1">
         <div className="max-w-4xl mx-auto px-4 py-6">
-          {/* Store-Auswahl */}
-          <div className="mb-6">
-            <div className="flex items-center space-x-4">
-              <span className="font-medium">{t.employee.storeSelection.selectStore}:</span>
-              {STORES.map((store) => (
-                <Button
-                  key={store}
-                  variant={selectedStore === store ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedStore(store)}
-                >
-                  {store}
-                </Button>
-              ))}
-              <Button
-                variant={selectedStore === '' ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedStore('')}
-              >
-                {t.teig.allStores}
-              </Button>
-            </div>
-          </div>
 
           <div className="space-y-6">
             {/* Ideale Zubereitung für heute */}
             <IdealeZubereitung 
               kugelMenge={todayTotalKugeln}
-              stores={relevantStores}
+              stores={[]}
               showDetails={true}
             />
             
             {/* Teig-Übersicht */}
-            <TeigOverview selectedStore={selectedStore || undefined} />
+            <TeigOverview selectedStore={undefined} />
           </div>
         </div>
       </div>
