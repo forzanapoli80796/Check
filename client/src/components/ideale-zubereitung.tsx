@@ -234,7 +234,7 @@ export default function IdealeZubereitung({ kugelMenge, stores, showDetails = tr
         </div>
         
         {/* Reserve Distribution */}
-        {showDetails && stores.length > 0 && reserve > 0 && (
+        {showDetails && stores.length > 0 && (
           <div className="border-t pt-4">
             <div className="flex items-center text-sm font-medium text-gray-700 mb-2">
               <Store className="mr-1" size={16} />
