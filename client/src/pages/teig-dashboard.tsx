@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
 import TeigOverview from "@/components/teig-overview";
 import IdealeZubereitung from "@/components/ideale-zubereitung";
+import { STORES } from "@/lib/types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { TeigProduction } from "@shared/schema";
 
@@ -50,7 +51,7 @@ export default function TeigDashboard() {
             {/* Ideale Zubereitung für heute */}
             <IdealeZubereitung 
               kugelMenge={todayTotalKugeln}
-              stores={[]}
+              stores={STORES}
               showDetails={true}
             />
             

@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, Package } from "lucide-react";
+import { Calculator, Package, Store } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface IdealeZubereitungProps {
@@ -168,6 +168,8 @@ export default function IdealeZubereitung({ kugelMenge, stores, showDetails = tr
   }
   
   const { loads, total, reserve } = calculateOptimalLoads(kugelMenge);
+  const reservePerStore = stores.length > 0 ? Math.floor(reserve / stores.length) : 0;
+  const remainingReserve = stores.length > 0 ? reserve % stores.length : reserve;
   
   return (
     <Card>
@@ -231,13 +233,36 @@ export default function IdealeZubereitung({ kugelMenge, stores, showDetails = tr
           </div>
         </div>
         
+        {/* Reserve Distribution */}
+        {showDetails && stores.length > 0 && reserve > 0 && (
+          <div className="border-t pt-4">
+            <div className="flex items-center text-sm font-medium text-gray-700 mb-2">
+              <Store className="mr-1" size={16} />
+              {language === 'de' ? 'Reserveverteilung pro Store' : 'Reserve distribution per store'}:
+            </div>
+            
+            <div className="grid grid-cols-3 gap-2 text-sm">
+              {stores.map((store, index) => (
+                <div 
+                  key={store}
+                  className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                >
+                  <span className="font-medium">{store}:</span>
+                  <span className="text-gray-600">
+                    +{reservePerStore + (index < remainingReserve ? 1 : 0)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         
         {/* Explanation */}
         {showDetails && (
           <div className="text-xs text-gray-500 italic pt-2 border-t">
             {language === 'de' 
-              ? 'Die Berechnung erfolgt für die gesamte Teigproduktion aller Stores. Die Reserve wird so klein wie möglich gehalten.'
-              : 'The calculation is done for the total dough production of all stores. The reserve is kept as small as possible.'}
+              ? 'Die Berechnung erfolgt für die gesamte Teigproduktion aller Stores. Die Reserve wird gleichmäßig auf alle Stores verteilt.'
+              : 'The calculation is done for the total dough production of all stores. The reserve is distributed evenly across all stores.'}
           </div>
         )}
       </CardContent>
