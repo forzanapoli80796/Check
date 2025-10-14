@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { getStorage } from "./storage";
-import { insertCategorySchema, insertTaskSchema, insertChecklistSchema, insertTeigProductionSchema, insertInventoryItemSchema, insertTicketSchema } from "@shared/schema";
+import { insertCategorySchema, insertTaskSchema, insertChecklistSchema, insertTeigProductionSchema, insertInventoryItemSchema, insertTicketSchema, insertEmployeeNoteSchema } from "@shared/schema";
 import { z } from "zod";
 import {
   ObjectStorageService,
@@ -463,6 +463,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       res.status(400).json({ message: "Invalid comment data" });
     }
+  });
+
+  // Employee Notes routes
+  app.get("/api/employee-notes", async (req, res) => {
+    const storage = await getStorage();
+    const notes = await storage.getEmployeeNotes();
+    res.json(notes);
+  });
+
+  app.get("/api/employee-notes/:id", async (req, res) => {
+    const storage = await getStorage();
+    const note = await storage.getEmployeeNoteById(req.params.id);
+    if (!note) {
+      return res.status(404).json({ message: "Note not found" });
+    }
+    res.json(note);
+  });
+
+  app.post("/api/employee-notes", async (req, res) => {
+    try {
+      const storage = await getStorage();
+      const validatedData = insertEmployeeNoteSchema.parse(req.body);
+      const note = await storage.createEmployeeNote(validatedData);
+      res.json(note);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid note data" });
+    }
+  });
+
+  app.delete("/api/employee-notes/:id", async (req, res) => {
+    const storage = await getStorage();
+    const success = await storage.deleteEmployeeNote(req.params.id);
+    if (!success) {
+      return res.status(404).json({ message: "Note not found" });
+    }
+    res.json({ success: true });
   });
 
   return createServer(app);

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -48,6 +48,7 @@ export function TicketsView({ state, updateState }: TicketsViewProps) {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [newComment, setNewComment] = useState("");
+  const [employeeNote, setEmployeeNote] = useState("");
   const { toast } = useToast();
 
   // Fetch tickets for this store and category
@@ -110,6 +111,33 @@ export function TicketsView({ state, updateState }: TicketsViewProps) {
       toast({
         title: "Fehler",
         description: "Kommentar konnte nicht hinzugefügt werden.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Add employee note mutation
+  const addNoteMutation = useMutation({
+    mutationFn: async (message: string) => {
+      const response = await apiRequest("POST", "/api/employee-notes", {
+        message,
+        employeeName: state.employeeName,
+        store: state.selectedStore,
+        categoryId: state.selectedArea,
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      setEmployeeNote("");
+      toast({
+        title: "Nachricht gesendet",
+        description: "Ihre Nachricht wurde erfolgreich an den Admin gesendet.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Fehler",
+        description: "Nachricht konnte nicht gesendet werden.",
         variant: "destructive",
       });
     },
@@ -272,6 +300,41 @@ export function TicketsView({ state, updateState }: TicketsViewProps) {
               </Button>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Employee Notes Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Nachricht an Admin</CardTitle>
+          <CardDescription>
+            Senden Sie eine Nachricht oder einen Hinweis an den Administrator
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <Textarea
+              placeholder="Geben Sie hier Ihre Nachricht ein..."
+              value={employeeNote}
+              onChange={(e) => setEmployeeNote(e.target.value)}
+              rows={4}
+              className="w-full"
+              data-testid="textarea-employee-note"
+            />
+            <Button
+              onClick={() => {
+                if (employeeNote.trim()) {
+                  addNoteMutation.mutate(employeeNote.trim());
+                }
+              }}
+              disabled={!employeeNote.trim() || addNoteMutation.isPending}
+              className="w-full"
+              data-testid="button-send-note"
+            >
+              <Send className="w-4 h-4 mr-2" />
+              {addNoteMutation.isPending ? "Sende..." : "Nachricht senden"}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

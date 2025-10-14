@@ -1,7 +1,7 @@
-import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist, type TeigProduction, type InsertTeigProduction, type InventoryItem, type InsertInventoryItem, type Ticket, type InsertTicket } from "@shared/schema";
+import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist, type TeigProduction, type InsertTeigProduction, type InventoryItem, type InsertInventoryItem, type Ticket, type InsertTicket, type EmployeeNote, type InsertEmployeeNote } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { categories, tasks, checklists, teigProduction, inventoryItems, tickets } from "@shared/schema";
+import { categories, tasks, checklists, teigProduction, inventoryItems, tickets, employeeNotes } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 
 export interface IStorage {
@@ -50,6 +50,12 @@ export interface IStorage {
   updateTicket(id: string, ticket: Partial<InsertTicket>): Promise<Ticket | undefined>;
   deleteTicket(id: string): Promise<boolean>;
   addTicketComment(id: string, comment: { user: string; comment: string; timestamp: Date }): Promise<Ticket | undefined>;
+  
+  // Employee Notes
+  getEmployeeNotes(): Promise<EmployeeNote[]>;
+  getEmployeeNoteById(id: string): Promise<EmployeeNote | undefined>;
+  createEmployeeNote(note: InsertEmployeeNote): Promise<EmployeeNote>;
+  deleteEmployeeNote(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -423,6 +429,33 @@ export class DatabaseStorage implements IStorage {
     
     return updatedTicket || undefined;
   }
+
+  // Employee Notes methods
+  async getEmployeeNotes(): Promise<EmployeeNote[]> {
+    return await db.select().from(employeeNotes).orderBy(sql`${employeeNotes.createdAt} DESC`);
+  }
+
+  async getEmployeeNoteById(id: string): Promise<EmployeeNote | undefined> {
+    const [note] = await db.select().from(employeeNotes).where(eq(employeeNotes.id, id));
+    return note || undefined;
+  }
+
+  async createEmployeeNote(insertNote: InsertEmployeeNote): Promise<EmployeeNote> {
+    const [note] = await db
+      .insert(employeeNotes)
+      .values({
+        ...insertNote,
+        id: randomUUID(),
+        createdAt: new Date(),
+      })
+      .returning();
+    return note;
+  }
+
+  async deleteEmployeeNote(id: string): Promise<boolean> {
+    const result = await db.delete(employeeNotes).where(eq(employeeNotes.id, id));
+    return (result.rowCount || 0) > 0;
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -432,6 +465,7 @@ export class MemStorage implements IStorage {
   private teigProductions: Map<string, TeigProduction> = new Map();
   private inventoryItems: Map<string, InventoryItem> = new Map();
   private tickets: Map<string, Ticket> = new Map();
+  private employeeNotes: Map<string, EmployeeNote> = new Map();
 
   constructor() {
     this.initializeDefaultData();
@@ -833,6 +867,32 @@ export class MemStorage implements IStorage {
     };
     this.tickets.set(id, updatedTicket);
     return updatedTicket;
+  }
+
+  // Employee Notes methods
+  async getEmployeeNotes(): Promise<EmployeeNote[]> {
+    return Array.from(this.employeeNotes.values()).sort((a, b) =>
+      new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
+    );
+  }
+
+  async getEmployeeNoteById(id: string): Promise<EmployeeNote | undefined> {
+    return this.employeeNotes.get(id);
+  }
+
+  async createEmployeeNote(insertNote: InsertEmployeeNote): Promise<EmployeeNote> {
+    const id = randomUUID();
+    const note: EmployeeNote = {
+      ...insertNote,
+      id,
+      createdAt: new Date(),
+    };
+    this.employeeNotes.set(id, note);
+    return note;
+  }
+
+  async deleteEmployeeNote(id: string): Promise<boolean> {
+    return this.employeeNotes.delete(id);
   }
 }
 

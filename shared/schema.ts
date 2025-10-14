@@ -92,6 +92,16 @@ export const tickets = pgTable("tickets", {
   comments: jsonb("comments").default('[]'), // Array von Kommentaren [{user, comment, timestamp}]
 });
 
+// Mitarbeiter-Notizen für Kugelfahrer-Hausmeister
+export const employeeNotes = pgTable("employee_notes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  message: text("message").notNull(),
+  employeeName: text("employee_name").notNull(),
+  store: text("store").notNull(),
+  categoryId: varchar("category_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertCategorySchema = createInsertSchema(categories).omit({
   id: true,
   createdAt: true,
@@ -125,6 +135,11 @@ export const insertTicketSchema = createInsertSchema(tickets).omit({
   completedAt: true,
 });
 
+export const insertEmployeeNoteSchema = createInsertSchema(employeeNotes).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type Category = typeof categories.$inferSelect;
 
@@ -142,3 +157,6 @@ export type InventoryItem = typeof inventoryItems.$inferSelect;
 
 export type InsertTicket = z.infer<typeof insertTicketSchema>;
 export type Ticket = typeof tickets.$inferSelect;
+
+export type InsertEmployeeNote = z.infer<typeof insertEmployeeNoteSchema>;
+export type EmployeeNote = typeof employeeNotes.$inferSelect;
