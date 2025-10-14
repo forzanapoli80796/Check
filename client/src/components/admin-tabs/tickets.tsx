@@ -60,6 +60,7 @@ const STORES = ["JP23", "KP5", "TS17"];
 const createTicketSchema = z.object({
   description: z.string().min(1, "Aufgabe ist erforderlich"),
   store: z.string().min(1, "Store ist erforderlich"),
+  priority: z.enum(["niedrig", "mittel", "hoch"]).default("mittel"),
   dueDate: z.string().optional(), // ISO date string
   image: z.string().optional(),
 });
@@ -122,6 +123,7 @@ export function TicketsManagement() {
     defaultValues: {
       description: "",
       store: "JP23",
+      priority: "mittel",
       dueDate: "",
       image: "",
     },
@@ -470,6 +472,29 @@ export function TicketsManagement() {
                         {STORES.map(store => (
                           <SelectItem key={store} value={store}>{store}</SelectItem>
                         ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="priority"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Priorität</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-ticket-priority">
+                          <SelectValue placeholder="Priorität wählen" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="niedrig">Niedrig</SelectItem>
+                        <SelectItem value="mittel">Mittel</SelectItem>
+                        <SelectItem value="hoch">Hoch</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
