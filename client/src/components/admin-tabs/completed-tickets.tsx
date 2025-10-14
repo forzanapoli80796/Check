@@ -1,17 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -35,10 +27,6 @@ import type { Ticket } from "@shared/schema";
 
 export function CompletedTickets() {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-  const [filterStore, setFilterStore] = useState<string>("alle");
-  const [filterStartDate, setFilterStartDate] = useState<string>("");
-  const [filterEndDate, setFilterEndDate] = useState<string>("");
-  const [searchTerm, setSearchTerm] = useState("");
 
   // Fetch all completed tickets
   const { data: tickets = [], isLoading } = useQuery<Ticket[]>({
@@ -46,55 +34,15 @@ export function CompletedTickets() {
     queryFn: async () => {
       const response = await fetch("/api/tickets");
       const data = await response.json();
-      // Filter only completed tickets
-      return data.filter((ticket: Ticket) => ticket.status === "erledigt");
+      // Filter only completed tickets and sort by completion date (newest first)
+      return data
+        .filter((ticket: Ticket) => ticket.status === "erledigt")
+        .sort((a: Ticket, b: Ticket) => {
+          if (!a.completedAt || !b.completedAt) return 0;
+          return new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime();
+        });
     },
   });
-
-  // Apply filters
-  const filteredTickets = useMemo(() => {
-    let filtered = tickets;
-
-    // Filter by store
-    if (filterStore !== "alle") {
-      filtered = filtered.filter(ticket => ticket.store === filterStore);
-    }
-
-    // Filter by date range
-    if (filterStartDate && filterEndDate) {
-      filtered = filtered.filter(ticket => {
-        if (!ticket.completedAt) return false;
-        const completedDate = new Date(ticket.completedAt);
-        const start = new Date(filterStartDate);
-        const end = new Date(filterEndDate);
-        end.setHours(23, 59, 59);
-        return completedDate >= start && completedDate <= end;
-      });
-    }
-
-    // Search filter
-    if (searchTerm) {
-      const search = searchTerm.toLowerCase();
-      filtered = filtered.filter(ticket => 
-        ticket.title.toLowerCase().includes(search) ||
-        ticket.description.toLowerCase().includes(search) ||
-        (ticket.assignedTo && ticket.assignedTo.toLowerCase().includes(search))
-      );
-    }
-
-    // Sort by completion date (newest first)
-    return filtered.sort((a, b) => {
-      if (!a.completedAt || !b.completedAt) return 0;
-      return new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime();
-    });
-  }, [tickets, filterStore, filterStartDate, filterEndDate, searchTerm]);
-
-  const resetFilters = () => {
-    setFilterStore("alle");
-    setFilterStartDate("");
-    setFilterEndDate("");
-    setSearchTerm("");
-  };
 
   const getStatusColor = (priority: string) => {
     switch (priority) {
@@ -155,73 +103,15 @@ export function CompletedTickets() {
         </CardContent>
       </Card>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filter</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div>
-              <Label>Store</Label>
-              <Select value={filterStore} onValueChange={setFilterStore}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="alle">Alle Stores</SelectItem>
-                  <SelectItem value="JP23">JP23</SelectItem>
-                  <SelectItem value="KP5">KP5</SelectItem>
-                  <SelectItem value="TS17">TS17</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Von Datum</Label>
-              <Input
-                type="date"
-                value={filterStartDate}
-                onChange={(e) => setFilterStartDate(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <Label>Bis Datum</Label>
-              <Input
-                type="date"
-                value={filterEndDate}
-                onChange={(e) => setFilterEndDate(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <Label>Suche</Label>
-              <Input
-                placeholder="Titel, Beschreibung, Mitarbeiter..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-
-            <div className="flex items-end">
-              <Button variant="outline" onClick={resetFilters} className="w-full">
-                Filter zurücksetzen
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Table */}
       <Card>
         <CardHeader>
           <CardTitle>
-            Erledigte Tickets ({filteredTickets.length})
+            Erledigte Tickets ({tickets.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {filteredTickets.length === 0 ? (
+          {tickets.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               Keine erledigten Tickets gefunden
             </div>
@@ -238,7 +128,7 @@ export function CompletedTickets() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredTickets.map((ticket) => (
+                {tickets.map((ticket) => (
                   <TableRow key={ticket.id}>
                     <TableCell>
                       <div className="flex items-center gap-1">
