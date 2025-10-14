@@ -73,6 +73,23 @@ export const inventoryItems = pgTable("inventory_items", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Tickets-Tabelle für Kugelfahrer-Hausmeister
+export const tickets = pgTable("tickets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  image: text("image"), // Base64 oder URL des Bildes
+  status: text("status", { enum: ["offen", "in_bearbeitung", "erledigt"] }).notNull().default("offen"),
+  priority: text("priority", { enum: ["niedrig", "mittel", "hoch"] }).notNull().default("mittel"),
+  store: text("store").notNull(), // JP23, KP5, TS17
+  createdBy: text("created_by").notNull(), // Admin, der das Ticket erstellt hat
+  assignedTo: text("assigned_to"), // Kugelfahrer-Hausmeister, dem es zugewiesen ist
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  completedAt: timestamp("completed_at"), // Zeitpunkt der Erledigung
+  comments: jsonb("comments").default('[]'), // Array von Kommentaren [{user, comment, timestamp}]
+});
+
 export const insertCategorySchema = createInsertSchema(categories).omit({
   id: true,
   createdAt: true,
@@ -99,6 +116,13 @@ export const insertInventoryItemSchema = createInsertSchema(inventoryItems).omit
   createdAt: true,
 });
 
+export const insertTicketSchema = createInsertSchema(tickets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  completedAt: true,
+});
+
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type Category = typeof categories.$inferSelect;
 
@@ -113,3 +137,6 @@ export type TeigProduction = typeof teigProduction.$inferSelect;
 
 export type InsertInventoryItem = z.infer<typeof insertInventoryItemSchema>;
 export type InventoryItem = typeof inventoryItems.$inferSelect;
+
+export type InsertTicket = z.infer<typeof insertTicketSchema>;
+export type Ticket = typeof tickets.$inferSelect;
