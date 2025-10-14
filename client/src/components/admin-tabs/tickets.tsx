@@ -530,9 +530,16 @@ export function TicketsManagement() {
                       <PopoverContent className="w-auto p-0" align="start">
                         <CalendarComponent
                           mode="single"
-                          selected={field.value ? new Date(field.value) : undefined}
+                          selected={field.value ? new Date(field.value + 'T00:00:00') : undefined}
                           onSelect={(date) => {
-                            field.onChange(date ? date.toISOString().split('T')[0] : "");
+                            if (date) {
+                              const year = date.getFullYear();
+                              const month = String(date.getMonth() + 1).padStart(2, '0');
+                              const day = String(date.getDate()).padStart(2, '0');
+                              field.onChange(`${year}-${month}-${day}`);
+                            } else {
+                              field.onChange("");
+                            }
                           }}
                           initialFocus
                         />
@@ -617,7 +624,7 @@ export function TicketsManagement() {
                   <div>Erstellt am: {format(new Date(selectedTicket.createdAt!), "dd.MM.yyyy HH:mm", { locale: de })}</div>
                   {selectedTicket.dueDate && (
                     <div className="font-semibold text-orange-600">
-                      Fällig bis: {format(new Date(selectedTicket.dueDate), "dd.MM.yyyy", { locale: de })}
+                      Fällig bis: {format(new Date(selectedTicket.dueDate + 'T00:00:00'), "dd.MM.yyyy", { locale: de })}
                     </div>
                   )}
                   {selectedTicket.assignedTo && <div>Zugewiesen an: {selectedTicket.assignedTo}</div>}
