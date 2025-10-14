@@ -395,12 +395,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/tickets", async (req, res) => {
     try {
       const storage = await getStorage();
+      console.log("Received ticket data:", req.body);
       const validatedData = insertTicketSchema.parse(req.body);
+      console.log("Validated ticket data:", validatedData);
       const ticket = await storage.createTicket(validatedData);
       res.json(ticket);
     } catch (error) {
-      console.error("Error creating ticket:", error);
-      res.status(400).json({ message: "Invalid ticket data" });
+      console.error("Error creating ticket - Details:", error);
+      console.error("Request body was:", req.body);
+      res.status(400).json({ message: "Invalid ticket data", error: error instanceof Error ? error.message : "Unknown error" });
     }
   });
 
