@@ -125,7 +125,7 @@ export function TicketsManagement() {
       description: "",
       store: "JP23",
       priority: "mittel",
-      dueDate: "",
+      dueDate: new Date().toISOString(), // Automatisch aktuelle Zeit setzen
       image: "",
     },
   });
@@ -175,7 +175,13 @@ export function TicketsManagement() {
         description: "Ticket wurde erfolgreich erstellt",
       });
       setShowCreateDialog(false);
-      form.reset();
+      form.reset({
+        description: "",
+        store: "JP23",
+        priority: "mittel",
+        dueDate: new Date().toISOString(),
+        image: "",
+      });
     },
     onError: () => {
       toast({
@@ -426,7 +432,19 @@ export function TicketsManagement() {
       )}
 
       {/* Dialog für neues Ticket */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+      <Dialog open={showCreateDialog} onOpenChange={(open) => {
+        if (open) {
+          // Beim Öffnen des Dialogs die aktuelle Zeit setzen
+          form.reset({
+            description: "",
+            store: "JP23",
+            priority: "mittel",
+            dueDate: new Date().toISOString(),
+            image: "",
+          });
+        }
+        setShowCreateDialog(open);
+      }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Neues Ticket erstellen</DialogTitle>
@@ -507,64 +525,17 @@ export function TicketsManagement() {
                 name="dueDate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Fälligkeitsdatum und Uhrzeit (optional)</FormLabel>
+                    <FormLabel>Ticketeröffnung</FormLabel>
                     <div className="flex gap-2">
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "flex-1 pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                              data-testid="button-ticket-due-date"
-                            >
-                              {field.value ? (
-                                format(new Date(field.value), "dd.MM.yyyy HH:mm", { locale: de })
-                              ) : (
-                                <span>Datum und Uhrzeit wählen</span>
-                              )}
-                              <Calendar className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-4" align="start">
-                          <div className="space-y-4">
-                            <CalendarComponent
-                              mode="single"
-                              selected={field.value ? new Date(field.value) : undefined}
-                              onSelect={(date) => {
-                                if (date) {
-                                  // Default time: 12:00
-                                  date.setHours(12, 0, 0, 0);
-                                  field.onChange(date.toISOString());
-                                } else {
-                                  field.onChange("");
-                                }
-                              }}
-                              initialFocus
-                            />
-                            {field.value && (
-                              <div className="flex gap-2 items-center">
-                                <Label>Uhrzeit:</Label>
-                                <Input
-                                  type="time"
-                                  defaultValue={format(new Date(field.value), "HH:mm")}
-                                  onChange={(e) => {
-                                    const currentDate = new Date(field.value);
-                                    const [hours, minutes] = e.target.value.split(':');
-                                    currentDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-                                    field.onChange(currentDate.toISOString());
-                                  }}
-                                  className="w-24"
-                                />
-                              </div>
-                            )}
-                          </div>
-                        </PopoverContent>
-                      </Popover>
+                      <Input
+                        value={field.value ? format(new Date(field.value), "dd.MM.yyyy HH:mm", { locale: de }) : ""}
+                        disabled
+                        className="flex-1"
+                        data-testid="input-ticket-creation-time"
+                      />
+                      <Clock className="h-4 w-4 mt-3 opacity-50" />
                     </div>
+                    <p className="text-xs text-muted-foreground">Zeitstempel wird automatisch gesetzt</p>
                     <FormMessage />
                   </FormItem>
                 )}
