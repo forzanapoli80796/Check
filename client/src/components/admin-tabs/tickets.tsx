@@ -158,7 +158,8 @@ export function TicketsManagement() {
       
       console.log('Sending ticket data:', ticketData);
       
-      return await apiRequest("/api/tickets", "POST", ticketData);
+      const response = await apiRequest("POST", "/api/tickets", ticketData);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
