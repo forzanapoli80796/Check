@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -31,7 +32,9 @@ import {
   MessageSquare,
   Send,
   Image,
-  ArrowLeft
+  ArrowLeft,
+  Upload,
+  X
 } from "lucide-react";
 import type { Ticket } from "@shared/schema";
 
@@ -49,6 +52,9 @@ export function TicketsView({ state, updateState }: TicketsViewProps) {
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [employeeNote, setEmployeeNote] = useState("");
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   // Fetch tickets for this store and category
@@ -118,17 +124,22 @@ export function TicketsView({ state, updateState }: TicketsViewProps) {
 
   // Add employee note mutation
   const addNoteMutation = useMutation({
-    mutationFn: async (message: string) => {
+    mutationFn: async ({ message, imageUrl }: { message: string; imageUrl?: string }) => {
       const response = await apiRequest("POST", "/api/employee-notes", {
         message,
         employeeName: state.employeeName,
         store: state.selectedStore,
         categoryId: state.selectedArea,
+        imageUrl,
       });
       return response.json();
     },
     onSuccess: () => {
       setEmployeeNote("");
+      setSelectedImage(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
       toast({
         title: "Nachricht gesendet",
         description: "Ihre Nachricht wurde erfolgreich an den Admin gesendet.",
@@ -142,6 +153,65 @@ export function TicketsView({ state, updateState }: TicketsViewProps) {
       });
     },
   });
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Fehler",
+          description: "Das Bild darf maximal 5MB groß sein.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadImage = async (imageData: string): Promise<string | null> => {
+    try {
+      setUploadingImage(true);
+      const response = await apiRequest("POST", "/api/upload/employee-note-image", {
+        image: imageData,
+      });
+      const data = await response.json();
+      return data.imageUrl;
+    } catch (error) {
+      console.error("Failed to upload image:", error);
+      return null;
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleSendNote = async () => {
+    if (!employeeNote.trim() && !selectedImage) {
+      return;
+    }
+
+    let imageUrl: string | undefined;
+    if (selectedImage) {
+      const uploadedUrl = await uploadImage(selectedImage);
+      if (uploadedUrl) {
+        imageUrl = uploadedUrl;
+      } else {
+        toast({
+          title: "Fehler",
+          description: "Bild konnte nicht hochgeladen werden.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    addNoteMutation.mutate({ message: employeeNote.trim(), imageUrl });
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -308,7 +378,7 @@ export function TicketsView({ state, updateState }: TicketsViewProps) {
         <CardHeader>
           <CardTitle>Nachricht an Admin</CardTitle>
           <CardDescription>
-            Senden Sie eine Nachricht oder einen Hinweis an den Administrator
+            Senden Sie eine Nachricht oder einen Hinweis mit optionalem Bild an den Administrator
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -321,18 +391,63 @@ export function TicketsView({ state, updateState }: TicketsViewProps) {
               className="w-full"
               data-testid="textarea-employee-note"
             />
+            
+            {/* Image Upload Section */}
+            <div className="space-y-2">
+              <Input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={handleImageSelect}
+                className="hidden"
+                data-testid="input-image-upload"
+              />
+              
+              {!selectedImage ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full"
+                  data-testid="button-select-image"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Bild hinzufügen (optional)
+                </Button>
+              ) : (
+                <div className="relative p-2 border rounded">
+                  <img 
+                    src={selectedImage} 
+                    alt="Ausgewähltes Bild" 
+                    className="w-full h-40 object-cover rounded"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-4 right-4"
+                    onClick={() => {
+                      setSelectedImage(null);
+                      if (fileInputRef.current) {
+                        fileInputRef.current.value = "";
+                      }
+                    }}
+                    data-testid="button-remove-image"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+            
             <Button
-              onClick={() => {
-                if (employeeNote.trim()) {
-                  addNoteMutation.mutate(employeeNote.trim());
-                }
-              }}
-              disabled={!employeeNote.trim() || addNoteMutation.isPending}
+              onClick={handleSendNote}
+              disabled={(!employeeNote.trim() && !selectedImage) || addNoteMutation.isPending || uploadingImage}
               className="w-full"
               data-testid="button-send-note"
             >
               <Send className="w-4 h-4 mr-2" />
-              {addNoteMutation.isPending ? "Sende..." : "Nachricht senden"}
+              {uploadingImage ? "Bild wird hochgeladen..." : addNoteMutation.isPending ? "Sende..." : "Nachricht senden"}
             </Button>
           </div>
         </CardContent>

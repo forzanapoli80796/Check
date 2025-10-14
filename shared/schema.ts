@@ -99,6 +99,7 @@ export const employeeNotes = pgTable("employee_notes", {
   employeeName: text("employee_name").notNull(),
   store: text("store").notNull(),
   categoryId: varchar("category_id"),
+  imageUrl: text("image_url"), // Bild-URL aus Object Storage
   createdAt: timestamp("created_at").defaultNow(),
 });
 

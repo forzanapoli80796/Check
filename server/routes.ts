@@ -7,6 +7,8 @@ import {
   ObjectStorageService,
   ObjectNotFoundError,
 } from "./objectStorage";
+import path from "path";
+import { randomUUID } from "crypto";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Admin verification
@@ -499,6 +501,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(404).json({ message: "Note not found" });
     }
     res.json({ success: true });
+  });
+
+  // Image upload route for employee notes
+  app.post("/api/upload/employee-note-image", async (req, res) => {
+    try {
+      const { image } = req.body;
+      
+      if (!image) {
+        return res.status(400).json({ message: "No image data provided" });
+      }
+      
+      // Extract base64 data from data URL
+      const matches = image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      
+      if (!matches || matches.length !== 3) {
+        return res.status(400).json({ message: "Invalid image data format" });
+      }
+      
+      const mimeType = matches[1];
+      const base64Data = matches[2];
+      const buffer = Buffer.from(base64Data, 'base64');
+      
+      // Determine file extension from MIME type
+      let extension = '.jpg';
+      if (mimeType.includes('png')) {
+        extension = '.png';
+      } else if (mimeType.includes('gif')) {
+        extension = '.gif';
+      } else if (mimeType.includes('webp')) {
+        extension = '.webp';
+      }
+      
+      // Generate unique filename
+      const filename = `employee-note-${randomUUID()}${extension}`;
+      
+      // Upload to object storage using Google Cloud Storage client
+      const privateDir = process.env.PRIVATE_OBJECT_DIR || '/replit-objstore-af34c6fd-ac39-4de6-9454-67f23a144783/.private';
+      const fullPath = `${privateDir}/employee-notes/${filename}`;
+      
+      // Parse the path to get bucket and object name
+      const pathParts = fullPath.split('/').filter(p => p);
+      const bucketName = pathParts[0];
+      const objectName = pathParts.slice(1).join('/');
+      
+      // Use the objectStorageClient directly
+      const { objectStorageClient } = await import('./objectStorage');
+      const bucket = objectStorageClient.bucket(bucketName);
+      const file = bucket.file(objectName);
+      
+      // Upload the buffer
+      await file.save(buffer, {
+        metadata: {
+          contentType: `image/${mimeType.split('/')[1] || 'jpeg'}`,
+        },
+      });
+      
+      // Return the file path for storage in database
+      res.json({ imageUrl: fullPath });
+      
+    } catch (error) {
+      console.error('Image upload error:', error);
+      res.status(500).json({ message: "Failed to upload image" });
+    }
+  });
+  
+  // Get image route for employee notes
+  app.get("/api/employee-note-image", async (req, res) => {
+    try {
+      const { path: imagePath } = req.query;
+      
+      if (!imagePath || typeof imagePath !== 'string') {
+        return res.status(400).json({ message: "No image path provided" });
+      }
+      
+      // Parse the path to get bucket and object name
+      const pathParts = imagePath.split('/').filter(p => p);
+      const bucketName = pathParts[0];
+      const objectName = pathParts.slice(1).join('/');
+      
+      // Use the objectStorageClient directly
+      const { objectStorageClient } = await import('./objectStorage');
+      const bucket = objectStorageClient.bucket(bucketName);
+      const file = bucket.file(objectName);
+      
+      // Check if file exists
+      const [exists] = await file.exists();
+      if (!exists) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+      
+      // Download the file
+      const [buffer] = await file.download();
+      
+      // Determine content type from file extension
+      let contentType = 'image/jpeg';
+      if (imagePath.endsWith('.png')) {
+        contentType = 'image/png';
+      } else if (imagePath.endsWith('.gif')) {
+        contentType = 'image/gif';
+      } else if (imagePath.endsWith('.webp')) {
+        contentType = 'image/webp';
+      }
+      
+      res.setHeader('Content-Type', contentType);
+      res.send(buffer);
+      
+    } catch (error) {
+      console.error('Image download error:', error);
+      res.status(404).json({ message: "Image not found" });
+    }
   });
 
   return createServer(app);

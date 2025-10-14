@@ -23,7 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
-import { MessageSquare, Calendar, Store, User, Trash2, Eye } from "lucide-react";
+import { MessageSquare, Calendar, Store, User, Trash2, Eye, Image as ImageIcon } from "lucide-react";
 import type { EmployeeNote } from "@shared/schema";
 
 export function EmployeeNotes() {
@@ -117,7 +117,15 @@ export function EmployeeNotes() {
                       </Badge>
                     </TableCell>
                     <TableCell className="max-w-md">
-                      <p className="line-clamp-2">{note.message}</p>
+                      <div className="space-y-1">
+                        <p className="line-clamp-2">{note.message}</p>
+                        {note.imageUrl && (
+                          <Badge variant="secondary" className="text-xs">
+                            <ImageIcon className="w-3 h-3 mr-1" />
+                            Bild angehängt
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
@@ -183,6 +191,19 @@ export function EmployeeNotes() {
                   <p className="whitespace-pre-wrap">{selectedNote.message}</p>
                 </ScrollArea>
               </div>
+              {selectedNote.imageUrl && (
+                <div>
+                  <p className="text-sm font-semibold text-gray-600 mb-1">Bild</p>
+                  <img 
+                    src={`/api/employee-note-image?path=${encodeURIComponent(selectedNote.imageUrl)}`}
+                    alt="Mitarbeiter Bild"
+                    className="w-full rounded border"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDQwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNzAgMTMwVjcwSDE3OFY4Nkg5NFY3MEgxODZWMTMwSDE3MFpNMTMwIDExOFYxMDJIMTU0VjExOEgxMzBaIiBmaWxsPSIjOUIxQzJFIi8+Cjwvc3ZnPgo=';
+                    }}
+                  />
+                </div>
+              )}
               <div className="flex gap-2 justify-end">
                 <Button
                   variant="destructive"
