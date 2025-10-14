@@ -13,6 +13,7 @@ import ShiftPhaseSelection from "@/components/employee-steps/shift-phase-selecti
 import TaskChecklist from "@/components/employee-steps/task-checklist";
 import InventoryChecklist from "@/components/employee-steps/inventory-checklist";
 import SuccessScreen from "@/components/employee-steps/success-screen";
+import { TicketsView } from "@/components/employee-steps/tickets-view";
 import type { Category } from "@shared/schema";
 
 
@@ -23,10 +24,9 @@ export default function EmployeeWorkflow() {
   const urlParams = new URLSearchParams(window.location.search);
   const roleParam = urlParams.get('role');
   
-  // Load categories to find Betriebsleiter category
+  // Load categories to find Betriebsleiter category and Kugelfahrer-Hausmeister
   const { data: categories = [] } = useQuery<Category[]>({
-    queryKey: ['/api/categories'],
-    enabled: roleParam === 'betriebsleiter'
+    queryKey: ['/api/categories']
   });
   
   const [state, setState] = useState<EmployeeWorkflowState>({
@@ -76,6 +76,15 @@ export default function EmployeeWorkflow() {
       case 'shift-phase':
         return <ShiftPhaseSelection state={state} updateState={updateState} />;
       case 'tasks':
+        // Check if this is Kugelfahrer-Hausmeister area
+        const isKugelfahrerHausmeister = categories?.find(
+          cat => cat.id === state.selectedArea && cat.name === 'Kugelfahrer-Hausmeister'
+        );
+        
+        if (isKugelfahrerHausmeister) {
+          return <TicketsView state={state} updateState={updateState} />;
+        }
+        
         // Check if this is inventory area by category type (Option 3)
         if (state.selectedAreaType === 'inventory') {
           return <InventoryChecklist state={state} updateState={updateState} />;

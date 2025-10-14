@@ -454,6 +454,7 @@ export class MemStorage implements IStorage {
       { name: "Inventur", description: "Bestandsaufnahme", icon: "clipboard-list", useShifts: false, categoryType: "inventory" as const, isSubcategoryParent: false },
       { name: "Sonderreinigung", description: "Tiefenreinigung", icon: "broom", useShifts: false, categoryType: "simple" as const, isSubcategoryParent: false },
       { name: "Betriebsleiter", description: "Management & Organisation", icon: "briefcase", useShifts: false, categoryType: "simple" as const, isSubcategoryParent: false },
+      { name: "Kugelfahrer-Hausmeister", description: "Wartung & Reparaturen", icon: "wrench", useShifts: false, categoryType: "simple" as const, isSubcategoryParent: false },
     ];
     
     // Create main categories
@@ -870,6 +871,7 @@ async function initializeDefaultData(storage: DatabaseStorage) {
     { name: "Inventur", description: "Bestandsaufnahme", icon: "clipboard-list" },
     { name: "Sonderreinigung", description: "Tiefenreinigung", icon: "broom" },
     { name: "Betriebsleiter", description: "Management & Organisation", icon: "briefcase" },
+    { name: "Kugelfahrer-Hausmeister", description: "Wartung & Reparaturen", icon: "wrench" },
   ];
 
   const createdCategories: Record<string, string> = {};

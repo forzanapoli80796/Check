@@ -82,6 +82,7 @@ export const tickets = pgTable("tickets", {
   status: text("status", { enum: ["offen", "in_bearbeitung", "erledigt"] }).notNull().default("offen"),
   priority: text("priority", { enum: ["niedrig", "mittel", "hoch"] }).notNull().default("mittel"),
   store: text("store").notNull(), // JP23, KP5, TS17
+  categoryId: varchar("category_id"), // Verknüpfung mit Kugelfahrer-Hausmeister Kategorie
   createdBy: text("created_by").notNull(), // Admin, der das Ticket erstellt hat
   assignedTo: text("assigned_to"), // Kugelfahrer-Hausmeister, dem es zugewiesen ist
   createdAt: timestamp("created_at").defaultNow(),
