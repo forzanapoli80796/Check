@@ -76,26 +76,11 @@ export default function EmployeeWorkflow() {
       case 'shift-phase':
         return <ShiftPhaseSelection state={state} updateState={updateState} />;
       case 'tasks':
-        // Check if this is Kugelfahrer-Hausmeister area or its subcategory
+        // Check if this is Kugelfahrer-Hausmeister area
         const selectedCategory = categories?.find(cat => cat.id === state.selectedArea);
-        const parentCategory = selectedCategory?.parentId 
-          ? categories?.find(cat => cat.id === selectedCategory.parentId)
-          : null;
         
-        const isKugelfahrerHausmeister = 
-          selectedCategory?.name === 'Kugelfahrer-Hausmeister' ||
-          parentCategory?.name === 'Kugelfahrer-Hausmeister';
-        
-        if (isKugelfahrerHausmeister) {
-          // For tickets, use the parent category ID if it's a subcategory
-          const categoryIdForTickets = parentCategory?.name === 'Kugelfahrer-Hausmeister' 
-            ? parentCategory.id 
-            : state.selectedArea;
-            
-          return <TicketsView 
-            state={{...state, selectedArea: categoryIdForTickets}} 
-            updateState={updateState} 
-          />;
+        if (selectedCategory?.name === 'Kugelfahrer-Hausmeister') {
+          return <TicketsView state={state} updateState={updateState} />;
         }
         
         // Check if this is inventory area by category type (Option 3)

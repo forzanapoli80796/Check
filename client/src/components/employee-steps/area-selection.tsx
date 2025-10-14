@@ -32,6 +32,19 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
       actualType: typeof category.useShifts 
     });
     
+    // For Kugelfahrer-Hausmeister, go directly to details (no subcategories)
+    if (category.name === 'Kugelfahrer-Hausmeister') {
+      updateState({ 
+        selectedArea: category.id, 
+        selectedAreaName: category.name,
+        selectedAreaUseShifts: false,
+        selectedAreaType: 'simple',
+        selectedAreaHasSubcategories: false,
+        step: 'details' 
+      });
+      return;
+    }
+    
     // Check if this category actually has subcategories (not just the flag)
     const hasSubcategories = allCategories.some(cat => cat.parentId === category.id);
     
