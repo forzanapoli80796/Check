@@ -228,6 +228,11 @@ export function TicketsView({ state, updateState }: TicketsViewProps) {
                     <p className="text-gray-600 mb-3">{ticket.description}</p>
                     <div className="flex justify-between items-center">
                       <div className="text-sm text-gray-500">
+                        {ticket.dueDate && (
+                          <div className="font-semibold text-orange-600">
+                            Fällig bis: {format(new Date(ticket.dueDate), "dd.MM.yyyy", { locale: de })}
+                          </div>
+                        )}
                         {ticket.assignedTo && (
                           <div>Zugewiesen an: {ticket.assignedTo}</div>
                         )}
@@ -321,6 +326,11 @@ export function TicketsView({ state, updateState }: TicketsViewProps) {
                 <div className="text-sm text-gray-500">
                   <div>Erstellt von: {selectedTicket.createdBy}</div>
                   <div>Erstellt am: {format(new Date(selectedTicket.createdAt!), "dd.MM.yyyy HH:mm", { locale: de })}</div>
+                  {selectedTicket.dueDate && (
+                    <div className="font-semibold text-orange-600">
+                      Fällig bis: {format(new Date(selectedTicket.dueDate), "dd.MM.yyyy", { locale: de })}
+                    </div>
+                  )}
                   {selectedTicket.assignedTo && <div>Zugewiesen an: {selectedTicket.assignedTo}</div>}
                   {selectedTicket.updatedAt && (
                     <div>Aktualisiert: {format(new Date(selectedTicket.updatedAt), "dd.MM.yyyy HH:mm", { locale: de })}</div>

@@ -30,6 +30,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -57,6 +60,7 @@ const STORES = ["JP23", "KP5", "TS17"];
 const createTicketSchema = z.object({
   description: z.string().min(1, "Aufgabe ist erforderlich"),
   store: z.string().min(1, "Store ist erforderlich"),
+  dueDate: z.string().optional(), // ISO date string
   image: z.string().optional(),
 });
 
@@ -118,6 +122,7 @@ export function TicketsManagement() {
     defaultValues: {
       description: "",
       store: "JP23",
+      dueDate: "",
       image: "",
     },
   });
@@ -474,6 +479,48 @@ export function TicketsManagement() {
               
               <FormField
                 control={form.control}
+                name="dueDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Fälligkeitsdatum (optional)</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                            data-testid="button-ticket-due-date"
+                          >
+                            {field.value ? (
+                              format(new Date(field.value), "dd.MM.yyyy", { locale: de })
+                            ) : (
+                              <span>Datum wählen</span>
+                            )}
+                            <Calendar className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={field.value ? new Date(field.value) : undefined}
+                          onSelect={(date) => {
+                            field.onChange(date ? date.toISOString().split('T')[0] : "");
+                          }}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
                 name="image"
                 render={({ field }) => (
                   <FormItem>
@@ -544,6 +591,11 @@ export function TicketsManagement() {
                 <div className="text-sm text-gray-500">
                   <div>Erstellt von: {selectedTicket.createdBy}</div>
                   <div>Erstellt am: {format(new Date(selectedTicket.createdAt!), "dd.MM.yyyy HH:mm", { locale: de })}</div>
+                  {selectedTicket.dueDate && (
+                    <div className="font-semibold text-orange-600">
+                      Fällig bis: {format(new Date(selectedTicket.dueDate), "dd.MM.yyyy", { locale: de })}
+                    </div>
+                  )}
                   {selectedTicket.assignedTo && <div>Zugewiesen an: {selectedTicket.assignedTo}</div>}
                   {selectedTicket.updatedAt && (
                     <div>Aktualisiert: {format(new Date(selectedTicket.updatedAt), "dd.MM.yyyy HH:mm", { locale: de })}</div>
