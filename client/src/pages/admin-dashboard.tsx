@@ -81,13 +81,13 @@ export default function AdminDashboard() {
       </div>
       
       <div className="flex-1">
-        <div className="max-w-6xl mx-auto px-4 py-6">
+        <div className="max-w-7xl mx-auto px-4 py-6">
 
 
       {/* Navigation Tabs */}
       <Card className="shadow-sm border border-gray-200 mb-6">
         <div className="border-b">
-          <nav className="flex space-x-8 px-6 overflow-x-auto">
+          <nav className="flex space-x-2 px-4 overflow-x-auto">
             <button
               onClick={() => setActiveTab('submitted')}
               className={`admin-tab ${activeTab === 'submitted' ? 'active' : ''}`}

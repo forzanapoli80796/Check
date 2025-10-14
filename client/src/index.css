@@ -187,7 +187,7 @@
 
 /* Stylische Admin Tabs */
 .admin-tab {
-  @apply py-4 px-6 border-b-4 font-bold transition-all cursor-pointer whitespace-nowrap rounded-t-lg;
+  @apply py-3 px-3 border-b-4 text-sm font-semibold transition-all cursor-pointer whitespace-nowrap rounded-t-lg;
   position: relative;
   overflow: hidden;
 }
