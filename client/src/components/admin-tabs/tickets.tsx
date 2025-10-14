@@ -50,7 +50,7 @@ import {
   Edit,
   Trash2
 } from "lucide-react";
-import type { Ticket } from "@shared/schema";
+import type { Ticket, Category } from "@shared/schema";
 
 const STORES = ["JP23", "KP5", "TS17"];
 
@@ -129,6 +129,11 @@ export function TicketsManagement() {
     },
   });
 
+  // Fetch categories to find Kugelfahrer-Hausmeister
+  const { data: categories } = useQuery<Category[]>({
+    queryKey: ["/api/categories"],
+  });
+
   // Fetch tickets with filters
   const { data: tickets, isLoading } = useQuery<Ticket[]>({
     queryKey: ["/api/tickets", storeFilter, dateFilter],
@@ -137,10 +142,16 @@ export function TicketsManagement() {
   // Create ticket mutation
   const createTicketMutation = useMutation({
     mutationFn: async (data: z.infer<typeof createTicketSchema>) => {
+      // Find the Kugelfahrer-Hausmeister category ID
+      const kugelfahrerCategory = categories?.find(
+        (cat: Category) => cat.name === 'Kugelfahrer-Hausmeister'
+      );
+      
       return await apiRequest("/api/tickets", "POST", {
         ...data,
         title: data.description.substring(0, 50), // Use first 50 chars of description as title
         priority: "mittel", // Default priority
+        categoryId: kugelfahrerCategory?.id || '89f804c0-5b68-4fd8-9720-6519ebbaec2b', // Use found ID or default
         createdBy: "Admin",
       });
     },
