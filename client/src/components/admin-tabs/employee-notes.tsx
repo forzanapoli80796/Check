@@ -166,60 +166,64 @@ export function EmployeeNotes() {
       {/* Note Details Dialog */}
       {selectedNote && (
         <Dialog open={!!selectedNote} onOpenChange={() => setSelectedNote(null)}>
-          <DialogContent>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
             <DialogHeader>
               <DialogTitle>Nachricht Details</DialogTitle>
               <DialogDescription>
                 {format(new Date(selectedNote.createdAt!), "dd. MMMM yyyy 'um' HH:mm 'Uhr'", { locale: de })}
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm font-semibold text-gray-600 mb-1">Mitarbeiter</p>
-                <p>{selectedNote.employeeName}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-600 mb-1">Store</p>
-                <Badge variant="outline">
-                  <Store className="w-3 h-3 mr-1" />
-                  {selectedNote.store}
-                </Badge>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-600 mb-1">Nachricht</p>
-                <ScrollArea className="h-[200px] rounded border p-3">
-                  <p className="whitespace-pre-wrap">{selectedNote.message}</p>
-                </ScrollArea>
-              </div>
-              {selectedNote.imageUrl && (
+            <ScrollArea className="flex-1 pr-4">
+              <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-semibold text-gray-600 mb-1">Bild</p>
-                  <img 
-                    src={`/api/employee-note-image?path=${encodeURIComponent(selectedNote.imageUrl)}`}
-                    alt="Mitarbeiter Bild"
-                    className="w-full rounded border"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDQwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNzAgMTMwVjcwSDE3OFY4Nkg5NFY3MEgxODZWMTMwSDE3MFpNMTMwIDExOFYxMDJIMTU0VjExOEgxMzBaIiBmaWxsPSIjOUIxQzJFIi8+Cjwvc3ZnPgo=';
-                    }}
-                  />
+                  <p className="text-sm font-semibold text-gray-600 mb-1">Mitarbeiter</p>
+                  <p>{selectedNote.employeeName}</p>
                 </div>
-              )}
-              <div className="flex gap-2 justify-end">
-                <Button
-                  variant="destructive"
-                  onClick={() => {
-                    if (confirm("Möchten Sie diese Nachricht wirklich löschen?")) {
-                      deleteNoteMutation.mutate(selectedNote.id);
-                    }
-                  }}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Löschen
-                </Button>
-                <Button variant="outline" onClick={() => setSelectedNote(null)}>
-                  Schließen
-                </Button>
+                <div>
+                  <p className="text-sm font-semibold text-gray-600 mb-1">Store</p>
+                  <Badge variant="outline">
+                    <Store className="w-3 h-3 mr-1" />
+                    {selectedNote.store}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-600 mb-1">Nachricht</p>
+                  <div className="rounded border p-3 bg-gray-50">
+                    <p className="whitespace-pre-wrap">{selectedNote.message}</p>
+                  </div>
+                </div>
+                {selectedNote.imageUrl && (
+                  <div>
+                    <p className="text-sm font-semibold text-gray-600 mb-1">Bild</p>
+                    <div className="overflow-hidden rounded border">
+                      <img 
+                        src={`/api/employee-note-image?path=${encodeURIComponent(selectedNote.imageUrl)}`}
+                        alt="Mitarbeiter Bild"
+                        className="max-w-full h-auto max-h-[400px] object-contain mx-auto"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDQwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNzAgMTMwVjcwSDE3OFY4Nkg5NFY3MEgxODZWMTMwSDE3MFpNMTMwIDExOFYxMDJIMTU0VjExOEgxMzBaIiBmaWxsPSIjOUIxQzJFIi8+Cjwvc3ZnPgo=';
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
+            </ScrollArea>
+            <div className="flex gap-2 justify-end pt-4 border-t">
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (confirm("Möchten Sie diese Nachricht wirklich löschen?")) {
+                    deleteNoteMutation.mutate(selectedNote.id);
+                  }
+                }}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Löschen
+              </Button>
+              <Button variant="outline" onClick={() => setSelectedNote(null)}>
+                Schließen
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
