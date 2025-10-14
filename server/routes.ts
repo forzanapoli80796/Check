@@ -364,22 +364,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Ticket routes
   app.get("/api/tickets", async (req, res) => {
     const storage = await getStorage();
-    const { store, startDate, endDate } = req.query;
+    const { store, startDate, endDate, categoryId } = req.query;
     
+    // Get all tickets first
+    let tickets = await storage.getTickets();
+    
+    // Filter by store if provided
     if (store && typeof store === 'string') {
-      const tickets = await storage.getTicketsByStore(store);
-      return res.json(tickets);
+      tickets = tickets.filter(t => t.store === store);
     }
     
+    // Filter by categoryId if provided
+    if (categoryId && typeof categoryId === 'string') {
+      tickets = tickets.filter(t => t.categoryId === categoryId);
+    }
+    
+    // Filter by date range if provided
     if (startDate && endDate) {
-      const tickets = await storage.getTicketsByDateRange(
-        new Date(startDate as string),
-        new Date(endDate as string)
-      );
-      return res.json(tickets);
+      const start = new Date(startDate as string);
+      const end = new Date(endDate as string);
+      tickets = tickets.filter(t => {
+        if (!t.createdAt) return false;
+        const createdAt = new Date(t.createdAt);
+        return createdAt >= start && createdAt <= end;
+      });
     }
     
-    const tickets = await storage.getTickets();
     res.json(tickets);
   });
 
