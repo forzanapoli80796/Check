@@ -408,7 +408,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const storage = await getStorage();
       console.log("Received ticket data:", req.body);
-      const validatedData = insertTicketSchema.parse(req.body);
+      
+      // Convert dueDate string to Date object if present
+      const dataToValidate = {
+        ...req.body,
+        dueDate: req.body.dueDate ? new Date(req.body.dueDate) : undefined
+      };
+      
+      const validatedData = insertTicketSchema.parse(dataToValidate);
       console.log("Validated ticket data:", validatedData);
       const ticket = await storage.createTicket(validatedData);
       res.json(ticket);
@@ -422,7 +429,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/tickets/:id", async (req, res) => {
     try {
       const storage = await getStorage();
-      const validatedData = insertTicketSchema.partial().parse(req.body);
+      
+      // Convert dueDate string to Date object if present
+      const dataToValidate = {
+        ...req.body,
+        dueDate: req.body.dueDate ? new Date(req.body.dueDate) : undefined
+      };
+      
+      const validatedData = insertTicketSchema.partial().parse(dataToValidate);
       const ticket = await storage.updateTicket(req.params.id, validatedData);
       if (!ticket) {
         return res.status(404).json({ message: "Ticket not found" });
