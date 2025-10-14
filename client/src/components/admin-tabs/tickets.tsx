@@ -158,7 +158,6 @@ export function TicketsManagement() {
         ...data,
         title: data.description.substring(0, 50), // Use first 50 chars of description as title
         status: "offen", // Default status
-        priority: "mittel", // Default priority
         categoryId: kugelfahrerCategory?.id || '89f804c0-5b68-4fd8-9720-6519ebbaec2b', // Use found ID or default
         createdBy: "Admin",
       };
