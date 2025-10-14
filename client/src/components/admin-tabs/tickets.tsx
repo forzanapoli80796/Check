@@ -124,7 +124,7 @@ export function TicketsManagement() {
     defaultValues: {
       description: "",
       store: "JP23",
-      priority: "mittel",
+      priority: "mittel" as "niedrig" | "mittel" | "hoch",
       dueDate: new Date().toISOString(), // Automatisch aktuelle Zeit setzen
       image: "",
     },
@@ -178,7 +178,7 @@ export function TicketsManagement() {
       form.reset({
         description: "",
         store: "JP23",
-        priority: "mittel",
+        priority: "mittel" as "niedrig" | "mittel" | "hoch",
         dueDate: new Date().toISOString(),
         image: "",
       });
@@ -438,34 +438,35 @@ export function TicketsManagement() {
           form.reset({
             description: "",
             store: "JP23",
-            priority: "mittel",
+            priority: "mittel" as "niedrig" | "mittel" | "hoch",
             dueDate: new Date().toISOString(),
             image: "",
           });
         }
         setShowCreateDialog(open);
       }}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Neues Ticket erstellen</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-base">Neues Ticket erstellen</DialogTitle>
+            <DialogDescription className="text-xs">
               Erstellen Sie ein neues Ticket für den Kugelfahrer-Hausmeister
             </DialogDescription>
           </DialogHeader>
           
           <Form {...form}>
-            <form onSubmit={form.handleSubmit((data) => createTicketMutation.mutate(data))} className="space-y-4">
+            <form onSubmit={form.handleSubmit((data) => createTicketMutation.mutate(data))} className="space-y-3">
               <FormField
                 control={form.control}
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Aufgabe</FormLabel>
+                    <FormLabel className="text-sm">Aufgabe</FormLabel>
                     <FormControl>
                       <Textarea 
                         placeholder="Was muss gemacht werden?" 
                         {...field} 
-                        rows={4}
+                        rows={2}
+                        className="text-sm"
                         data-testid="textarea-ticket-description"
                       />
                     </FormControl>
@@ -479,10 +480,10 @@ export function TicketsManagement() {
                 name="store"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Store</FormLabel>
+                    <FormLabel className="text-sm">Store</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger data-testid="select-ticket-store">
+                        <SelectTrigger className="h-8 text-sm" data-testid="select-ticket-store">
                           <SelectValue placeholder="Store wählen" />
                         </SelectTrigger>
                       </FormControl>
@@ -502,10 +503,10 @@ export function TicketsManagement() {
                 name="priority"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Priorität</FormLabel>
+                    <FormLabel className="text-sm">Priorität</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger data-testid="select-ticket-priority">
+                        <SelectTrigger className="h-8 text-sm" data-testid="select-ticket-priority">
                           <SelectValue placeholder="Priorität wählen" />
                         </SelectTrigger>
                       </FormControl>
@@ -525,17 +526,17 @@ export function TicketsManagement() {
                 name="dueDate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Ticketeröffnung</FormLabel>
+                    <FormLabel className="text-sm">Ticketeröffnung</FormLabel>
                     <div className="flex gap-2">
                       <Input
                         value={field.value ? format(new Date(field.value), "dd.MM.yyyy HH:mm", { locale: de }) : ""}
                         disabled
-                        className="flex-1"
+                        className="flex-1 h-8 text-sm"
                         data-testid="input-ticket-creation-time"
                       />
-                      <Clock className="h-4 w-4 mt-3 opacity-50" />
+                      <Clock className="h-3 w-3 mt-2.5 opacity-50" />
                     </div>
-                    <p className="text-xs text-muted-foreground">Zeitstempel wird automatisch gesetzt</p>
+                    <p className="text-[10px] text-muted-foreground">Zeitstempel wird automatisch gesetzt</p>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -546,17 +547,18 @@ export function TicketsManagement() {
                 name="image"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Bild hinzufügen (optional)</FormLabel>
+                    <FormLabel className="text-sm">Bild hinzufügen (optional)</FormLabel>
                     <FormControl>
-                      <div className="space-y-2">
+                      <div className="space-y-1">
                         <Input
                           type="file"
                           accept="image/*"
                           onChange={handleImageUpload}
+                          className="h-8 text-sm"
                           data-testid="input-ticket-image"
                         />
                         {field.value && (
-                          <img src={field.value} alt="Vorschau" className="w-full h-32 object-cover rounded" />
+                          <img src={field.value} alt="Vorschau" className="w-full h-20 object-cover rounded" />
                         )}
                       </div>
                     </FormControl>
@@ -565,11 +567,11 @@ export function TicketsManagement() {
                 )}
               />
               
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setShowCreateDialog(false)}>
+              <DialogFooter className="gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => setShowCreateDialog(false)}>
                   Abbrechen
                 </Button>
-                <Button type="submit" disabled={createTicketMutation.isPending} data-testid="button-submit-ticket">
+                <Button type="submit" size="sm" disabled={createTicketMutation.isPending} data-testid="button-submit-ticket">
                   {createTicketMutation.isPending ? "Erstelle..." : "Ticket erstellen"}
                 </Button>
               </DialogFooter>
