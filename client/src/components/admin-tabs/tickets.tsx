@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
@@ -506,45 +507,64 @@ export function TicketsManagement() {
                 name="dueDate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Fälligkeitsdatum (optional)</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                    <FormLabel>Fälligkeitsdatum und Uhrzeit (optional)</FormLabel>
+                    <div className="flex gap-2">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "flex-1 pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                              data-testid="button-ticket-due-date"
+                            >
+                              {field.value ? (
+                                format(new Date(field.value), "dd.MM.yyyy HH:mm", { locale: de })
+                              ) : (
+                                <span>Datum und Uhrzeit wählen</span>
+                              )}
+                              <Calendar className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-4" align="start">
+                          <div className="space-y-4">
+                            <CalendarComponent
+                              mode="single"
+                              selected={field.value ? new Date(field.value) : undefined}
+                              onSelect={(date) => {
+                                if (date) {
+                                  // Default time: 12:00
+                                  date.setHours(12, 0, 0, 0);
+                                  field.onChange(date.toISOString());
+                                } else {
+                                  field.onChange("");
+                                }
+                              }}
+                              initialFocus
+                            />
+                            {field.value && (
+                              <div className="flex gap-2 items-center">
+                                <Label>Uhrzeit:</Label>
+                                <Input
+                                  type="time"
+                                  defaultValue={format(new Date(field.value), "HH:mm")}
+                                  onChange={(e) => {
+                                    const currentDate = new Date(field.value);
+                                    const [hours, minutes] = e.target.value.split(':');
+                                    currentDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                                    field.onChange(currentDate.toISOString());
+                                  }}
+                                  className="w-24"
+                                />
+                              </div>
                             )}
-                            data-testid="button-ticket-due-date"
-                          >
-                            {field.value ? (
-                              format(new Date(field.value), "dd.MM.yyyy", { locale: de })
-                            ) : (
-                              <span>Datum wählen</span>
-                            )}
-                            <Calendar className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <CalendarComponent
-                          mode="single"
-                          selected={field.value ? new Date(field.value + 'T00:00:00') : undefined}
-                          onSelect={(date) => {
-                            if (date) {
-                              const year = date.getFullYear();
-                              const month = String(date.getMonth() + 1).padStart(2, '0');
-                              const day = String(date.getDate()).padStart(2, '0');
-                              field.onChange(`${year}-${month}-${day}`);
-                            } else {
-                              field.onChange("");
-                            }
-                          }}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -624,7 +644,7 @@ export function TicketsManagement() {
                   <div>Erstellt am: {format(new Date(selectedTicket.createdAt!), "dd.MM.yyyy HH:mm", { locale: de })}</div>
                   {selectedTicket.dueDate && (
                     <div className="font-semibold text-orange-600">
-                      Fällig bis: {format(new Date(selectedTicket.dueDate + 'T00:00:00'), "dd.MM.yyyy", { locale: de })}
+                      Fällig bis: {format(new Date(selectedTicket.dueDate), "dd.MM.yyyy HH:mm", { locale: de })}
                     </div>
                   )}
                   {selectedTicket.assignedTo && <div>Zugewiesen an: {selectedTicket.assignedTo}</div>}
