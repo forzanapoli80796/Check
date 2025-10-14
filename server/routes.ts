@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { getStorage } from "./storage";
-import { insertCategorySchema, insertTaskSchema, insertChecklistSchema, insertTeigProductionSchema, insertInventoryItemSchema } from "@shared/schema";
+import { insertCategorySchema, insertTaskSchema, insertChecklistSchema, insertTeigProductionSchema, insertInventoryItemSchema, insertTicketSchema } from "@shared/schema";
 import { z } from "zod";
 import {
   ObjectStorageService,
@@ -358,6 +358,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error processing attachment:", error);
       res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Ticket routes
+  app.get("/api/tickets", async (req, res) => {
+    const storage = await getStorage();
+    const { store, startDate, endDate } = req.query;
+    
+    if (store && typeof store === 'string') {
+      const tickets = await storage.getTicketsByStore(store);
+      return res.json(tickets);
+    }
+    
+    if (startDate && endDate) {
+      const tickets = await storage.getTicketsByDateRange(
+        new Date(startDate as string),
+        new Date(endDate as string)
+      );
+      return res.json(tickets);
+    }
+    
+    const tickets = await storage.getTickets();
+    res.json(tickets);
+  });
+
+  app.get("/api/tickets/:id", async (req, res) => {
+    const storage = await getStorage();
+    const ticket = await storage.getTicketById(req.params.id);
+    if (!ticket) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+    res.json(ticket);
+  });
+
+  app.post("/api/tickets", async (req, res) => {
+    try {
+      const storage = await getStorage();
+      const validatedData = insertTicketSchema.parse(req.body);
+      const ticket = await storage.createTicket(validatedData);
+      res.json(ticket);
+    } catch (error) {
+      console.error("Error creating ticket:", error);
+      res.status(400).json({ message: "Invalid ticket data" });
+    }
+  });
+
+  app.put("/api/tickets/:id", async (req, res) => {
+    try {
+      const storage = await getStorage();
+      const validatedData = insertTicketSchema.partial().parse(req.body);
+      const ticket = await storage.updateTicket(req.params.id, validatedData);
+      if (!ticket) {
+        return res.status(404).json({ message: "Ticket not found" });
+      }
+      res.json(ticket);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid ticket data" });
+    }
+  });
+
+  app.delete("/api/tickets/:id", async (req, res) => {
+    const storage = await getStorage();
+    const success = await storage.deleteTicket(req.params.id);
+    if (!success) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+    res.json({ success: true });
+  });
+
+  app.post("/api/tickets/:id/comments", async (req, res) => {
+    try {
+      const storage = await getStorage();
+      const { user, comment } = req.body;
+      
+      if (!user || !comment) {
+        return res.status(400).json({ message: "User and comment are required" });
+      }
+      
+      const ticket = await storage.addTicketComment(req.params.id, {
+        user,
+        comment,
+        timestamp: new Date(),
+      });
+      
+      if (!ticket) {
+        return res.status(404).json({ message: "Ticket not found" });
+      }
+      
+      res.json(ticket);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid comment data" });
     }
   });
 
