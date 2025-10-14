@@ -1,7 +1,7 @@
-import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist, type TeigProduction, type InsertTeigProduction, type InventoryItem, type InsertInventoryItem } from "@shared/schema";
+import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist, type TeigProduction, type InsertTeigProduction, type InventoryItem, type InsertInventoryItem, type Ticket, type InsertTicket } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { categories, tasks, checklists, teigProduction, inventoryItems } from "@shared/schema";
+import { categories, tasks, checklists, teigProduction, inventoryItems, tickets } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 
 export interface IStorage {
@@ -40,6 +40,16 @@ export interface IStorage {
   createInventoryItem(item: InsertInventoryItem): Promise<InventoryItem>;
   updateInventoryItem(id: string, item: Partial<InsertInventoryItem>): Promise<InventoryItem | undefined>;
   deleteInventoryItem(id: string): Promise<boolean>;
+  
+  // Tickets
+  getTickets(): Promise<Ticket[]>;
+  getTicketById(id: string): Promise<Ticket | undefined>;
+  getTicketsByStore(store: string): Promise<Ticket[]>;
+  getTicketsByDateRange(startDate: Date, endDate: Date): Promise<Ticket[]>;
+  createTicket(ticket: InsertTicket): Promise<Ticket>;
+  updateTicket(id: string, ticket: Partial<InsertTicket>): Promise<Ticket | undefined>;
+  deleteTicket(id: string): Promise<boolean>;
+  addTicketComment(id: string, comment: { user: string; comment: string; timestamp: Date }): Promise<Ticket | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -343,6 +353,76 @@ export class DatabaseStorage implements IStorage {
     const result = await db.delete(inventoryItems).where(eq(inventoryItems.id, id));
     return (result.rowCount || 0) > 0;
   }
+
+  // Ticket methods
+  async getTickets(): Promise<Ticket[]> {
+    return await db.select().from(tickets).orderBy(sql`${tickets.createdAt} DESC`);
+  }
+
+  async getTicketById(id: string): Promise<Ticket | undefined> {
+    const [ticket] = await db.select().from(tickets).where(eq(tickets.id, id));
+    return ticket || undefined;
+  }
+
+  async getTicketsByStore(store: string): Promise<Ticket[]> {
+    return await db.select().from(tickets).where(eq(tickets.store, store)).orderBy(sql`${tickets.createdAt} DESC`);
+  }
+
+  async getTicketsByDateRange(startDate: Date, endDate: Date): Promise<Ticket[]> {
+    return await db.select().from(tickets)
+      .where(sql`${tickets.createdAt} >= ${startDate} AND ${tickets.createdAt} < ${endDate}`)
+      .orderBy(sql`${tickets.createdAt} DESC`);
+  }
+
+  async createTicket(insertTicket: InsertTicket): Promise<Ticket> {
+    const [ticket] = await db
+      .insert(tickets)
+      .values({
+        ...insertTicket,
+        id: randomUUID(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        comments: insertTicket.comments || [],
+      })
+      .returning();
+    return ticket;
+  }
+
+  async updateTicket(id: string, updateData: Partial<InsertTicket>): Promise<Ticket | undefined> {
+    const [ticket] = await db
+      .update(tickets)
+      .set({
+        ...updateData,
+        updatedAt: new Date(),
+      })
+      .where(eq(tickets.id, id))
+      .returning();
+    return ticket || undefined;
+  }
+
+  async deleteTicket(id: string): Promise<boolean> {
+    const result = await db.delete(tickets).where(eq(tickets.id, id));
+    return (result.rowCount || 0) > 0;
+  }
+
+  async addTicketComment(id: string, comment: { user: string; comment: string; timestamp: Date }): Promise<Ticket | undefined> {
+    const [existingTicket] = await db.select().from(tickets).where(eq(tickets.id, id));
+    if (!existingTicket) return undefined;
+    
+    const currentComments = (existingTicket.comments as any[]) || [];
+    const updatedComments = [...currentComments, comment];
+    
+    const [updatedTicket] = await db
+      .update(tickets)
+      .set({
+        comments: updatedComments,
+        updatedAt: new Date(),
+      })
+      .where(eq(tickets.id, id))
+      .returning();
+    
+    return updatedTicket || undefined;
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -351,6 +431,7 @@ export class MemStorage implements IStorage {
   private checklists: Map<string, Checklist> = new Map();
   private teigProductions: Map<string, TeigProduction> = new Map();
   private inventoryItems: Map<string, InventoryItem> = new Map();
+  private tickets: Map<string, Ticket> = new Map();
 
   constructor() {
     this.initializeDefaultData();
@@ -675,6 +756,82 @@ export class MemStorage implements IStorage {
 
   async deleteInventoryItem(id: string): Promise<boolean> {
     return this.inventoryItems.delete(id);
+  }
+
+  // Ticket methods
+  async getTickets(): Promise<Ticket[]> {
+    return Array.from(this.tickets.values()).sort((a, b) => 
+      new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
+    );
+  }
+
+  async getTicketById(id: string): Promise<Ticket | undefined> {
+    return this.tickets.get(id);
+  }
+
+  async getTicketsByStore(store: string): Promise<Ticket[]> {
+    return Array.from(this.tickets.values())
+      .filter(ticket => ticket.store === store)
+      .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime());
+  }
+
+  async getTicketsByDateRange(startDate: Date, endDate: Date): Promise<Ticket[]> {
+    return Array.from(this.tickets.values())
+      .filter(ticket => {
+        const ticketDate = new Date(ticket.createdAt!);
+        return ticketDate >= startDate && ticketDate < endDate;
+      })
+      .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime());
+  }
+
+  async createTicket(insertTicket: InsertTicket): Promise<Ticket> {
+    const id = randomUUID();
+    const ticket: Ticket = {
+      ...insertTicket,
+      id,
+      status: insertTicket.status || "offen",
+      priority: insertTicket.priority || "mittel",
+      assignedTo: insertTicket.assignedTo || null,
+      image: insertTicket.image || null,
+      comments: insertTicket.comments || [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      completedAt: null,
+    };
+    this.tickets.set(id, ticket);
+    return ticket;
+  }
+
+  async updateTicket(id: string, updateData: Partial<InsertTicket>): Promise<Ticket | undefined> {
+    const ticket = this.tickets.get(id);
+    if (!ticket) return undefined;
+
+    const updatedTicket: Ticket = {
+      ...ticket,
+      ...updateData,
+      updatedAt: new Date(),
+      completedAt: updateData.status === "erledigt" ? new Date() : ticket.completedAt,
+    };
+    this.tickets.set(id, updatedTicket);
+    return updatedTicket;
+  }
+
+  async deleteTicket(id: string): Promise<boolean> {
+    return this.tickets.delete(id);
+  }
+
+  async addTicketComment(id: string, comment: { user: string; comment: string; timestamp: Date }): Promise<Ticket | undefined> {
+    const ticket = this.tickets.get(id);
+    if (!ticket) return undefined;
+
+    const currentComments = (ticket.comments as any[]) || [];
+    const updatedTicket: Ticket = {
+      ...ticket,
+      comments: [...currentComments, comment],
+      updatedAt: new Date(),
+    };
+    this.tickets.set(id, updatedTicket);
+    return updatedTicket;
   }
 }
 
