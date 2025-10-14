@@ -58,7 +58,7 @@ export function TicketsView({ state, updateState }: TicketsViewProps) {
       if (state.selectedStore) params.append("store", state.selectedStore);
       if (state.selectedArea) params.append("categoryId", state.selectedArea);
       
-      const response = await apiRequest(`/api/tickets?${params.toString()}`, "GET");
+      const response = await apiRequest("GET", `/api/tickets?${params.toString()}`);
       return response.json();
     },
     enabled: !!state.selectedStore && !!state.selectedArea,
@@ -67,7 +67,7 @@ export function TicketsView({ state, updateState }: TicketsViewProps) {
   // Update ticket status mutation
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      return await apiRequest(`/api/tickets/${id}`, "PUT", { 
+      return await apiRequest("PUT", `/api/tickets/${id}`, { 
         status,
         assignedTo: status === "in_bearbeitung" ? state.employeeName : undefined
       });
@@ -91,7 +91,7 @@ export function TicketsView({ state, updateState }: TicketsViewProps) {
   // Add comment mutation
   const addCommentMutation = useMutation({
     mutationFn: async ({ ticketId, comment }: { ticketId: string; comment: string }) => {
-      const response = await apiRequest(`/api/tickets/${ticketId}/comments`, "POST", {
+      const response = await apiRequest("POST", `/api/tickets/${ticketId}/comments`, {
         user: state.employeeName,
         comment,
       });
