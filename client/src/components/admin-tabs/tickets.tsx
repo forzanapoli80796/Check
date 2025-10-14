@@ -55,11 +55,8 @@ import type { Ticket } from "@shared/schema";
 const STORES = ["JP23", "KP5", "TS17"];
 
 const createTicketSchema = z.object({
-  title: z.string().min(1, "Titel ist erforderlich"),
-  description: z.string().min(1, "Beschreibung ist erforderlich"),
+  description: z.string().min(1, "Aufgabe ist erforderlich"),
   store: z.string().min(1, "Store ist erforderlich"),
-  priority: z.enum(["niedrig", "mittel", "hoch"]),
-  assignedTo: z.string().optional(),
   image: z.string().optional(),
 });
 
@@ -119,11 +116,8 @@ export function TicketsManagement() {
   const form = useForm({
     resolver: zodResolver(createTicketSchema),
     defaultValues: {
-      title: "",
       description: "",
       store: "JP23",
-      priority: "mittel" as const,
-      assignedTo: "",
       image: "",
     },
   });
@@ -145,6 +139,8 @@ export function TicketsManagement() {
     mutationFn: async (data: z.infer<typeof createTicketSchema>) => {
       return await apiRequest("/api/tickets", "POST", {
         ...data,
+        title: data.description.substring(0, 50), // Use first 50 chars of description as title
+        priority: "mittel", // Default priority
         createdBy: "Admin",
       });
     },
@@ -419,27 +415,13 @@ export function TicketsManagement() {
             <form onSubmit={form.handleSubmit((data) => createTicketMutation.mutate(data))} className="space-y-4">
               <FormField
                 control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Titel</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Kurze Beschreibung des Problems" {...field} data-testid="input-ticket-title" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Beschreibung</FormLabel>
+                    <FormLabel>Aufgabe</FormLabel>
                     <FormControl>
                       <Textarea 
-                        placeholder="Detaillierte Beschreibung des Problems" 
+                        placeholder="Was muss gemacht werden?" 
                         {...field} 
                         rows={4}
                         data-testid="textarea-ticket-description"
@@ -468,43 +450,6 @@ export function TicketsManagement() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="priority"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Priorität</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger data-testid="select-ticket-priority">
-                          <SelectValue placeholder="Priorität wählen" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="niedrig">Niedrig</SelectItem>
-                        <SelectItem value="mittel">Mittel</SelectItem>
-                        <SelectItem value="hoch">Hoch</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="assignedTo"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Zugewiesen an (optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Name des Kugelfahrer-Hausmeisters" {...field} data-testid="input-ticket-assigned" />
-                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
