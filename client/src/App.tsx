@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import ErrorBoundary from "@/components/error-boundary";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { PasswordProtection } from "@/components/password-protection";
 import NotFound from "@/pages/not-found";
 import RoleSelection from "@/pages/role-selection";
 import AdminLogin from "@/pages/admin-login";
@@ -44,12 +45,14 @@ function App() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <LanguageProvider>
-          <TooltipProvider>
-            <div className="min-h-screen bg-background">
-              <Router />
-            </div>
-            <Toaster />
-          </TooltipProvider>
+          <PasswordProtection>
+            <TooltipProvider>
+              <div className="min-h-screen bg-background">
+                <Router />
+              </div>
+              <Toaster />
+            </TooltipProvider>
+          </PasswordProtection>
         </LanguageProvider>
       </QueryClientProvider>
     </ErrorBoundary>
