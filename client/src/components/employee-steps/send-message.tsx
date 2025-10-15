@@ -18,6 +18,7 @@ interface SendMessageProps {
 export default function SendMessage({ state, updateState }: SendMessageProps) {
   const { toast } = useToast();
   const [message, setMessage] = useState("");
+  const [employeeName, setEmployeeName] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -26,7 +27,7 @@ export default function SendMessage({ state, updateState }: SendMessageProps) {
     mutationFn: async ({ message, imageUrl }: { message: string; imageUrl?: string }) => {
       const response = await apiRequest("POST", "/api/employee-messages", {
         message,
-        employeeName: state.employeeName || 'Mitarbeiter',
+        employeeName: employeeName || 'Mitarbeiter',
         storeName: state.selectedStore,
         categoryName: state.selectedAreaName || undefined,
         imageUrl,
@@ -35,6 +36,7 @@ export default function SendMessage({ state, updateState }: SendMessageProps) {
     },
     onSuccess: () => {
       setMessage("");
+      setEmployeeName("");
       setSelectedImage(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -92,6 +94,15 @@ export default function SendMessage({ state, updateState }: SendMessageProps) {
   };
 
   const handleSendMessage = async () => {
+    if (!employeeName.trim()) {
+      toast({
+        title: "Fehler",
+        description: "Bitte geben Sie Ihren Namen ein.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!message.trim() && !selectedImage) {
       toast({
         title: "Fehler",
@@ -145,19 +156,26 @@ export default function SendMessage({ state, updateState }: SendMessageProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
+            <label className="text-sm font-medium">
+              Store
+            </label>
             <div className="flex gap-2 flex-wrap">
               <Badge variant="outline">
-                Mitarbeiter: {state.employeeName}
+                {state.selectedStore || 'Nicht ausgewählt'}
               </Badge>
-              <Badge variant="outline">
-                Store: {state.selectedStore}
-              </Badge>
-              {state.selectedAreaName && (
-                <Badge variant="outline">
-                  Bereich: {state.selectedAreaName}
-                </Badge>
-              )}
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              Ihr Name *
+            </label>
+            <Input
+              value={employeeName}
+              onChange={(e) => setEmployeeName(e.target.value)}
+              placeholder="Geben Sie Ihren Namen ein"
+              data-testid="input-employee-name"
+            />
           </div>
 
           <div className="space-y-2">
@@ -200,7 +218,7 @@ export default function SendMessage({ state, updateState }: SendMessageProps) {
           <div className="flex gap-3 pt-4">
             <Button
               onClick={handleSendMessage}
-              disabled={(!message.trim() && !selectedImage) || addMessageMutation.isPending || uploadingImage}
+              disabled={!employeeName.trim() || (!message.trim() && !selectedImage) || addMessageMutation.isPending || uploadingImage}
               className="flex-1"
               data-testid="button-send"
             >

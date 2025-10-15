@@ -1,7 +1,7 @@
-import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist, type TeigProduction, type InsertTeigProduction, type InventoryItem, type InsertInventoryItem, type Ticket, type InsertTicket, type EmployeeNote, type InsertEmployeeNote } from "@shared/schema";
+import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist, type TeigProduction, type InsertTeigProduction, type InventoryItem, type InsertInventoryItem, type Ticket, type InsertTicket, type EmployeeNote, type InsertEmployeeNote, type EmployeeMessage, type InsertEmployeeMessage } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { categories, tasks, checklists, teigProduction, inventoryItems, tickets, employeeNotes } from "@shared/schema";
+import { categories, tasks, checklists, teigProduction, inventoryItems, tickets, employeeNotes, employeeMessages } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 
 export interface IStorage {
@@ -56,6 +56,12 @@ export interface IStorage {
   getEmployeeNoteById(id: string): Promise<EmployeeNote | undefined>;
   createEmployeeNote(note: InsertEmployeeNote): Promise<EmployeeNote>;
   deleteEmployeeNote(id: string): Promise<boolean>;
+  
+  // Employee Messages (from all areas)
+  getEmployeeMessages(): Promise<EmployeeMessage[]>;
+  getEmployeeMessageById(id: string): Promise<EmployeeMessage | undefined>;
+  createEmployeeMessage(message: InsertEmployeeMessage): Promise<EmployeeMessage>;
+  deleteEmployeeMessage(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -456,6 +462,33 @@ export class DatabaseStorage implements IStorage {
     const result = await db.delete(employeeNotes).where(eq(employeeNotes.id, id));
     return (result.rowCount || 0) > 0;
   }
+
+  // Employee Messages methods
+  async getEmployeeMessages(): Promise<EmployeeMessage[]> {
+    return await db.select().from(employeeMessages).orderBy(sql`${employeeMessages.createdAt} DESC`);
+  }
+
+  async getEmployeeMessageById(id: string): Promise<EmployeeMessage | undefined> {
+    const [message] = await db.select().from(employeeMessages).where(eq(employeeMessages.id, id));
+    return message || undefined;
+  }
+
+  async createEmployeeMessage(insertMessage: InsertEmployeeMessage): Promise<EmployeeMessage> {
+    const [message] = await db
+      .insert(employeeMessages)
+      .values({
+        ...insertMessage,
+        id: randomUUID(),
+        createdAt: new Date(),
+      })
+      .returning();
+    return message;
+  }
+
+  async deleteEmployeeMessage(id: string): Promise<boolean> {
+    const result = await db.delete(employeeMessages).where(eq(employeeMessages.id, id));
+    return (result.rowCount || 0) > 0;
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -466,6 +499,7 @@ export class MemStorage implements IStorage {
   private inventoryItems: Map<string, InventoryItem> = new Map();
   private tickets: Map<string, Ticket> = new Map();
   private employeeNotes: Map<string, EmployeeNote> = new Map();
+  private employeeMessages: Map<string, EmployeeMessage> = new Map();
 
   constructor() {
     this.initializeDefaultData();
@@ -893,6 +927,32 @@ export class MemStorage implements IStorage {
 
   async deleteEmployeeNote(id: string): Promise<boolean> {
     return this.employeeNotes.delete(id);
+  }
+
+  // Employee Messages methods
+  async getEmployeeMessages(): Promise<EmployeeMessage[]> {
+    return Array.from(this.employeeMessages.values()).sort((a, b) =>
+      new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
+    );
+  }
+
+  async getEmployeeMessageById(id: string): Promise<EmployeeMessage | undefined> {
+    return this.employeeMessages.get(id);
+  }
+
+  async createEmployeeMessage(insertMessage: InsertEmployeeMessage): Promise<EmployeeMessage> {
+    const id = randomUUID();
+    const message: EmployeeMessage = {
+      ...insertMessage,
+      id,
+      createdAt: new Date(),
+    };
+    this.employeeMessages.set(id, message);
+    return message;
+  }
+
+  async deleteEmployeeMessage(id: string): Promise<boolean> {
+    return this.employeeMessages.delete(id);
   }
 }
 

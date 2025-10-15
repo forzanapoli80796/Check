@@ -517,6 +517,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ success: true });
   });
 
+  // Employee Messages routes (from all areas)
+  app.get("/api/employee-messages", async (req, res) => {
+    const storage = await getStorage();
+    const messages = await storage.getEmployeeMessages();
+    res.json(messages);
+  });
+
+  app.get("/api/employee-messages/:id", async (req, res) => {
+    const storage = await getStorage();
+    const message = await storage.getEmployeeMessageById(req.params.id);
+    if (!message) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+    res.json(message);
+  });
+
+  app.post("/api/employee-messages", async (req, res) => {
+    try {
+      const storage = await getStorage();
+      const { insertEmployeeMessageSchema } = await import("@shared/schema");
+      const validatedData = insertEmployeeMessageSchema.parse(req.body);
+      const message = await storage.createEmployeeMessage(validatedData);
+      res.json(message);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid message data" });
+    }
+  });
+
+  app.delete("/api/employee-messages/:id", async (req, res) => {
+    const storage = await getStorage();
+    const success = await storage.deleteEmployeeMessage(req.params.id);
+    if (!success) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+    res.json({ success: true });
+  });
+
   // Image upload route for employee notes
   app.post("/api/upload/employee-note-image", async (req, res) => {
     try {

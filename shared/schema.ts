@@ -103,6 +103,17 @@ export const employeeNotes = pgTable("employee_notes", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Mitarbeiter-Nachrichten an Admin (von allen Bereichen)
+export const employeeMessages = pgTable("employee_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  message: text("message").notNull(),
+  employeeName: text("employee_name").notNull(),
+  storeName: text("store_name").notNull(),
+  categoryName: text("category_name"), // Optional: Bereich, aus dem die Nachricht kommt
+  imageUrl: text("image_url"), // Optional: Bild-URL aus Object Storage
+  createdAt: timestamp("created_at").defaultNow(), // Automatischer Zeitstempel
+});
+
 export const insertCategorySchema = createInsertSchema(categories).omit({
   id: true,
   createdAt: true,
@@ -141,6 +152,11 @@ export const insertEmployeeNoteSchema = createInsertSchema(employeeNotes).omit({
   createdAt: true,
 });
 
+export const insertEmployeeMessageSchema = createInsertSchema(employeeMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type Category = typeof categories.$inferSelect;
 
@@ -161,3 +177,6 @@ export type Ticket = typeof tickets.$inferSelect;
 
 export type InsertEmployeeNote = z.infer<typeof insertEmployeeNoteSchema>;
 export type EmployeeNote = typeof employeeNotes.$inferSelect;
+
+export type InsertEmployeeMessage = z.infer<typeof insertEmployeeMessageSchema>;
+export type EmployeeMessage = typeof employeeMessages.$inferSelect;
