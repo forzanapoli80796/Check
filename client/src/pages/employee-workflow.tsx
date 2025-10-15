@@ -14,6 +14,7 @@ import TaskChecklist from "@/components/employee-steps/task-checklist";
 import InventoryChecklist from "@/components/employee-steps/inventory-checklist";
 import SuccessScreen from "@/components/employee-steps/success-screen";
 import { TicketsView } from "@/components/employee-steps/tickets-view";
+import SendMessage from "@/components/employee-steps/send-message";
 import type { Category } from "@shared/schema";
 
 
@@ -90,6 +91,8 @@ export default function EmployeeWorkflow() {
         return <TaskChecklist state={state} updateState={updateState} />;
       case 'success':
         return <SuccessScreen state={state} updateState={updateState} />;
+      case 'sendMessage':
+        return <SendMessage state={state} updateState={updateState} />;
       default:
         return <StoreSelection state={state} updateState={updateState} />;
     }

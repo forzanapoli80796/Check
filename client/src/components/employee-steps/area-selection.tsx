@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, MessageSquare } from "lucide-react";
 import * as Icons from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -206,6 +206,21 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
               )}
             </Button>
           ))}
+          
+          {/* Nachricht an Admin senden Button */}
+          <Button
+            variant="outline"
+            onClick={() => updateState({ 
+              step: 'sendMessage',
+              selectedAreaName: null, 
+              employeeName: 'Mitarbeiter'
+            })}
+            className="selection-button justify-start border-blue-200 hover:bg-blue-50"
+            data-testid="button-send-message"
+          >
+            <MessageSquare className="text-blue-600" size={20} />
+            <span className="font-medium text-blue-600">Nachricht an Admin senden</span>
+          </Button>
         </div>
         <Button
           variant="outline"
