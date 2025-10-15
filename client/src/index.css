@@ -3,50 +3,49 @@
 @tailwind utilities;
 
 :root {
-  /* ForzaCheck CI - Baby blue background */
-  --background: hsl(200, 70%, 88%);
-  --foreground: hsl(20, 14.3%, 4.1%);
-  --muted: hsl(200, 60%, 84%);
-  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  /* ForzaCheck CI - Clean solid colors */
+  --background: hsl(0, 0%, 98%);
+  --foreground: hsl(0, 0%, 10%);
+  --muted: hsl(0, 0%, 95%);
+  --muted-foreground: hsl(0, 0%, 30%);
   --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --popover-foreground: hsl(0, 0%, 10%);
   --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(20, 14.3%, 4.1%);
-  /* Subtle borders like startpage */
-  --border: hsl(210, 16%, 88%);
-  --input: hsl(210, 16%, 88%);
+  --card-foreground: hsl(0, 0%, 10%);
+  --border: hsl(0, 0%, 90%);
+  --input: hsl(0, 0%, 90%);
   --primary: hsl(207, 90%, 54%);
-  --primary-foreground: hsl(211, 100%, 99%);
+  --primary-foreground: hsl(0, 0%, 100%);
   --secondary: hsl(122, 39%, 49%);
   --secondary-foreground: hsl(0, 0%, 100%);
   --accent: hsl(29, 100%, 49%);
   --accent-foreground: hsl(0, 0%, 100%);
-  --destructive: hsl(0, 84.2%, 60.2%);
-  --destructive-foreground: hsl(60, 9.1%, 97.8%);
-  --ring: hsl(20, 14.3%, 4.1%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --ring: hsl(207, 90%, 54%);
   --radius: 0.5rem;
 }
 
 .dark {
-  --background: hsl(200, 40%, 15%);
+  --background: hsl(0, 0%, 7%);
   --foreground: hsl(0, 0%, 98%);
-  --muted: hsl(200, 35%, 20%);
-  --muted-foreground: hsl(240, 5%, 64.9%);
-  --popover: hsl(240, 10%, 3.9%);
+  --muted: hsl(0, 0%, 15%);
+  --muted-foreground: hsl(0, 0%, 60%);
+  --popover: hsl(0, 0%, 10%);
   --popover-foreground: hsl(0, 0%, 98%);
-  --card: hsl(240, 10%, 3.9%);
+  --card: hsl(0, 0%, 10%);
   --card-foreground: hsl(0, 0%, 98%);
-  --border: hsl(240, 3.7%, 15.9%);
-  --input: hsl(240, 3.7%, 15.9%);
+  --border: hsl(0, 0%, 20%);
+  --input: hsl(0, 0%, 20%);
   --primary: hsl(207, 90%, 54%);
-  --primary-foreground: hsl(211, 100%, 99%);
+  --primary-foreground: hsl(0, 0%, 100%);
   --secondary: hsl(122, 39%, 49%);
   --secondary-foreground: hsl(0, 0%, 100%);
   --accent: hsl(29, 100%, 49%);
   --accent-foreground: hsl(0, 0%, 100%);
-  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive: hsl(0, 62%, 30%);
   --destructive-foreground: hsl(0, 0%, 98%);
-  --ring: hsl(240, 4.9%, 83.9%);
+  --ring: hsl(207, 90%, 54%);
   --radius: 0.5rem;
 }
 
@@ -61,221 +60,140 @@
   }
 }
 
-/* Custom styles for ForzaCheck - PREMIUM DESIGN */
+/* Custom styles for ForzaCheck - SIMPLE DESIGN */
 
-/* Animated Gradient Background */
-.gradient-bg {
-  background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c);
-  background-size: 400% 400%;
-  animation: gradient 15s ease infinite;
-}
-
-@keyframes gradient {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-/* Modern Step Indicator with Shadow */
+/* Step Indicator */
 .step-indicator {
-  @apply bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full w-10 h-10 flex items-center justify-center text-sm font-bold shadow-lg;
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+  @apply bg-blue-500 text-white rounded-full w-10 h-10 flex items-center justify-center text-sm font-bold;
 }
 
-/* Stylische Role Buttons mit Gradient und Animation */
+/* Role Buttons - Simple solid colors */
 .role-button {
-  @apply w-full p-6 rounded-xl transition-all flex items-center justify-center space-x-3 text-white font-bold text-lg shadow-xl hover:shadow-2xl transform hover:-translate-y-1;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  @apply w-full p-6 rounded-lg transition-all flex items-center justify-center space-x-3 text-white font-bold text-lg border-2 hover:brightness-110;
 }
 
 .role-button.mitarbeiter {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  @apply bg-purple-600 border-purple-700;
 }
 
 .role-button.mitarbeiter:hover {
-  background: linear-gradient(135deg, #5a67d8 0%, #6b3aa0 100%);
-  transform: translateY(-4px);
+  @apply bg-purple-700;
 }
 
 .role-button.betriebsleiter {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  @apply bg-pink-600 border-pink-700;
 }
 
 .role-button.betriebsleiter:hover {
-  background: linear-gradient(135deg, #e878f2 0%, #f03e56 100%);
-  transform: translateY(-4px);
+  @apply bg-pink-700;
 }
 
 .role-button.admin {
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  @apply bg-orange-600 border-orange-700;
 }
 
 .role-button.admin:hover {
-  background: linear-gradient(135deg, #f85a7f 0%, #ffd520 100%);
-  transform: translateY(-4px);
+  @apply bg-orange-700;
 }
 
 .role-button.teig {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  @apply bg-cyan-600 border-cyan-700;
 }
 
 .role-button.teig:hover {
-  background: linear-gradient(135deg, #3a9df8 0%, #00d4e6 100%);
-  transform: translateY(-4px);
+  @apply bg-cyan-700;
 }
 
-/* Modern Selection Buttons */
+/* Selection Buttons */
 .selection-button {
-  @apply p-4 border-2 border-gray-200 rounded-xl hover:border-purple-400 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 transition-all flex items-center space-x-3 cursor-pointer shadow-sm hover:shadow-lg;
-  transition: all 0.3s ease;
-}
-
-.selection-button:hover {
-  transform: translateX(4px);
+  @apply p-4 border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors flex items-center space-x-3 cursor-pointer;
 }
 
 .selection-button.selected {
-  @apply border-purple-500 bg-gradient-to-r from-purple-50 to-pink-50 shadow-md;
+  @apply border-blue-500 bg-blue-50;
 }
 
-/* Modern Task Items mit Animation */
+/* Task Items */
 .task-item {
-  @apply flex items-center p-4 border-2 border-gray-200 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all cursor-pointer shadow-sm hover:shadow-md;
-  transition: all 0.3s ease;
+  @apply flex items-center p-4 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer;
 }
 
 .task-item:hover {
-  transform: translateX(4px);
-  border-color: #a78bfa;
+  @apply border-gray-400;
 }
 
 .task-item.completed {
-  @apply bg-gradient-to-r from-green-50 to-emerald-50 border-green-400 shadow-md;
-  animation: checkComplete 0.5s ease;
-}
-
-@keyframes checkComplete {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+  @apply bg-green-50 border-green-400;
 }
 
 /* Priority Badge Styles */
 .priority-high {
-  @apply bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md;
+  @apply bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold;
 }
 
 .priority-medium {
-  @apply bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md;
+  @apply bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-bold;
 }
 
 .priority-low {
-  @apply bg-gradient-to-r from-green-400 to-teal-400 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md;
+  @apply bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold;
 }
 
-/* Modern Stats Cards mit Gradient */
+/* Stats Cards */
 .stats-card {
-  @apply bg-white p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all;
-  background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%);
-  border: 1px solid rgba(147, 51, 234, 0.1);
+  @apply bg-white p-6 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors;
 }
 
-.stats-card:hover {
-  transform: translateY(-2px);
-  background: linear-gradient(135deg, #ffffff 0%, #faf5ff 100%);
-}
-
-/* Stylische Admin Tabs */
+/* Admin Tabs */
 .admin-tab {
-  @apply py-3 px-3 border-b-4 text-sm font-semibold transition-all cursor-pointer whitespace-nowrap rounded-t-lg;
-  position: relative;
-  overflow: hidden;
-}
-
-.admin-tab:before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(147, 51, 234, 0.1), transparent);
-  transition: left 0.5s;
-}
-
-.admin-tab:hover:before {
-  left: 100%;
+  @apply py-3 px-4 border-b-4 text-sm font-semibold transition-colors cursor-pointer whitespace-nowrap;
 }
 
 .admin-tab.active {
-  @apply text-purple-600;
-  border-image: linear-gradient(90deg, #7c3aed, #ec4899) 1;
-  background: linear-gradient(to bottom, rgba(147, 51, 234, 0.05), transparent);
+  @apply text-blue-600 border-blue-600 bg-blue-50;
 }
 
 .admin-tab:not(.active) {
-  @apply border-transparent text-gray-600 hover:text-purple-500;
+  @apply border-transparent text-gray-600 hover:text-blue-500 hover:bg-gray-50;
 }
 
-/* Card Hover Effects */
+/* Card Hover Effects - Simple */
 .card-hover {
-  @apply transition-all duration-300 hover:shadow-2xl;
-  background: linear-gradient(145deg, #ffffff, #f3f4f6);
+  @apply transition-colors hover:bg-gray-50 border border-gray-200 hover:border-gray-300;
 }
 
-.card-hover:hover {
-  transform: translateY(-4px) rotateX(2deg);
-  background: linear-gradient(145deg, #ffffff, #faf5ff);
-}
-
-/* Fancy Loading Animation */
-@keyframes pulse-gradient {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
+/* Loading Animation */
 .loading-gradient {
-  background: linear-gradient(90deg, #f3f4f6, #e5e7eb, #f3f4f6);
-  background-size: 200% 100%;
-  animation: pulse-gradient 1.5s ease infinite;
+  @apply bg-gray-100;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 /* Success Animation */
 .success-checkmark {
-  animation: successPop 0.6s ease;
+  animation: successPop 0.3s ease;
 }
 
 @keyframes successPop {
-  0% { transform: scale(0) rotate(45deg); opacity: 0; }
-  50% { transform: scale(1.2) rotate(-10deg); }
-  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 /* Error Shake Animation */
 .error-shake {
-  animation: shake 0.5s;
+  animation: shake 0.3s;
 }
 
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
-  20%, 40%, 60%, 80% { transform: translateX(4px); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
 }
-
-/* Floating Action Button */
-.fab {
-  @apply fixed bottom-8 right-8 w-14 h-14 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-2xl flex items-center justify-center transition-all;
-  animation: float 3s ease-in-out infinite;
-}
-
-.fab:hover {
-  box-shadow: 0 20px 40px rgba(147, 51, 234, 0.4);
-  transform: scale(1.1);
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-
