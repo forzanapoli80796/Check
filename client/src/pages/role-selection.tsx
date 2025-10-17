@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { User, Shield, Settings, Cookie, Globe, Lock, Eye, EyeOff, StickyNote } from "lucide-react";
+import { User, Shield, Settings, Cookie, Globe, Lock, Eye, EyeOff } from "lucide-react";
 import logoPath from "@assets/FORZACHECK1_black_1753816621910.png";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { 
@@ -135,24 +135,6 @@ export default function RoleSelection() {
               </span>
               <span className="text-sm text-gray-500">
                 {t.startPage.roles.teigDesc}
-              </span>
-            </div>
-          </button>
-          
-          <button
-            onClick={() => navigate('/whiteboard')}
-            className="w-full flex items-center p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200"
-            data-testid="button-whiteboard"
-          >
-            <div className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center mr-4">
-              <StickyNote className="text-white" size={24} />
-            </div>
-            <div className="text-left">
-              <span className="text-lg font-medium text-gray-900 block">
-                Digitales Whiteboard
-              </span>
-              <span className="text-sm text-gray-500">
-                Notizen für Kollegen hinterlassen
               </span>
             </div>
           </button>

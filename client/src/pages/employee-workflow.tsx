@@ -15,6 +15,7 @@ import InventoryChecklist from "@/components/employee-steps/inventory-checklist"
 import SuccessScreen from "@/components/employee-steps/success-screen";
 import { TicketsView } from "@/components/employee-steps/tickets-view";
 import SendMessage from "@/components/employee-steps/send-message";
+import WhiteboardStep from "@/components/employee-steps/whiteboard-step";
 import type { Category } from "@shared/schema";
 
 
@@ -82,6 +83,11 @@ export default function EmployeeWorkflow() {
         
         if (selectedCategory?.name === 'Kugelfahrer-Hausmeister') {
           return <TicketsView state={state} updateState={updateState} />;
+        }
+        
+        // Check if this is Digitales Whiteboard
+        if (selectedCategory?.name === 'Digitales Whiteboard') {
+          return <WhiteboardStep state={state} updateState={updateState} />;
         }
         
         // Check if this is inventory area by category type (Option 3)
