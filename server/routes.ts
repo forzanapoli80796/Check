@@ -557,8 +557,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Store Whiteboard routes
   app.get("/api/whiteboard/:storeName", async (req, res) => {
     const storage = await getStorage();
-    const notes = await storage.getWhiteboardNotes(req.params.storeName);
-    res.json(notes);
+    const allNotes = await storage.getWhiteboardNotes(req.params.storeName);
+    
+    // Filter out expired notes
+    const now = new Date();
+    const activeNotes = allNotes.filter(note => {
+      if (!note.expiresAt) return true;
+      return new Date(note.expiresAt) > now;
+    });
+    
+    res.json(activeNotes);
   });
 
   app.post("/api/whiteboard", async (req, res) => {
@@ -573,6 +581,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/whiteboard/:id", async (req, res) => {
+    try {
+      const storage = await getStorage();
+      const { message, editorName } = req.body;
+      
+      if (!message || !editorName) {
+        return res.status(400).json({ message: "Message and editor name are required" });
+      }
+      
+      const updatedNote = await storage.updateWhiteboardNote(req.params.id, message, editorName);
+      
+      if (!updatedNote) {
+        return res.status(404).json({ message: "Whiteboard note not found" });
+      }
+      
+      res.json(updatedNote);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid update data" });
+    }
+  });
+
   app.delete("/api/whiteboard/:id", async (req, res) => {
     const storage = await getStorage();
     const success = await storage.deleteWhiteboardNote(req.params.id);
@@ -580,6 +609,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(404).json({ message: "Whiteboard note not found" });
     }
     res.json({ success: true });
+  });
+
+  // Image upload route for whiteboard notes
+  app.post("/api/upload/whiteboard-image", async (req, res) => {
+    try {
+      const { image } = req.body;
+      
+      if (!image) {
+        return res.status(400).json({ message: "No image data provided" });
+      }
+      
+      // Extract base64 data from data URL
+      const matches = image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      
+      if (!matches || matches.length !== 3) {
+        return res.status(400).json({ message: "Invalid image data format" });
+      }
+      
+      const mimeType = matches[1];
+      const base64Data = matches[2];
+      const buffer = Buffer.from(base64Data, 'base64');
+      
+      // Determine file extension from MIME type
+      let extension = '.jpg';
+      if (mimeType.includes('png')) {
+        extension = '.png';
+      } else if (mimeType.includes('gif')) {
+        extension = '.gif';
+      } else if (mimeType.includes('webp')) {
+        extension = '.webp';
+      }
+      
+      // Generate unique filename
+      const filename = `whiteboard-${randomUUID()}${extension}`;
+      
+      // Upload to object storage
+      const privateDir = process.env.PRIVATE_OBJECT_DIR || '/replit-objstore-af34c6fd-ac39-4de6-9454-67f23a144783/.private';
+      const fullPath = `${privateDir}/whiteboard/${filename}`;
+      
+      // Parse the path to get bucket and object name
+      const pathParts = fullPath.split('/').filter(p => p);
+      const bucketName = pathParts[0];
+      const objectName = pathParts.slice(1).join('/');
+      
+      // Use the objectStorageClient directly
+      const { objectStorageClient } = await import('./objectStorage');
+      const bucket = objectStorageClient.bucket(bucketName);
+      const file = bucket.file(objectName);
+      
+      // Upload the buffer
+      await file.save(buffer, {
+        metadata: {
+          contentType: mimeType,
+        },
+      });
+      
+      // Generate signed URL (valid for 7 days)
+      const [signedUrl] = await file.getSignedUrl({
+        action: 'read',
+        expires: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+      
+      res.json({ imageUrl: signedUrl });
+    } catch (error) {
+      console.error('Error uploading whiteboard image:', error);
+      res.status(500).json({ message: "Failed to upload image" });
+    }
   });
 
   // Image upload route for employee notes

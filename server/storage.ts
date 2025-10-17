@@ -66,6 +66,7 @@ export interface IStorage {
   // Store Whiteboard
   getWhiteboardNotes(storeName: string): Promise<StoreWhiteboard[]>;
   createWhiteboardNote(note: InsertStoreWhiteboard): Promise<StoreWhiteboard>;
+  updateWhiteboardNote(id: string, message: string, editorName: string): Promise<StoreWhiteboard | undefined>;
   deleteWhiteboardNote(id: string): Promise<boolean>;
 }
 
@@ -514,6 +515,28 @@ export class DatabaseStorage implements IStorage {
     return note;
   }
 
+  async updateWhiteboardNote(id: string, message: string, editorName: string): Promise<StoreWhiteboard | undefined> {
+    const note = await db.select().from(storeWhiteboard).where(eq(storeWhiteboard.id, id)).limit(1);
+    
+    if (note.length === 0) return undefined;
+    
+    const currentNote = note[0];
+    const editedBy = (currentNote.editedBy as any[]) || [];
+    editedBy.push({ name: editorName, editedAt: new Date() });
+    
+    const [updated] = await db
+      .update(storeWhiteboard)
+      .set({
+        message,
+        editedBy,
+        lastEditedAt: new Date(),
+      })
+      .where(eq(storeWhiteboard.id, id))
+      .returning();
+    
+    return updated;
+  }
+
   async deleteWhiteboardNote(id: string): Promise<boolean> {
     const result = await db.delete(storeWhiteboard).where(eq(storeWhiteboard.id, id));
     return (result.rowCount || 0) > 0;
@@ -893,6 +916,7 @@ export class MemStorage implements IStorage {
       priority: insertTicket.priority || "mittel",
       assignedTo: insertTicket.assignedTo || null,
       image: insertTicket.image || null,
+      dueDate: insertTicket.dueDate || null,
       comments: insertTicket.comments || [],
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -1003,10 +1027,32 @@ export class MemStorage implements IStorage {
       ...insertNote,
       id,
       color: insertNote.color || null,
+      imageUrl: insertNote.imageUrl || null,
+      expiresAt: insertNote.expiresAt || null,
+      editedBy: [],
+      lastEditedAt: null,
       createdAt: new Date(),
     };
     this.whiteboardNotes.set(id, note);
     return note;
+  }
+
+  async updateWhiteboardNote(id: string, message: string, editorName: string): Promise<StoreWhiteboard | undefined> {
+    const note = this.whiteboardNotes.get(id);
+    if (!note) return undefined;
+    
+    const editedBy = (note.editedBy as any[]) || [];
+    editedBy.push({ name: editorName, editedAt: new Date() });
+    
+    const updatedNote: StoreWhiteboard = {
+      ...note,
+      message,
+      editedBy,
+      lastEditedAt: new Date(),
+    };
+    
+    this.whiteboardNotes.set(id, updatedNote);
+    return updatedNote;
   }
 
   async deleteWhiteboardNote(id: string): Promise<boolean> {

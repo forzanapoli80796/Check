@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { StickyNote, Trash2, Plus } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { StickyNote, Trash2, Plus, Edit2, Image as ImageIcon, Clock, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { StoreWhiteboard, InsertStoreWhiteboard } from "@shared/schema";
@@ -19,6 +21,16 @@ const NOTE_COLORS = [
   { name: "Lila", value: "purple", bgClass: "bg-purple-100", borderClass: "border-purple-300" },
 ];
 
+const EXPIRY_OPTIONS = [
+  { label: "Kein Ablaufdatum", value: null },
+  { label: "1 Stunde", hours: 1 },
+  { label: "4 Stunden", hours: 4 },
+  { label: "8 Stunden", hours: 8 },
+  { label: "1 Tag", hours: 24 },
+  { label: "3 Tage", hours: 72 },
+  { label: "1 Woche", hours: 168 },
+];
+
 interface WhiteboardStepProps {
   state: EmployeeWorkflowState;
   updateState: (updates: Partial<EmployeeWorkflowState>) => void;
@@ -27,9 +39,14 @@ interface WhiteboardStepProps {
 export default function WhiteboardStep({ state, updateState }: WhiteboardStepProps) {
   const { toast } = useToast();
   const [showAddNote, setShowAddNote] = useState(false);
+  const [editingNote, setEditingNote] = useState<StoreWhiteboard | null>(null);
   const [employeeName, setEmployeeName] = useState("");
   const [message, setMessage] = useState("");
   const [selectedColor, setSelectedColor] = useState("yellow");
+  const [selectedExpiry, setSelectedExpiry] = useState<string>("none");
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch whiteboard notes for selected store
   const { data: notes = [], isLoading } = useQuery<StoreWhiteboard[]>({
@@ -49,15 +66,37 @@ export default function WhiteboardStep({ state, updateState }: WhiteboardStepPro
         title: "Notiz hinzugefügt",
         description: "Die Notiz wurde erfolgreich zum Whiteboard hinzugefügt.",
       });
-      setShowAddNote(false);
-      setEmployeeName("");
-      setMessage("");
-      setSelectedColor("yellow");
+      resetForm();
     },
     onError: () => {
       toast({
         title: "Fehler",
         description: "Die Notiz konnte nicht hinzugefügt werden.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update note mutation
+  const updateNoteMutation = useMutation({
+    mutationFn: async ({ id, message, editorName }: { id: string; message: string; editorName: string }) => {
+      const response = await apiRequest('PATCH', `/api/whiteboard/${id}`, { message, editorName });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/whiteboard', state.selectedStore] });
+      toast({
+        title: "Notiz aktualisiert",
+        description: "Die Notiz wurde erfolgreich bearbeitet.",
+      });
+      setEditingNote(null);
+      setEmployeeName("");
+      setMessage("");
+    },
+    onError: () => {
+      toast({
+        title: "Fehler",
+        description: "Die Notiz konnte nicht bearbeitet werden.",
         variant: "destructive",
       });
     },
@@ -85,6 +124,55 @@ export default function WhiteboardStep({ state, updateState }: WhiteboardStepPro
     },
   });
 
+  const resetForm = () => {
+    setShowAddNote(false);
+    setEmployeeName("");
+    setMessage("");
+    setSelectedColor("yellow");
+    setSelectedExpiry("none");
+    setUploadedImage(null);
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Datei zu groß",
+        description: "Das Bild darf maximal 5MB groß sein.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      try {
+        const base64Image = reader.result as string;
+        const response = await apiRequest('POST', '/api/upload/whiteboard-image', { image: base64Image });
+        const data = await response.json();
+        setUploadedImage(data.imageUrl);
+        toast({
+          title: "Bild hochgeladen",
+          description: "Das Bild wurde erfolgreich hochgeladen.",
+        });
+      } catch (error) {
+        toast({
+          title: "Fehler",
+          description: "Das Bild konnte nicht hochgeladen werden.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsUploading(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleAddNote = () => {
     if (!employeeName.trim() || !message.trim()) {
       toast({
@@ -97,11 +185,43 @@ export default function WhiteboardStep({ state, updateState }: WhiteboardStepPro
 
     if (!state.selectedStore) return;
 
+    let expiresAt: Date | undefined;
+    if (selectedExpiry !== "none") {
+      const hours = parseInt(selectedExpiry);
+      expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + hours);
+    }
+
     createNoteMutation.mutate({
       storeName: state.selectedStore,
       employeeName: employeeName.trim(),
       message: message.trim(),
       color: selectedColor,
+      imageUrl: uploadedImage,
+      expiresAt,
+    });
+  };
+
+  const handleEditNote = (note: StoreWhiteboard) => {
+    setEditingNote(note);
+    setMessage(note.message);
+    setEmployeeName("");
+  };
+
+  const handleUpdateNote = () => {
+    if (!editingNote || !message.trim() || !employeeName.trim()) {
+      toast({
+        title: "Fehler",
+        description: "Bitte Name und Nachricht eingeben.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    updateNoteMutation.mutate({
+      id: editingNote.id,
+      message: message.trim(),
+      editorName: employeeName.trim(),
     });
   };
 
@@ -122,11 +242,24 @@ export default function WhiteboardStep({ state, updateState }: WhiteboardStepPro
     });
   };
 
+  const getExpiryText = (expiresAt: Date | null) => {
+    if (!expiresAt) return null;
+    const now = new Date();
+    const expiry = new Date(expiresAt);
+    const diff = expiry.getTime() - now.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(hours / 24);
+    
+    if (days > 0) return `Läuft ab in ${days} Tag${days > 1 ? 'en' : ''}`;
+    if (hours > 0) return `Läuft ab in ${hours} Stunde${hours > 1 ? 'n' : ''}`;
+    return "Läuft bald ab";
+  };
+
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="text-2xl">Digitales Whiteboard - {state.selectedStore}</CardTitle>
-        <p className="text-gray-600 mt-2">Notizen für das Team</p>
+        <p className="text-gray-600 mt-2">Team-Notizen mit Bildern und Ablaufdatum</p>
       </CardHeader>
       <CardContent className="space-y-4">
         <Button
@@ -181,15 +314,55 @@ export default function WhiteboardStep({ state, updateState }: WhiteboardStepPro
                   ))}
                 </div>
               </div>
+              <div>
+                <Label htmlFor="expiry">Ablaufdatum (optional)</Label>
+                <Select value={selectedExpiry} onValueChange={setSelectedExpiry}>
+                  <SelectTrigger id="expiry" data-testid="select-expiry">
+                    <SelectValue placeholder="Ablaufdatum wählen" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Kein Ablaufdatum</SelectItem>
+                    <SelectItem value="1">1 Stunde</SelectItem>
+                    <SelectItem value="4">4 Stunden</SelectItem>
+                    <SelectItem value="8">8 Stunden</SelectItem>
+                    <SelectItem value="24">1 Tag</SelectItem>
+                    <SelectItem value="72">3 Tage</SelectItem>
+                    <SelectItem value="168">1 Woche</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Bild hinzufügen (optional)</Label>
+                <div className="mt-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="w-full"
+                    data-testid="button-upload-image"
+                  >
+                    <ImageIcon size={16} className="mr-2" />
+                    {isUploading ? "Wird hochgeladen..." : uploadedImage ? "Bild ändern" : "Bild hochladen"}
+                  </Button>
+                  {uploadedImage && (
+                    <div className="mt-2">
+                      <img src={uploadedImage} alt="Vorschau" className="max-h-40 rounded-lg" />
+                    </div>
+                  )}
+                </div>
+              </div>
               <div className="flex gap-2 justify-end">
                 <Button
                   variant="outline"
-                  onClick={() => {
-                    setShowAddNote(false);
-                    setEmployeeName("");
-                    setMessage("");
-                    setSelectedColor("yellow");
-                  }}
+                  onClick={resetForm}
                   data-testid="button-cancel-note"
                 >
                   Abbrechen
@@ -207,6 +380,61 @@ export default function WhiteboardStep({ state, updateState }: WhiteboardStepPro
           </Card>
         )}
 
+        {/* Edit Note Dialog */}
+        <Dialog open={!!editingNote} onOpenChange={() => {
+          setEditingNote(null);
+          setMessage("");
+          setEmployeeName("");
+        }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Notiz bearbeiten</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="editorName">Dein Name</Label>
+                <Input
+                  id="editorName"
+                  value={employeeName}
+                  onChange={(e) => setEmployeeName(e.target.value)}
+                  placeholder="Name eingeben"
+                  data-testid="input-editor-name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="editMessage">Nachricht</Label>
+                <Textarea
+                  id="editMessage"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Nachricht eingeben..."
+                  rows={4}
+                  data-testid="input-edit-message"
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setEditingNote(null);
+                    setMessage("");
+                    setEmployeeName("");
+                  }}
+                >
+                  Abbrechen
+                </Button>
+                <Button
+                  onClick={handleUpdateNote}
+                  disabled={updateNoteMutation.isPending}
+                  data-testid="button-update-note"
+                >
+                  {updateNoteMutation.isPending ? "Wird gespeichert..." : "Speichern"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Notes Display */}
         {isLoading ? (
           <div className="text-center py-8">
@@ -222,6 +450,9 @@ export default function WhiteboardStep({ state, updateState }: WhiteboardStepPro
           <div className="space-y-3">
             {notes.map((note) => {
               const { bgClass, borderClass } = getColorClasses(note.color);
+              const expiryText = getExpiryText(note.expiresAt);
+              const editHistory = (note.editedBy as any[]) || [];
+              
               return (
                 <Card 
                   key={note.id} 
@@ -233,20 +464,53 @@ export default function WhiteboardStep({ state, updateState }: WhiteboardStepPro
                       <div className="flex-1">
                         <p className="font-semibold text-gray-900">{note.employeeName}</p>
                         <p className="text-xs text-gray-600">{formatDate(note.createdAt)}</p>
+                        {expiryText && (
+                          <p className="text-xs text-orange-600 flex items-center gap-1 mt-1">
+                            <Clock size={12} /> {expiryText}
+                          </p>
+                        )}
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteNoteMutation.mutate(note.id)}
-                        className="h-8 w-8 p-0 hover:bg-red-100"
-                        data-testid={`button-delete-note-${note.id}`}
-                      >
-                        <Trash2 size={16} className="text-red-600" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditNote(note)}
+                          className="h-8 w-8 p-0 hover:bg-blue-100"
+                          data-testid={`button-edit-note-${note.id}`}
+                        >
+                          <Edit2 size={16} className="text-blue-600" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteNoteMutation.mutate(note.id)}
+                          className="h-8 w-8 p-0 hover:bg-red-100"
+                          data-testid={`button-delete-note-${note.id}`}
+                        >
+                          <Trash2 size={16} className="text-red-600" />
+                        </Button>
+                      </div>
                     </div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-2">
                     <p className="text-gray-800 whitespace-pre-wrap">{note.message}</p>
+                    {note.imageUrl && (
+                      <img src={note.imageUrl} alt="Notiz Bild" className="max-h-60 rounded-lg mt-2" />
+                    )}
+                    {editHistory.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-gray-300">
+                        <p className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+                          <User size={12} /> Bearbeitungsverlauf:
+                        </p>
+                        <div className="mt-1 space-y-1">
+                          {editHistory.map((edit: any, idx: number) => (
+                            <p key={idx} className="text-xs text-gray-600">
+                              {edit.name} • {formatDate(edit.editedAt)}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               );
