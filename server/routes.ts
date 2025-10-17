@@ -554,6 +554,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ success: true });
   });
 
+  // Store Whiteboard routes
+  app.get("/api/whiteboard/:storeName", async (req, res) => {
+    const storage = await getStorage();
+    const notes = await storage.getWhiteboardNotes(req.params.storeName);
+    res.json(notes);
+  });
+
+  app.post("/api/whiteboard", async (req, res) => {
+    try {
+      const storage = await getStorage();
+      const { insertStoreWhiteboardSchema } = await import("@shared/schema");
+      const validatedData = insertStoreWhiteboardSchema.parse(req.body);
+      const note = await storage.createWhiteboardNote(validatedData);
+      res.json(note);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid whiteboard note data" });
+    }
+  });
+
+  app.delete("/api/whiteboard/:id", async (req, res) => {
+    const storage = await getStorage();
+    const success = await storage.deleteWhiteboardNote(req.params.id);
+    if (!success) {
+      return res.status(404).json({ message: "Whiteboard note not found" });
+    }
+    res.json({ success: true });
+  });
+
   // Image upload route for employee notes
   app.post("/api/upload/employee-note-image", async (req, res) => {
     try {

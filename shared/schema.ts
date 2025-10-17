@@ -114,6 +114,16 @@ export const employeeMessages = pgTable("employee_messages", {
   createdAt: timestamp("created_at").defaultNow(), // Automatischer Zeitstempel
 });
 
+// Store Whiteboard - Digitales Whiteboard für jeden Store
+export const storeWhiteboard = pgTable("store_whiteboard", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  storeName: text("store_name").notNull(), // JP23, KP5, TS17
+  message: text("message").notNull(),
+  employeeName: text("employee_name").notNull(),
+  color: text("color").default("yellow"), // Farbe der Notiz (yellow, blue, green, pink, orange)
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertCategorySchema = createInsertSchema(categories).omit({
   id: true,
   createdAt: true,
@@ -157,6 +167,11 @@ export const insertEmployeeMessageSchema = createInsertSchema(employeeMessages).
   createdAt: true,
 });
 
+export const insertStoreWhiteboardSchema = createInsertSchema(storeWhiteboard).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type Category = typeof categories.$inferSelect;
 
@@ -180,3 +195,6 @@ export type EmployeeNote = typeof employeeNotes.$inferSelect;
 
 export type InsertEmployeeMessage = z.infer<typeof insertEmployeeMessageSchema>;
 export type EmployeeMessage = typeof employeeMessages.$inferSelect;
+
+export type InsertStoreWhiteboard = z.infer<typeof insertStoreWhiteboardSchema>;
+export type StoreWhiteboard = typeof storeWhiteboard.$inferSelect;

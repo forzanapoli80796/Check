@@ -15,6 +15,7 @@ import TeigDashboard from "@/pages/teig-dashboard";
 import CategoryTasks from "@/pages/category-tasks";
 import LocationSelection from "@/pages/location-selection";
 import AdminCategoryTasks from "@/pages/admin-category-tasks";
+import Whiteboard from "@/pages/whiteboard";
 
 
 function Router() {
@@ -26,6 +27,7 @@ function Router() {
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/betriebsleiter" component={BetriebsleiterDashboard} />
       <Route path="/teig" component={TeigDashboard} />
+      <Route path="/whiteboard" component={Whiteboard} />
       <Route path="/location-selection" component={LocationSelection} />
       <Route path="/category-tasks" component={CategoryTasks} />
       <Route path="/admin-category-tasks/:categoryId/:store" component={AdminCategoryTasks} />

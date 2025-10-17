@@ -1,7 +1,7 @@
-import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist, type TeigProduction, type InsertTeigProduction, type InventoryItem, type InsertInventoryItem, type Ticket, type InsertTicket, type EmployeeNote, type InsertEmployeeNote, type EmployeeMessage, type InsertEmployeeMessage } from "@shared/schema";
+import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist, type TeigProduction, type InsertTeigProduction, type InventoryItem, type InsertInventoryItem, type Ticket, type InsertTicket, type EmployeeNote, type InsertEmployeeNote, type EmployeeMessage, type InsertEmployeeMessage, type StoreWhiteboard, type InsertStoreWhiteboard } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { categories, tasks, checklists, teigProduction, inventoryItems, tickets, employeeNotes, employeeMessages } from "@shared/schema";
+import { categories, tasks, checklists, teigProduction, inventoryItems, tickets, employeeNotes, employeeMessages, storeWhiteboard } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 
 export interface IStorage {
@@ -62,6 +62,11 @@ export interface IStorage {
   getEmployeeMessageById(id: string): Promise<EmployeeMessage | undefined>;
   createEmployeeMessage(message: InsertEmployeeMessage): Promise<EmployeeMessage>;
   deleteEmployeeMessage(id: string): Promise<boolean>;
+  
+  // Store Whiteboard
+  getWhiteboardNotes(storeName: string): Promise<StoreWhiteboard[]>;
+  createWhiteboardNote(note: InsertStoreWhiteboard): Promise<StoreWhiteboard>;
+  deleteWhiteboardNote(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -489,6 +494,30 @@ export class DatabaseStorage implements IStorage {
     const result = await db.delete(employeeMessages).where(eq(employeeMessages.id, id));
     return (result.rowCount || 0) > 0;
   }
+
+  // Store Whiteboard methods
+  async getWhiteboardNotes(storeName: string): Promise<StoreWhiteboard[]> {
+    return await db.select().from(storeWhiteboard)
+      .where(eq(storeWhiteboard.storeName, storeName))
+      .orderBy(sql`${storeWhiteboard.createdAt} DESC`);
+  }
+
+  async createWhiteboardNote(insertNote: InsertStoreWhiteboard): Promise<StoreWhiteboard> {
+    const [note] = await db
+      .insert(storeWhiteboard)
+      .values({
+        ...insertNote,
+        id: randomUUID(),
+        createdAt: new Date(),
+      })
+      .returning();
+    return note;
+  }
+
+  async deleteWhiteboardNote(id: string): Promise<boolean> {
+    const result = await db.delete(storeWhiteboard).where(eq(storeWhiteboard.id, id));
+    return (result.rowCount || 0) > 0;
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -500,6 +529,7 @@ export class MemStorage implements IStorage {
   private tickets: Map<string, Ticket> = new Map();
   private employeeNotes: Map<string, EmployeeNote> = new Map();
   private employeeMessages: Map<string, EmployeeMessage> = new Map();
+  private whiteboardNotes: Map<string, StoreWhiteboard> = new Map();
 
   constructor() {
     this.initializeDefaultData();
@@ -858,6 +888,7 @@ export class MemStorage implements IStorage {
     const ticket: Ticket = {
       ...insertTicket,
       id,
+      categoryId: insertTicket.categoryId || null,
       status: insertTicket.status || "offen",
       priority: insertTicket.priority || "mittel",
       assignedTo: insertTicket.assignedTo || null,
@@ -919,6 +950,8 @@ export class MemStorage implements IStorage {
     const note: EmployeeNote = {
       ...insertNote,
       id,
+      categoryId: insertNote.categoryId || null,
+      imageUrl: insertNote.imageUrl || null,
       createdAt: new Date(),
     };
     this.employeeNotes.set(id, note);
@@ -945,6 +978,8 @@ export class MemStorage implements IStorage {
     const message: EmployeeMessage = {
       ...insertMessage,
       id,
+      imageUrl: insertMessage.imageUrl || null,
+      categoryName: insertMessage.categoryName || null,
       createdAt: new Date(),
     };
     this.employeeMessages.set(id, message);
@@ -953,6 +988,29 @@ export class MemStorage implements IStorage {
 
   async deleteEmployeeMessage(id: string): Promise<boolean> {
     return this.employeeMessages.delete(id);
+  }
+
+  // Store Whiteboard methods
+  async getWhiteboardNotes(storeName: string): Promise<StoreWhiteboard[]> {
+    return Array.from(this.whiteboardNotes.values())
+      .filter(note => note.storeName === storeName)
+      .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime());
+  }
+
+  async createWhiteboardNote(insertNote: InsertStoreWhiteboard): Promise<StoreWhiteboard> {
+    const id = randomUUID();
+    const note: StoreWhiteboard = {
+      ...insertNote,
+      id,
+      color: insertNote.color || null,
+      createdAt: new Date(),
+    };
+    this.whiteboardNotes.set(id, note);
+    return note;
+  }
+
+  async deleteWhiteboardNote(id: string): Promise<boolean> {
+    return this.whiteboardNotes.delete(id);
   }
 }
 
