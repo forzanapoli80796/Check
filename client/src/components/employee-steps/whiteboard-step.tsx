@@ -354,7 +354,7 @@ export default function WhiteboardStep({ state, updateState }: WhiteboardStepPro
                   </Button>
                   {uploadedImage && (
                     <div className="mt-2">
-                      <img src={uploadedImage} alt="Vorschau" className="max-h-40 rounded-lg" />
+                      <img src={`/api/whiteboard-image?path=${encodeURIComponent(uploadedImage)}`} alt="Vorschau" className="max-h-40 rounded-lg" />
                     </div>
                   )}
                 </div>
@@ -495,7 +495,7 @@ export default function WhiteboardStep({ state, updateState }: WhiteboardStepPro
                   <CardContent className="space-y-2">
                     <p className="text-gray-800 whitespace-pre-wrap">{note.message}</p>
                     {note.imageUrl && (
-                      <img src={note.imageUrl} alt="Notiz Bild" className="max-h-60 rounded-lg mt-2" />
+                      <img src={`/api/whiteboard-image?path=${encodeURIComponent(note.imageUrl)}`} alt="Notiz Bild" className="max-h-60 rounded-lg mt-2" />
                     )}
                     {editHistory.length > 0 && (
                       <div className="mt-3 pt-3 border-t border-gray-300">

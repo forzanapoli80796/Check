@@ -665,16 +665,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       });
       
-      // Generate signed URL (valid for 7 days)
-      const [signedUrl] = await file.getSignedUrl({
-        action: 'read',
-        expires: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days
-      });
-      
-      res.json({ imageUrl: signedUrl });
+      // Return the file path for storage in database
+      res.json({ imageUrl: fullPath });
     } catch (error) {
       console.error('Error uploading whiteboard image:', error);
       res.status(500).json({ message: "Failed to upload image" });
+    }
+  });
+
+  // Get image route for whiteboard notes
+  app.get("/api/whiteboard-image", async (req, res) => {
+    try {
+      const { path: imagePath } = req.query;
+      
+      if (!imagePath || typeof imagePath !== 'string') {
+        return res.status(400).json({ message: "No image path provided" });
+      }
+      
+      // Parse the path to get bucket and object name
+      const pathParts = imagePath.split('/').filter(p => p);
+      const bucketName = pathParts[0];
+      const objectName = pathParts.slice(1).join('/');
+      
+      // Use the objectStorageClient directly
+      const { objectStorageClient } = await import('./objectStorage');
+      const bucket = objectStorageClient.bucket(bucketName);
+      const file = bucket.file(objectName);
+      
+      // Check if file exists
+      const [exists] = await file.exists();
+      if (!exists) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+      
+      // Download the file
+      const [buffer] = await file.download();
+      
+      // Determine content type from file extension
+      let contentType = 'image/jpeg';
+      if (imagePath.endsWith('.png')) {
+        contentType = 'image/png';
+      } else if (imagePath.endsWith('.gif')) {
+        contentType = 'image/gif';
+      } else if (imagePath.endsWith('.webp')) {
+        contentType = 'image/webp';
+      }
+      
+      res.setHeader('Content-Type', contentType);
+      res.send(buffer);
+      
+    } catch (error) {
+      console.error('Image download error:', error);
+      res.status(404).json({ message: "Image not found" });
     }
   });
 
