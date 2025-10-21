@@ -594,7 +594,7 @@ export function TicketsManagement() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {categories?.map(category => (
+                        {categories?.filter(cat => cat.categoryType === 'tickets').map(category => (
                           <SelectItem key={category.id} value={category.id}>
                             {category.name}
                           </SelectItem>

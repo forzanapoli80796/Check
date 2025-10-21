@@ -19,8 +19,8 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
     queryKey: ["/api/categories"],
   });
 
-  // Filter out subcategories and only show categories with categoryType="tickets"
-  const categories = allCategories.filter(cat => !cat.parentId && cat.categoryType === 'tickets');
+  // Filter out subcategories - only show main categories (those without parentId)
+  const categories = allCategories.filter(cat => !cat.parentId);
 
   const selectArea = (category: Category) => {
     console.log('Selected category:', { 
