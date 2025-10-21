@@ -9,7 +9,6 @@ import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
 import SubmittedLists from "@/components/admin-tabs/submitted-lists";
 import CategoriesManagement from "@/components/admin-tabs/categories-management";
 import { TicketsManagement } from "@/components/admin-tabs/tickets";
-import { CompletedTickets } from "@/components/admin-tabs/completed-tickets";
 import { EmployeeNotes } from "@/components/admin-tabs/employee-notes";
 import ErrorBoundary from "@/components/error-boundary";
 import TeigManagement from "@/components/teig-management";
@@ -46,12 +45,6 @@ export default function AdminDashboard() {
         return (
           <ErrorBoundary>
             <TicketsManagement />
-          </ErrorBoundary>
-        );
-      case 'completedTickets':
-        return (
-          <ErrorBoundary>
-            <CompletedTickets />
           </ErrorBoundary>
         );
       case 'employeeNotes':
@@ -111,12 +104,6 @@ export default function AdminDashboard() {
               className={`admin-tab ${activeTab === 'tickets' ? 'active' : ''}`}
             >
               Tickets
-            </button>
-            <button
-              onClick={() => setActiveTab('completedTickets')}
-              className={`admin-tab ${activeTab === 'completedTickets' ? 'active' : ''}`}
-            >
-              Erledigte Tickets
             </button>
             <button
               onClick={() => setActiveTab('employeeNotes')}

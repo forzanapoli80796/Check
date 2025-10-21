@@ -18,6 +18,16 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Form,
   FormControl,
   FormField,
@@ -112,11 +122,13 @@ const compressImage = async (file: File): Promise<string> => {
 export function TicketsManagement() {
   const [storeFilter, setStoreFilter] = useState<string>("alle");
   const [dateFilter, setDateFilter] = useState<string>("heute");
+  const [statusFilter, setStatusFilter] = useState<string>("offen"); // New: Status filter
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
   const [newComment, setNewComment] = useState("");
+  const [ticketToDelete, setTicketToDelete] = useState<Ticket | null>(null); // New: For delete confirmation
   const { toast } = useToast();
 
   const form = useForm({
@@ -144,7 +156,7 @@ export function TicketsManagement() {
 
   // Fetch tickets with filters
   const { data: tickets, isLoading } = useQuery<Ticket[]>({
-    queryKey: ["/api/tickets", storeFilter, dateFilter],
+    queryKey: ["/api/tickets", storeFilter, dateFilter, statusFilter],
     queryFn: async () => {
       // Build query parameters
       const params = new URLSearchParams();
@@ -188,7 +200,15 @@ export function TicketsManagement() {
       if (!response.ok) {
         throw new Error("Failed to fetch tickets");
       }
-      return response.json();
+      const allTickets = await response.json();
+      
+      // Filter by status
+      if (statusFilter === "offen") {
+        return allTickets.filter((t: Ticket) => t.status === "offen");
+      } else if (statusFilter === "erledigt") {
+        return allTickets.filter((t: Ticket) => t.status === "erledigt");
+      }
+      return allTickets; // "alle"
     },
   });
 
@@ -401,6 +421,18 @@ export function TicketsManagement() {
               <SelectItem value="woche">Letzte 7 Tage</SelectItem>
               <SelectItem value="monat">Letzte 30 Tage</SelectItem>
               <SelectItem value="alle">Alle Tickets</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[180px]" data-testid="select-status-filter">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Status wählen" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="offen">Offen</SelectItem>
+              <SelectItem value="erledigt">Erledigt</SelectItem>
+              <SelectItem value="alle">Alle Status</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -815,9 +847,7 @@ export function TicketsManagement() {
               <Button
                 variant="destructive"
                 onClick={() => {
-                  if (confirm("Möchten Sie dieses Ticket wirklich löschen?")) {
-                    deleteTicketMutation.mutate(selectedTicket.id);
-                  }
+                  setTicketToDelete(selectedTicket);
                 }}
                 data-testid="button-delete-ticket"
               >
@@ -831,6 +861,33 @@ export function TicketsManagement() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* AlertDialog für Löschbestätigung */}
+      <AlertDialog open={!!ticketToDelete} onOpenChange={(open) => !open && setTicketToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Ticket löschen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Möchten Sie dieses Ticket wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete">Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (ticketToDelete) {
+                  deleteTicketMutation.mutate(ticketToDelete.id);
+                  setTicketToDelete(null);
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700"
+              data-testid="button-confirm-delete"
+            >
+              Löschen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
