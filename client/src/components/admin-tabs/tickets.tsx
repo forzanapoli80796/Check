@@ -71,6 +71,7 @@ const STORES = ["JP23", "KP5", "TS17"];
 const createTicketSchema = z.object({
   description: z.string().min(1, "Aufgabe ist erforderlich"),
   store: z.string().min(1, "Store ist erforderlich"),
+  categoryId: z.string().min(1, "Arbeitsbereich ist erforderlich"),
   priority: z.enum(["niedrig", "mittel", "hoch"]).default("mittel"),
   dueDate: z.date().optional(),
   image: z.string().optional(),
@@ -136,6 +137,7 @@ export function TicketsManagement() {
     defaultValues: {
       description: "",
       store: "JP23",
+      categoryId: "",
       priority: "mittel" as "niedrig" | "mittel" | "hoch",
       dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 Stunden in der Zukunft
       image: "",
@@ -215,17 +217,11 @@ export function TicketsManagement() {
   // Create ticket mutation
   const createTicketMutation = useMutation({
     mutationFn: async (data: z.infer<typeof createTicketSchema>) => {
-      // Find the Kugelfahrer-Hausmeister category ID
-      const kugelfahrerCategory = categories?.find(
-        (cat: Category) => cat.name === 'Kugelfahrer-Hausmeister'
-      );
-      
       const ticketData = {
         ...data,
         dueDate: data.dueDate?.toISOString(),
         title: data.description.substring(0, 50), // Use first 50 chars of description as title
         status: "offen", // Default status
-        categoryId: kugelfahrerCategory?.id || '89f804c0-5b68-4fd8-9720-6519ebbaec2b', // Use found ID or default
         createdBy: "Admin",
       };
       
@@ -244,6 +240,7 @@ export function TicketsManagement() {
       form.reset({
         description: "",
         store: "JP23",
+        categoryId: "",
         priority: "mittel" as "niedrig" | "mittel" | "hoch",
         dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
         image: "",
@@ -392,6 +389,12 @@ export function TicketsManagement() {
     }
   };
 
+  const getCategoryName = (categoryId: string | null | undefined) => {
+    if (!categoryId) return "Kein Bereich";
+    const category = categories?.find((cat) => cat.id === categoryId);
+    return category?.name || "Unbekannt";
+  };
+
   return (
     <div className="space-y-6">
       {/* Header mit Filtern */}
@@ -470,8 +473,9 @@ export function TicketsManagement() {
                     <span className="ml-1">{ticket.status.replace("_", " ")}</span>
                   </Badge>
                 </div>
-                <div className="flex gap-2 mt-2">
+                <div className="flex gap-2 mt-2 flex-wrap">
                   <Badge variant="outline">{ticket.store}</Badge>
+                  <Badge variant="secondary">{getCategoryName(ticket.categoryId)}</Badge>
                   <Badge className={getPriorityColor(ticket.priority)}>
                     {ticket.priority}
                   </Badge>
@@ -516,6 +520,7 @@ export function TicketsManagement() {
           form.reset({
             description: "",
             store: "JP23",
+            categoryId: "",
             priority: "mittel" as "niedrig" | "mittel" | "hoch",
             dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
             image: "",
@@ -527,7 +532,7 @@ export function TicketsManagement() {
           <DialogHeader>
             <DialogTitle className="text-base">Neues Ticket erstellen</DialogTitle>
             <DialogDescription className="text-xs">
-              Erstellen Sie ein neues Ticket für den Kugelfahrer-Hausmeister
+              Erstellen Sie ein neues Ticket für einen beliebigen Arbeitsbereich
             </DialogDescription>
           </DialogHeader>
           
@@ -568,6 +573,31 @@ export function TicketsManagement() {
                       <SelectContent>
                         {STORES.map(store => (
                           <SelectItem key={store} value={store}>{store}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="categoryId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">Arbeitsbereich</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="h-8 text-sm" data-testid="select-ticket-category">
+                          <SelectValue placeholder="Arbeitsbereich wählen" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {categories?.map(category => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -730,12 +760,13 @@ export function TicketsManagement() {
           <DialogContent className="max-w-2xl max-h-[80vh]">
             <DialogHeader>
               <DialogTitle className="text-xl">{selectedTicket.title}</DialogTitle>
-              <div className="flex gap-2 mt-2">
+              <div className="flex gap-2 mt-2 flex-wrap">
                 <Badge className={getStatusColor(selectedTicket.status)}>
                   {getStatusIcon(selectedTicket.status)}
                   <span className="ml-1">{selectedTicket.status.replace("_", " ")}</span>
                 </Badge>
                 <Badge variant="outline">{selectedTicket.store}</Badge>
+                <Badge variant="secondary">{getCategoryName(selectedTicket.categoryId)}</Badge>
                 <Badge className={getPriorityColor(selectedTicket.priority)}>
                   {selectedTicket.priority}
                 </Badge>
