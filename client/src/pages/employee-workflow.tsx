@@ -78,21 +78,19 @@ export default function EmployeeWorkflow() {
       case 'shift-phase':
         return <ShiftPhaseSelection state={state} updateState={updateState} />;
       case 'tasks':
-        // Check if this is Kugelfahrer-Hausmeister area
+        // Check if this is Digitales Whiteboard
         const selectedCategory = categories?.find(cat => cat.id === state.selectedArea);
         
-        if (selectedCategory?.name === 'Kugelfahrer-Hausmeister') {
-          return <TicketsView state={state} updateState={updateState} />;
-        }
-        
-        // Check if this is Digitales Whiteboard
         if (selectedCategory?.name === 'Digitales Whiteboard') {
           return <WhiteboardStep state={state} updateState={updateState} />;
         }
         
-        // Check if this is inventory area by category type (Option 3)
+        // Check category type to determine which view to show
         if (state.selectedAreaType === 'inventory') {
           return <InventoryChecklist state={state} updateState={updateState} />;
+        }
+        if (state.selectedAreaType === 'tickets') {
+          return <TicketsView state={state} updateState={updateState} />;
         }
         return <TaskChecklist state={state} updateState={updateState} />;
       case 'success':
