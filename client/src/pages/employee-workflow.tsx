@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -106,11 +106,13 @@ export default function EmployeeWorkflow() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Logo Header */}
       <div className="flex justify-center py-6">
-        <img 
-          src={forzaCheckLogo} 
-          alt="ForzaCheck Logo" 
-          className="h-16 object-contain"
-        />
+        <Link href="/" data-testid="link-home-logo">
+          <img 
+            src={forzaCheckLogo} 
+            alt="ForzaCheck Logo" 
+            className="h-32 object-contain cursor-pointer hover:opacity-80 transition-opacity"
+          />
+        </Link>
       </div>
       
       <div className="flex-1 flex items-center justify-center px-4">
