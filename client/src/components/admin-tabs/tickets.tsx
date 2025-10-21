@@ -241,7 +241,7 @@ export function TicketsManagement() {
   // Update ticket mutation
   const updateTicketMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Ticket> }) => {
-      return await apiRequest(`/api/tickets/${id}`, "PUT", data);
+      return await apiRequest("PUT", `/api/tickets/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
@@ -263,7 +263,7 @@ export function TicketsManagement() {
   // Delete ticket mutation
   const deleteTicketMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest(`/api/tickets/${id}`, "DELETE");
+      return await apiRequest("DELETE", `/api/tickets/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
@@ -286,7 +286,7 @@ export function TicketsManagement() {
   // Add comment mutation
   const addCommentMutation = useMutation({
     mutationFn: async ({ ticketId, comment }: { ticketId: string; comment: string }) => {
-      const response = await apiRequest(`/api/tickets/${ticketId}/comments`, "POST", {
+      const response = await apiRequest("POST", `/api/tickets/${ticketId}/comments`, {
         user: "Admin",
         comment,
       });

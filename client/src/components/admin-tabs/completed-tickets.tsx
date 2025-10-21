@@ -62,7 +62,7 @@ export function CompletedTickets() {
   // Delete ticket mutation
   const deleteTicketMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest(`/api/tickets/${id}`, "DELETE");
+      return await apiRequest("DELETE", `/api/tickets/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tickets/completed"] });
