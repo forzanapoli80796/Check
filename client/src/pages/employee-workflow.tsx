@@ -105,12 +105,12 @@ export default function EmployeeWorkflow() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Logo Header */}
-      <div className="flex justify-center py-6">
+      <div className="flex justify-center py-8">
         <Link href="/" data-testid="link-home-logo">
           <img 
             src={forzaCheckLogo} 
             alt="ForzaCheck Logo" 
-            className="h-32 object-contain cursor-pointer hover:opacity-80 transition-opacity"
+            className="h-48 object-contain cursor-pointer hover:opacity-80 transition-opacity"
           />
         </Link>
       </div>
