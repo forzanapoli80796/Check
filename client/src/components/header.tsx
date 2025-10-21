@@ -1,5 +1,6 @@
 import { ArrowLeft, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 import logoPath from "@assets/FORZACHECK1_black_1753816621910.png";
 
 interface HeaderProps {
@@ -43,11 +44,13 @@ export default function Header({
               Start
             </Button>
           )}
-          <img 
-            src={logoPath} 
-            alt="ForzaCheck Logo" 
-            className="max-h-40 max-w-full object-contain"
-          />
+          <Link href="/" data-testid="link-home-logo">
+            <img 
+              src={logoPath} 
+              alt="ForzaCheck Logo" 
+              className="max-h-64 max-w-full object-contain cursor-pointer hover:opacity-80 transition-opacity"
+            />
+          </Link>
         </div>
 
       </div>
