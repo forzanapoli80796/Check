@@ -62,7 +62,7 @@ const createTicketSchema = z.object({
   description: z.string().min(1, "Aufgabe ist erforderlich"),
   store: z.string().min(1, "Store ist erforderlich"),
   priority: z.enum(["niedrig", "mittel", "hoch"]).default("mittel"),
-  dueDate: z.string().optional(), // ISO date string
+  dueDate: z.date().optional(),
   image: z.string().optional(),
 });
 
@@ -125,7 +125,7 @@ export function TicketsManagement() {
       description: "",
       store: "JP23",
       priority: "mittel" as "niedrig" | "mittel" | "hoch",
-      dueDate: new Date().toISOString(), // Automatisch aktuelle Zeit setzen
+      dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 Stunden in der Zukunft
       image: "",
     },
   });
@@ -202,6 +202,7 @@ export function TicketsManagement() {
       
       const ticketData = {
         ...data,
+        dueDate: data.dueDate?.toISOString(),
         title: data.description.substring(0, 50), // Use first 50 chars of description as title
         status: "offen", // Default status
         categoryId: kugelfahrerCategory?.id || '89f804c0-5b68-4fd8-9720-6519ebbaec2b', // Use found ID or default
@@ -224,7 +225,7 @@ export function TicketsManagement() {
         description: "",
         store: "JP23",
         priority: "mittel" as "niedrig" | "mittel" | "hoch",
-        dueDate: new Date().toISOString(),
+        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
         image: "",
       });
     },
@@ -479,12 +480,12 @@ export function TicketsManagement() {
       {/* Dialog für neues Ticket */}
       <Dialog open={showCreateDialog} onOpenChange={(open) => {
         if (open) {
-          // Beim Öffnen des Dialogs die aktuelle Zeit setzen
+          // Beim Öffnen des Dialogs das Fälligkeitsdatum auf morgen setzen
           form.reset({
             description: "",
             store: "JP23",
             priority: "mittel" as "niedrig" | "mittel" | "hoch",
-            dueDate: new Date().toISOString(),
+            dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
             image: "",
           });
         }
@@ -571,17 +572,83 @@ export function TicketsManagement() {
                 name="dueDate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel className="text-sm">Ticketeröffnung</FormLabel>
-                    <div className="flex gap-2">
-                      <Input
-                        value={field.value ? format(new Date(field.value), "dd.MM.yyyy HH:mm", { locale: de }) : ""}
-                        disabled
-                        className="flex-1 h-8 text-sm"
-                        data-testid="input-ticket-creation-time"
-                      />
-                      <Clock className="h-3 w-3 mt-2.5 opacity-50" />
-                    </div>
-                    <p className="text-[10px] text-muted-foreground">Zeitstempel wird automatisch gesetzt</p>
+                    <FormLabel className="text-sm">Fällig bis</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "h-8 text-sm font-normal justify-start text-left",
+                              !field.value && "text-muted-foreground"
+                            )}
+                            data-testid="button-select-due-date"
+                          >
+                            <Calendar className="mr-2 h-3 w-3" />
+                            {field.value ? format(field.value, "dd.MM.yyyy HH:mm", { locale: de }) : "Datum wählen"}
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={field.value}
+                          onSelect={(date) => {
+                            if (date) {
+                              // Preserve the time or set to end of day if new date
+                              const newDate = new Date(date);
+                              if (field.value) {
+                                newDate.setHours(field.value.getHours(), field.value.getMinutes());
+                              } else {
+                                newDate.setHours(23, 59);
+                              }
+                              field.onChange(newDate);
+                            }
+                          }}
+                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                          initialFocus
+                        />
+                        <div className="p-3 border-t">
+                          <Label className="text-xs">Uhrzeit</Label>
+                          <div className="flex gap-2 mt-1">
+                            <Input
+                              type="number"
+                              min="0"
+                              max="23"
+                              placeholder="HH"
+                              className="h-7 text-xs"
+                              value={field.value ? field.value.getHours() : ""}
+                              onChange={(e) => {
+                                const hours = parseInt(e.target.value);
+                                if (hours >= 0 && hours <= 23) {
+                                  const newDate = field.value ? new Date(field.value) : new Date();
+                                  newDate.setHours(hours);
+                                  field.onChange(newDate);
+                                }
+                              }}
+                            />
+                            <span className="text-xs pt-1">:</span>
+                            <Input
+                              type="number"
+                              min="0"
+                              max="59"
+                              placeholder="MM"
+                              className="h-7 text-xs"
+                              value={field.value ? field.value.getMinutes() : ""}
+                              onChange={(e) => {
+                                const minutes = parseInt(e.target.value);
+                                if (minutes >= 0 && minutes <= 59) {
+                                  const newDate = field.value ? new Date(field.value) : new Date();
+                                  newDate.setMinutes(minutes);
+                                  field.onChange(newDate);
+                                }
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    <p className="text-[10px] text-muted-foreground">Wann soll das Ticket erledigt sein?</p>
                     <FormMessage />
                   </FormItem>
                 )}
