@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, Check, CalendarDays } from "lucide-react";
+import { ArrowLeft, Check, CalendarDays, Ticket, AlertCircle } from "lucide-react";
 import * as Icons from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -8,8 +8,23 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { EmployeeWorkflowState } from "@/lib/types";
 import { Task, Category } from "@shared/schema";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -32,6 +47,15 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
   const [lunchShiftDate, setLunchShiftDate] = useState<string>("");
   const [ballsForToday, setBallsForToday] = useState<string>("");
   const [completionDate, setCompletionDate] = useState<string>(""); // Datum für Betriebsleiter
+  
+  // Ticket creation state
+  const [showCreateTicketDialog, setShowCreateTicketDialog] = useState(false);
+  const [ticketTitle, setTicketTitle] = useState("");
+  const [ticketDescription, setTicketDescription] = useState("");
+  const [ticketPriority, setTicketPriority] = useState<"niedrig" | "mittel" | "hoch">("mittel");
+  const [ticketDueDate, setTicketDueDate] = useState<string>("");
+  const [ticketImage, setTicketImage] = useState<string>("");
+  
   const { toast } = useToast();
 
   const { data: categories, isLoading: categoriesLoading } = useQuery<Category[]>({
@@ -91,6 +115,50 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
       toast({
         title: "Fehler",
         description: "Die Checkliste konnte nicht übermittelt werden.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const createTicketMutation = useMutation({
+    mutationFn: async () => {
+      const ticketData: any = {
+        title: ticketTitle,
+        description: ticketDescription,
+        store: state.selectedStore!,
+        categoryId: state.selectedArea!,
+        priority: ticketPriority,
+        dueDate: ticketDueDate ? new Date(ticketDueDate).toISOString() : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        status: "offen" as const,
+        createdBy: state.employeeName,
+      };
+      
+      // Only include image if it's not empty
+      if (ticketImage) {
+        ticketData.image = ticketImage;
+      }
+      
+      const response = await apiRequest("POST", "/api/tickets", ticketData);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
+      toast({
+        title: "Ticket erstellt",
+        description: "Das Ticket wurde erfolgreich erstellt.",
+      });
+      // Reset form
+      setTicketTitle("");
+      setTicketDescription("");
+      setTicketPriority("mittel");
+      setTicketDueDate("");
+      setTicketImage("");
+      setShowCreateTicketDialog(false);
+    },
+    onError: () => {
+      toast({
+        title: "Fehler",
+        description: "Das Ticket konnte nicht erstellt werden.",
         variant: "destructive",
       });
     },
@@ -162,6 +230,54 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
     submitMutation.mutate();
   };
 
+  const handleOpenCreateTicket = () => {
+    // Initialize due date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    setTicketDueDate(tomorrow.toISOString().split('T')[0]);
+    setShowCreateTicketDialog(true);
+  };
+
+  const handleTicketImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Fehler",
+          description: "Das Bild darf maximal 5MB groß sein.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setTicketImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCreateTicket = () => {
+    if (!ticketTitle.trim()) {
+      toast({
+        title: "Fehler",
+        description: "Bitte geben Sie einen Titel ein.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!ticketDescription.trim()) {
+      toast({
+        title: "Fehler",
+        description: "Bitte geben Sie eine Beschreibung ein.",
+        variant: "destructive",
+      });
+      return;
+    }
+    createTicketMutation.mutate();
+  };
+
   const getIcon = (iconName: string) => {
     const iconMap: Record<string, any> = {
       desktop: Icons.Monitor,
@@ -207,7 +323,7 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
             <div>
               <h2 className="text-xl font-medium">{t.employee.taskCompletion.title}</h2>
               <p className="text-sm text-gray-600">
-                {state.selectedStore} - {t.employee.areaSelection.areas[state.selectedAreaName] || state.selectedAreaName || t.admin.areas.title}
+                {state.selectedStore} - {(state.selectedAreaName && (t.employee.areaSelection.areas as any)[state.selectedAreaName]) || state.selectedAreaName || t.admin.areas.title}
               </p>
               {state.selectedAreaUseShifts !== false && (
                 <p className="text-xs text-gray-500 mt-1">
@@ -240,7 +356,10 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
           <div className="space-y-3 mb-6">
             {filteredTasks.map((task) => {
               const isCompleted = completedTasks.includes(task.id);
-              const translatedTask = getTranslatedTask(task, language);
+              const translatedTask = getTranslatedTask({
+                ...task,
+                description: task.description || undefined
+              }, language);
               return (
                 <div
                 key={task.id}
@@ -409,6 +528,21 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
           </div>
         )}
 
+        {/* Ticket erstellen Button */}
+        <div className="mb-6">
+          <Button
+            variant="outline"
+            onClick={handleOpenCreateTicket}
+            className="w-full border-orange-200 hover:bg-orange-50"
+            data-testid="button-create-ticket"
+          >
+            <AlertCircle className="mr-2 text-orange-600" size={16} />
+            <span className="font-medium text-orange-600">
+              {language === 'de' ? 'Problem melden / Ticket erstellen' : 'Report Problem / Create Ticket'}
+            </span>
+          </Button>
+        </div>
+
         <div className="mb-6">
           <Label htmlFor="comments" className="text-sm font-medium mb-2 block">
             {t.employee.taskCompletion.commentsLabel}
@@ -437,6 +571,125 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
           </Button>
         </div>
       </CardContent>
+
+      {/* Dialog für Ticket-Erstellung */}
+      <Dialog open={showCreateTicketDialog} onOpenChange={setShowCreateTicketDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base">
+              {language === 'de' ? 'Ticket erstellen' : 'Create Ticket'}
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              {language === 'de' 
+                ? 'Erstellen Sie ein Ticket für ein Problem oder eine Aufgabe in diesem Arbeitsbereich' 
+                : 'Create a ticket for a problem or task in this work area'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-3">
+            <div>
+              <Label htmlFor="ticket-title" className="text-sm font-medium">
+                {language === 'de' ? 'Titel' : 'Title'} *
+              </Label>
+              <Input
+                id="ticket-title"
+                value={ticketTitle}
+                onChange={(e) => setTicketTitle(e.target.value)}
+                placeholder={language === 'de' ? 'z.B. Gerät defekt' : 'e.g. Device broken'}
+                className="h-8 text-sm"
+                data-testid="input-ticket-title"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="ticket-description" className="text-sm font-medium">
+                {language === 'de' ? 'Beschreibung' : 'Description'} *
+              </Label>
+              <Textarea
+                id="ticket-description"
+                value={ticketDescription}
+                onChange={(e) => setTicketDescription(e.target.value)}
+                placeholder={language === 'de' ? 'Beschreiben Sie das Problem...' : 'Describe the problem...'}
+                rows={3}
+                className="text-sm"
+                data-testid="textarea-ticket-description"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="ticket-priority" className="text-sm font-medium">
+                {language === 'de' ? 'Priorität' : 'Priority'}
+              </Label>
+              <Select value={ticketPriority} onValueChange={(value: any) => setTicketPriority(value)}>
+                <SelectTrigger className="h-8 text-sm" data-testid="select-ticket-priority">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="niedrig">{language === 'de' ? 'Niedrig' : 'Low'}</SelectItem>
+                  <SelectItem value="mittel">{language === 'de' ? 'Mittel' : 'Medium'}</SelectItem>
+                  <SelectItem value="hoch">{language === 'de' ? 'Hoch' : 'High'}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label htmlFor="ticket-due-date" className="text-sm font-medium">
+                {language === 'de' ? 'Fälligkeitsdatum' : 'Due Date'}
+              </Label>
+              <Input
+                id="ticket-due-date"
+                type="date"
+                value={ticketDueDate}
+                onChange={(e) => setTicketDueDate(e.target.value)}
+                className="h-8 text-sm"
+                data-testid="input-ticket-due-date"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="ticket-image" className="text-sm font-medium">
+                {language === 'de' ? 'Bild (optional)' : 'Image (optional)'}
+              </Label>
+              <div className="space-y-1">
+                <Input
+                  id="ticket-image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleTicketImageUpload}
+                  className="h-8 text-sm"
+                  data-testid="input-ticket-image"
+                />
+                {ticketImage && (
+                  <img src={ticketImage} alt="Vorschau" className="w-full h-20 object-cover rounded" />
+                )}
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter className="gap-2 mt-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowCreateTicketDialog(false)}
+              data-testid="button-cancel-ticket"
+            >
+              {language === 'de' ? 'Abbrechen' : 'Cancel'}
+            </Button>
+            <Button 
+              type="button" 
+              size="sm" 
+              onClick={handleCreateTicket}
+              disabled={createTicketMutation.isPending || !ticketTitle.trim() || !ticketDescription.trim()}
+              data-testid="button-submit-create-ticket"
+            >
+              {createTicketMutation.isPending 
+                ? (language === 'de' ? 'Erstelle...' : 'Creating...') 
+                : (language === 'de' ? 'Ticket erstellen' : 'Create Ticket')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
