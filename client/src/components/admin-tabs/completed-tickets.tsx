@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,16 +17,31 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
-import { Calendar, CheckCircle2, User, Store, MessageSquare, Eye, Image as ImageIcon } from "lucide-react";
+import { Calendar, CheckCircle2, User, Store, MessageSquare, Eye, Image as ImageIcon, Trash2 } from "lucide-react";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Ticket } from "@shared/schema";
 
 export function CompletedTickets() {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [ticketToDelete, setTicketToDelete] = useState<Ticket | null>(null);
+  const { toast } = useToast();
 
   // Fetch all completed tickets
   const { data: tickets = [], isLoading } = useQuery<Ticket[]>({
@@ -41,6 +56,29 @@ export function CompletedTickets() {
           if (!a.completedAt || !b.completedAt) return 0;
           return new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime();
         });
+    },
+  });
+
+  // Delete ticket mutation
+  const deleteTicketMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest(`/api/tickets/${id}`, "DELETE");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tickets/completed"] });
+      toast({
+        title: "Erfolg",
+        description: "Ticket wurde gelöscht",
+      });
+      setTicketToDelete(null);
+      setSelectedTicket(null);
+    },
+    onError: () => {
+      toast({
+        title: "Fehler",
+        description: "Ticket konnte nicht gelöscht werden",
+        variant: "destructive",
+      });
     },
   });
 
@@ -162,14 +200,28 @@ export function CompletedTickets() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setSelectedTicket(ticket)}
-                      >
-                        <Eye className="w-4 h-4 mr-1" />
-                        Details
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setSelectedTicket(ticket)}
+                          data-testid={`button-view-ticket-${ticket.id}`}
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          Details
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setTicketToDelete(ticket);
+                          }}
+                          data-testid={`button-delete-ticket-${ticket.id}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -285,9 +337,46 @@ export function CompletedTickets() {
                 </div>
               )}
             </div>
+            
+            <DialogFooter>
+              <Button
+                variant="destructive"
+                onClick={() => setTicketToDelete(selectedTicket)}
+                data-testid="button-delete-ticket-from-dialog"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Ticket löschen
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!ticketToDelete} onOpenChange={() => setTicketToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Ticket wirklich löschen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Diese Aktion kann nicht rückgängig gemacht werden. Das Ticket "{ticketToDelete?.title}" wird dauerhaft gelöscht.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete">Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (ticketToDelete) {
+                  deleteTicketMutation.mutate(ticketToDelete.id);
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700"
+              data-testid="button-confirm-delete"
+            >
+              Löschen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
