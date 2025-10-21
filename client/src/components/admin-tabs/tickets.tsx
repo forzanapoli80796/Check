@@ -145,6 +145,51 @@ export function TicketsManagement() {
   // Fetch tickets with filters
   const { data: tickets, isLoading } = useQuery<Ticket[]>({
     queryKey: ["/api/tickets", storeFilter, dateFilter],
+    queryFn: async () => {
+      // Build query parameters
+      const params = new URLSearchParams();
+      
+      // Add store filter
+      if (storeFilter !== "alle") {
+        params.append("store", storeFilter);
+      }
+      
+      // Add date filter
+      if (dateFilter !== "alle") {
+        const now = new Date();
+        let startDate: Date;
+        
+        switch (dateFilter) {
+          case "heute":
+            startDate = new Date(now.setHours(0, 0, 0, 0));
+            break;
+          case "gestern":
+            startDate = new Date(now.setDate(now.getDate() - 1));
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case "woche":
+            startDate = new Date(now.setDate(now.getDate() - 7));
+            break;
+          case "monat":
+            startDate = new Date(now.setDate(now.getDate() - 30));
+            break;
+          default:
+            startDate = new Date(0); // Beginning of time
+        }
+        
+        if (dateFilter !== "alle") {
+          params.append("startDate", startDate.toISOString());
+          params.append("endDate", new Date().toISOString());
+        }
+      }
+      
+      const url = `/api/tickets${params.toString() ? `?${params.toString()}` : ""}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("Failed to fetch tickets");
+      }
+      return response.json();
+    },
   });
 
   // Create ticket mutation
