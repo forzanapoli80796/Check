@@ -32,6 +32,17 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
       actualType: typeof category.useShifts 
     });
     
+    // Check if this is a whiteboard category - go directly to whiteboard view
+    if (category.categoryType === 'whiteboard') {
+      updateState({ 
+        selectedArea: category.id, 
+        selectedAreaName: category.name,
+        selectedAreaType: 'whiteboard',
+        step: 'whiteboard' 
+      });
+      return;
+    }
+    
     // Check if this category actually has subcategories (not just the flag)
     const hasSubcategories = allCategories.some(cat => cat.parentId === category.id);
     

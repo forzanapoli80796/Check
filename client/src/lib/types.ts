@@ -3,12 +3,12 @@ export interface UserSession {
 }
 
 export interface EmployeeWorkflowState {
-  step: 'store' | 'area' | 'subcategory' | 'details' | 'shift-phase' | 'tasks' | 'success' | 'sendMessage';
+  step: 'store' | 'area' | 'subcategory' | 'details' | 'shift-phase' | 'tasks' | 'success' | 'sendMessage' | 'whiteboard';
   selectedStore: string | null;
   selectedArea: string | null;
   selectedAreaName?: string | null;
   selectedAreaUseShifts?: boolean; // Whether the selected category uses shifts
-  selectedAreaType?: 'shifts' | 'simple' | 'inventory' | 'tickets'; // The category type (Option 1: shifts, Option 2: simple, Option 3: inventory, Option 4: tickets)
+  selectedAreaType?: 'shifts' | 'simple' | 'inventory' | 'tickets' | 'whiteboard'; // The category type (Option 1: shifts, Option 2: simple, Option 3: inventory, Option 4: tickets, Option 5: whiteboard)
   selectedAreaHasSubcategories?: boolean; // Whether the selected area has subcategories
   employeeName: string;
   selectedShift: 'frühschicht' | 'spätschicht' | null;

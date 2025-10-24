@@ -21,10 +21,10 @@ export function WhiteboardView({ state, updateState }: WhiteboardViewProps) {
   const [confirmed, setConfirmed] = useState(false);
 
   // Fetch whiteboard entries for this store
-  const { data: entries, isLoading } = useQuery<StoreWhiteboard[]>({
+  const { data: entries, isLoading} = useQuery<StoreWhiteboard[]>({
     queryKey: ["/api/whiteboard", state.selectedStore],
     queryFn: async () => {
-      const response = await fetch(`/api/whiteboard?store=${state.selectedStore}`);
+      const response = await fetch(`/api/whiteboard/${state.selectedStore}`);
       return response.json();
     },
     enabled: !!state.selectedStore,
