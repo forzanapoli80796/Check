@@ -398,52 +398,70 @@ export function TicketsManagement() {
   return (
     <div className="space-y-6">
       {/* Header mit Filtern */}
-      <div className="flex justify-between items-center">
-        <div className="flex gap-2">
-          <Select value={storeFilter} onValueChange={setStoreFilter}>
-            <SelectTrigger className="w-[180px]" data-testid="select-store-filter">
-              <Store className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Store wählen" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="alle">Alle Stores</SelectItem>
-              {STORES.map(store => (
-                <SelectItem key={store} value={store}>{store}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <Select value={dateFilter} onValueChange={setDateFilter}>
-            <SelectTrigger className="w-[180px]" data-testid="select-date-filter">
-              <Calendar className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Zeitraum wählen" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="heute">Heute</SelectItem>
-              <SelectItem value="gestern">Gestern</SelectItem>
-              <SelectItem value="woche">Letzte 7 Tage</SelectItem>
-              <SelectItem value="monat">Letzte 30 Tage</SelectItem>
-              <SelectItem value="alle">Alle Tickets</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]" data-testid="select-status-filter">
-              <Filter className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Status wählen" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="offen">Offen</SelectItem>
-              <SelectItem value="erledigt">Erledigt</SelectItem>
-              <SelectItem value="alle">Alle Status</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <Button onClick={() => setShowCreateDialog(true)} data-testid="button-create-ticket">
+      <div className="space-y-4">
+        {/* Button oben für mobile Geräte */}
+        <Button 
+          onClick={() => setShowCreateDialog(true)} 
+          data-testid="button-create-ticket"
+          className="w-full sm:hidden"
+        >
           <Plus className="w-4 h-4 mr-2" />
           Neues Ticket
         </Button>
+
+        {/* Filter und Button für Desktop */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 flex-1">
+            <Select value={storeFilter} onValueChange={setStoreFilter}>
+              <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-store-filter">
+                <Store className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Store wählen" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="alle">Alle Stores</SelectItem>
+                {STORES.map(store => (
+                  <SelectItem key={store} value={store}>{store}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={dateFilter} onValueChange={setDateFilter}>
+              <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-date-filter">
+                <Calendar className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Zeitraum wählen" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="heute">Heute</SelectItem>
+                <SelectItem value="gestern">Gestern</SelectItem>
+                <SelectItem value="woche">Letzte 7 Tage</SelectItem>
+                <SelectItem value="monat">Letzte 30 Tage</SelectItem>
+                <SelectItem value="alle">Alle Tickets</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-status-filter">
+                <Filter className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Status wählen" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="offen">Offen</SelectItem>
+                <SelectItem value="erledigt">Erledigt</SelectItem>
+                <SelectItem value="alle">Alle Status</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Button für Desktop */}
+          <Button 
+            onClick={() => setShowCreateDialog(true)} 
+            data-testid="button-create-ticket"
+            className="hidden sm:flex"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Neues Ticket
+          </Button>
+        </div>
       </div>
 
       {/* Tickets Liste */}
@@ -466,9 +484,9 @@ export function TicketsManagement() {
               data-testid={`card-ticket-${ticket.id}`}
             >
               <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
                   <CardTitle className="text-lg">{ticket.title}</CardTitle>
-                  <Badge className={getStatusColor(ticket.status)}>
+                  <Badge className={`${getStatusColor(ticket.status)} shrink-0`}>
                     {getStatusIcon(ticket.status)}
                     <span className="ml-1">{ticket.status.replace("_", " ")}</span>
                   </Badge>

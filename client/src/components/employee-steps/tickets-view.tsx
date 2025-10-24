@@ -283,12 +283,13 @@ export function TicketsView({ state, updateState }: TicketsViewProps) {
     <div className="space-y-6 max-w-4xl mx-auto">
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
             <CardTitle>Offene Tickets</CardTitle>
             <Button
               variant="outline"
               onClick={() => updateState({ step: 'area' })}
               data-testid="button-back-to-area"
+              className="w-full sm:w-auto"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Zurück zur Bereichsauswahl
@@ -311,9 +312,9 @@ export function TicketsView({ state, updateState }: TicketsViewProps) {
                   data-testid={`card-ticket-${ticket.id}`}
                 >
                   <CardContent className="p-4">
-                    <div className="flex justify-between items-start mb-2">
+                    <div className="flex flex-col gap-2 mb-2">
                       <h3 className="font-semibold text-lg">{ticket.title}</h3>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <Badge className={getPriorityColor(ticket.priority)}>
                           {ticket.priority}
                         </Badge>
@@ -324,8 +325,8 @@ export function TicketsView({ state, updateState }: TicketsViewProps) {
                       </div>
                     </div>
                     <p className="text-gray-600 mb-3">{ticket.description}</p>
-                    <div className="flex justify-between items-center">
-                      <div className="text-sm text-gray-500">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                      <div className="text-sm text-gray-500 space-y-1">
                         {ticket.dueDate && (
                           <div className="font-semibold text-orange-600">
                             Fällig bis: {format(new Date(ticket.dueDate), "dd.MM.yyyy HH:mm", { locale: de })}
@@ -337,7 +338,7 @@ export function TicketsView({ state, updateState }: TicketsViewProps) {
                         <div>Erstellt: {format(new Date(ticket.createdAt!), "dd.MM.yyyy HH:mm", { locale: de })}</div>
                       </div>
                       {ticket.image && (
-                        <Badge variant="secondary">
+                        <Badge variant="secondary" className="w-fit">
                           <Image className="w-3 h-3 mr-1" />
                           Bild
                         </Badge>
