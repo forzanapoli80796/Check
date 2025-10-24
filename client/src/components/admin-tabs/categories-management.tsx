@@ -108,7 +108,7 @@ export default function CategoriesManagement() {
     icon: "desktop",
     iconColor: "#000000",
     useShifts: true,
-    categoryType: "shifts" as "shifts" | "simple" | "inventory" | "tickets",
+    categoryType: "shifts" as "shifts" | "simple" | "inventory" | "tickets" | "whiteboard",
     parentId: null as string | null,
     isSubcategoryParent: false,
   });
@@ -476,7 +476,7 @@ export default function CategoriesManagement() {
                     value={formData.categoryType || (formData.useShifts ? "shifts" : "simple")} 
                     onValueChange={(value) => setFormData(prev => ({ 
                       ...prev, 
-                      categoryType: value as "shifts" | "simple" | "inventory" | "tickets",
+                      categoryType: value as "shifts" | "simple" | "inventory" | "tickets" | "whiteboard",
                       useShifts: value === "shifts" 
                     }))}
                   >
@@ -506,6 +506,12 @@ export default function CategoriesManagement() {
                         <div className="flex flex-col items-start">
                           <span className="font-medium">Option 4: Tickets</span>
                           <span className="text-xs text-gray-500">Aufgaben und Probleme melden</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="whiteboard">
+                        <div className="flex flex-col items-start">
+                          <span className="font-medium">Option 5: Digitales Whiteboard</span>
+                          <span className="text-xs text-gray-500">Wichtige Nachrichten für Mitarbeiter</span>
                         </div>
                       </SelectItem>
                     </SelectContent>
