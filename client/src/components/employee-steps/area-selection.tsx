@@ -188,9 +188,6 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
             >
               {getIcon(category.icon, category.iconColor || undefined)}
               <span className="font-medium">{getTranslatedCategoryName(category.name)}</span>
-              {category.useShifts === false && (
-                <span className="ml-auto text-xs text-gray-500">{t.admin.areas.simpleChecklist}</span>
-              )}
             </Button>
           ))}
           
