@@ -43,7 +43,7 @@ export const translations = {
       },
       subcategorySelection: {
         title: 'Kategorie auswählen',
-        subtitle: 'Wählen Sie eine Kategorie für den Küchenbereich',
+        subtitle: '',
         kitchenChecklist: 'Küchen-Checkliste',
         mhdCheck: 'MHD-Check',
         lateShiftForm: 'Mengenformular Spätschicht',
@@ -251,7 +251,7 @@ export const translations = {
       },
       subcategorySelection: {
         title: 'Select Category',
-        subtitle: 'Choose a category for the kitchen area',
+        subtitle: '',
         kitchenChecklist: 'Kitchen Checklist',
         mhdCheck: 'Expiry Check',
         lateShiftForm: 'Late Shift Quantity Form',

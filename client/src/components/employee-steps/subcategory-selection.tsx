@@ -167,9 +167,6 @@ export default function SubcategorySelection({ state, updateState }: Subcategory
           <div className="step-indicator mr-3">2</div>
           <h2 className="text-xl font-medium">{t.employee.subcategorySelection?.title || 'Kategorie auswählen'}</h2>
         </div>
-        <p className="text-gray-600 mb-6">
-          {t.employee.subcategorySelection?.subtitle || 'Wählen Sie eine Kategorie für den Küchenbereich'}
-        </p>
         <div className="grid grid-cols-1 gap-3">
           {subcategories.map((subcategory) => (
             <Button
