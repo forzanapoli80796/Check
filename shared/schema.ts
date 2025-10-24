@@ -10,7 +10,7 @@ export const categories = pgTable("categories", {
   icon: text("icon").notNull(),
   iconColor: text("icon_color").default("#000000"), // Icon color in hex format
   useShifts: boolean("use_shifts").notNull().default(true), // true = mit Schichten, false = einfache Checkliste
-  categoryType: text("category_type", { enum: ["shifts", "simple", "inventory", "tickets"] }).notNull().default("shifts"), // Option 1: Mit Schichten, Option 2: Einfache Checkliste, Option 3: Mit Mengenerfassung, Option 4: Tickets
+  categoryType: text("category_type", { enum: ["shifts", "simple", "inventory", "tickets", "whiteboard"] }).notNull().default("shifts"), // Option 1: Mit Schichten, Option 2: Einfache Checkliste, Option 3: Mit Mengenerfassung, Option 4: Tickets, Option 5: Digitales Whiteboard
   parentId: varchar("parent_id"), // Parent category ID for subcategories
   isSubcategoryParent: boolean("is_subcategory_parent").notNull().default(false), // true if this category has subcategories
   createdAt: timestamp("created_at").defaultNow(),
