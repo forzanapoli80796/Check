@@ -16,7 +16,6 @@ import SuccessScreen from "@/components/employee-steps/success-screen";
 import { TicketsView } from "@/components/employee-steps/tickets-view";
 import SendMessage from "@/components/employee-steps/send-message";
 import WhiteboardStep from "@/components/employee-steps/whiteboard-step";
-import { WhiteboardView } from "@/components/employee-steps/whiteboard-view";
 import type { Category } from "@shared/schema";
 
 
@@ -75,7 +74,7 @@ export default function EmployeeWorkflow() {
       case 'subcategory':
         return <SubcategorySelection state={state} updateState={updateState} />;
       case 'whiteboard':
-        return <WhiteboardView state={state} updateState={updateState} />;
+        return <WhiteboardStep state={state} updateState={updateState} />;
       case 'details':
         return <EmployeeDetails state={state} updateState={updateState} />;
       case 'shift-phase':
