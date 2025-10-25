@@ -31,6 +31,11 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
 
   const currentCategory = categories?.find(cat => cat.id === state.selectedArea);
   const whiteboardEnforcementEnabled = currentCategory?.enforceReading ?? false;
+  
+  // Debug logging
+  console.log('Current category ID:', state.selectedArea);
+  console.log('Current category:', currentCategory);
+  console.log('Whiteboard enforcement enabled:', whiteboardEnforcementEnabled);
 
   const selectShift = (shift: 'frühschicht' | 'spätschicht') => {
     setSelectedShift(shift);
