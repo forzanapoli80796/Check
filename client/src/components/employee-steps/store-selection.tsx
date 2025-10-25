@@ -23,7 +23,9 @@ export default function StoreSelection({ state, updateState }: StoreSelectionPro
         step: 'details' 
       });
     } else {
-      updateState({ selectedStore: store, step: 'area' });
+      // Normal employees: go to employee-info to enter name/shift
+      // This will check whiteboard enforcement before showing categories
+      updateState({ selectedStore: store, step: 'employee-info' });
     }
   };
 

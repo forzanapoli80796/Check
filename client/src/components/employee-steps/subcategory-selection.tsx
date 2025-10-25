@@ -30,27 +30,14 @@ export default function SubcategorySelection({ state, updateState }: Subcategory
       enforceReading: subcategory.enforceReading,
     });
     
-    // Check if this is a whiteboard subcategory
+    // Check if this is a whiteboard subcategory - go directly to whiteboard view
     if (subcategory.categoryType === 'whiteboard') {
-      // If enforcement is enabled, go to details first to collect employee name
-      // The details step will then check if whiteboard needs to be read
-      if (subcategory.enforceReading) {
-        updateState({ 
-          selectedArea: subcategory.id, 
-          selectedAreaName: subcategory.name,
-          selectedAreaType: 'whiteboard',
-          selectedAreaUseShifts: subcategory.useShifts !== false,
-          step: 'details' 
-        });
-      } else {
-        // No enforcement - go directly to whiteboard view
-        updateState({ 
-          selectedArea: subcategory.id, 
-          selectedAreaName: subcategory.name,
-          selectedAreaType: 'whiteboard',
-          step: 'whiteboard' 
-        });
-      }
+      updateState({ 
+        selectedArea: subcategory.id, 
+        selectedAreaName: subcategory.name,
+        selectedAreaType: 'whiteboard',
+        step: 'tasks'
+      });
       return;
     }
     
