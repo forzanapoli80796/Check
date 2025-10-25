@@ -48,15 +48,17 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
     });
 
     // Check if whiteboard enforcement is enabled and if employee needs to read whiteboard
-    if (whiteboardEnforcementEnabled && employeeName && shift) {
+    if (whiteboardEnforcementEnabled && employeeName) {
       setIsChecking(true);
       try {
         const today = new Date().toISOString().split('T')[0];
+        // Use shift if available, otherwise use 'keine' for categories without shifts
+        const shiftParam = shift || 'keine';
         const response = await fetch(
           `/api/whiteboard-reads/check?` + 
           `employeeName=${encodeURIComponent(employeeName)}` +
           `&store=${encodeURIComponent(state.selectedStore || '')}` +
-          `&shift=${encodeURIComponent(shift)}` +
+          `&shift=${encodeURIComponent(shiftParam)}` +
           `&date=${today}`
         );
         
