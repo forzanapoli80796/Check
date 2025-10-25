@@ -28,6 +28,18 @@ export default function SubcategorySelection({ state, updateState }: Subcategory
       useShifts: subcategory.useShifts,
       categoryType: subcategory.categoryType,
     });
+    
+    // Check if this is a whiteboard subcategory - go directly to whiteboard view
+    if (subcategory.categoryType === 'whiteboard') {
+      updateState({ 
+        selectedArea: subcategory.id, 
+        selectedAreaName: subcategory.name,
+        selectedAreaType: 'whiteboard',
+        step: 'whiteboard' 
+      });
+      return;
+    }
+    
     updateState({ 
       selectedArea: subcategory.id, 
       selectedAreaName: subcategory.name,
