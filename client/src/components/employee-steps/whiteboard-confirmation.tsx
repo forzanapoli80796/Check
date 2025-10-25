@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { SlideToUnlock } from "@/components/ui/slide-to-unlock";
 import { Loader2, Plus, Edit2, Trash2, Image as ImageIcon } from "lucide-react";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
@@ -363,28 +364,18 @@ export default function WhiteboardConfirmation({ state, onConfirmed }: Whiteboar
       <Card className="border-blue-200 bg-blue-50">
         <CardContent className="pt-4 pb-4">
           <p className="text-sm text-blue-900 font-medium text-center">
-            ✓ Mit dem Klick auf "Weiter" bestätige ich, dass ich alle Mitteilungen gelesen und zur Kenntnis genommen habe.
+            ✓ Durch das Schieben des Sliders bestätige ich, dass ich alle Mitteilungen gelesen und zur Kenntnis genommen habe.
           </p>
         </CardContent>
       </Card>
 
-      {/* Continue Button */}
-      <Button
-        onClick={handleConfirm}
+      {/* Slide to Unlock */}
+      <SlideToUnlock
+        onUnlock={handleConfirm}
+        text="Zum Bestätigen schieben"
+        isLoading={isConfirming}
         disabled={isConfirming}
-        className="w-full"
-        size="lg"
-        data-testid="button-confirm-whiteboard-read"
-      >
-        {isConfirming ? (
-          <>
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Wird gespeichert...
-          </>
-        ) : (
-          'Weiter'
-        )}
-      </Button>
+      />
 
       {/* Add/Edit Note Dialog */}
       <Dialog open={showAddNote || editingNote !== null} onOpenChange={(open) => {
