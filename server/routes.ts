@@ -872,6 +872,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/whiteboard-reads/reset", async (req, res) => {
+    try {
+      const storage = await getStorage();
+      await storage.resetWhiteboardReads();
+      res.json({ success: true, message: "All whiteboard reads have been reset" });
+    } catch (error) {
+      console.error('Error resetting whiteboard reads:', error);
+      res.status(500).json({ message: "Failed to reset whiteboard reads" });
+    }
+  });
+
   // Settings routes
   app.get("/api/settings", async (req, res) => {
     try {

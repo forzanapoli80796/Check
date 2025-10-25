@@ -72,6 +72,7 @@ export interface IStorage {
   // Whiteboard Reads
   checkWhiteboardRead(employeeName: string, store: string, shift: string, date: string): Promise<boolean>;
   createWhiteboardRead(read: InsertWhiteboardRead): Promise<WhiteboardRead>;
+  resetWhiteboardReads(): Promise<void>;
   
   // Settings
   getSettings(): Promise<Setting[]>;
@@ -577,6 +578,10 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return whiteboardRead;
+  }
+
+  async resetWhiteboardReads(): Promise<void> {
+    await db.delete(whiteboardReads);
   }
 
   // Settings methods
@@ -1152,6 +1157,10 @@ export class MemStorage implements IStorage {
     const key = `${read.employeeName}-${read.store}-${read.shift}-${read.date}`;
     this.whiteboardReadRecords.set(key, whiteboardRead);
     return whiteboardRead;
+  }
+
+  async resetWhiteboardReads(): Promise<void> {
+    this.whiteboardReadRecords.clear();
   }
 
   // Settings methods
