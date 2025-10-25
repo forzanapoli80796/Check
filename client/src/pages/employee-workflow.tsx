@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
 import { EmployeeWorkflowState } from "@/lib/types";
 import StoreSelection from "@/components/employee-steps/store-selection";
+import EmployeeInfo from "@/components/employee-steps/employee-info";
 import AreaSelection from "@/components/employee-steps/area-selection";
 import SubcategorySelection from "@/components/employee-steps/subcategory-selection";
 import EmployeeDetails from "@/components/employee-steps/employee-details";
@@ -70,6 +71,8 @@ export default function EmployeeWorkflow() {
     switch (state.step) {
       case 'store':
         return <StoreSelection state={state} updateState={updateState} />;
+      case 'employee-info':
+        return <EmployeeInfo state={state} updateState={updateState} />;
       case 'area':
         return <AreaSelection state={state} updateState={updateState} />;
       case 'subcategory':

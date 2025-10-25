@@ -115,7 +115,7 @@ export default function EmployeeInfo({ state, updateState }: EmployeeInfoProps) 
           </div>
 
           <div>
-            <Label className="mb-2 block">{t.employee.detailsEntry.selectShift}</Label>
+            <Label className="mb-2 block">{t.employee.detailsEntry.shift}</Label>
             <div className="grid grid-cols-2 gap-3">
               <Button
                 variant={selectedShift === 'frühschicht' ? 'default' : 'outline'}
@@ -149,10 +149,10 @@ export default function EmployeeInfo({ state, updateState }: EmployeeInfoProps) 
             {isChecking ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {t.employee.detailsEntry.checking}
+                Prüfe...
               </>
             ) : (
-              t.employee.detailsEntry.continue
+              "Weiter"
             )}
           </Button>
         </div>
