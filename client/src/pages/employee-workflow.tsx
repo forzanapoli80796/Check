@@ -74,8 +74,6 @@ export default function EmployeeWorkflow() {
         return <AreaSelection state={state} updateState={updateState} />;
       case 'subcategory':
         return <SubcategorySelection state={state} updateState={updateState} />;
-      case 'whiteboard':
-        return <WhiteboardStep state={state} updateState={updateState} />;
       case 'whiteboard-confirmation':
         return (
           <WhiteboardConfirmation 
@@ -103,14 +101,10 @@ export default function EmployeeWorkflow() {
           }}
         />;
       case 'tasks':
-        // Check if this is Digitales Whiteboard
-        const selectedCategory = categories?.find(cat => cat.id === state.selectedArea);
-        
-        if (selectedCategory?.name === 'Digitales Whiteboard') {
+        // Check category type to determine which view to show
+        if (state.selectedAreaType === 'whiteboard') {
           return <WhiteboardStep state={state} updateState={updateState} />;
         }
-        
-        // Check category type to determine which view to show
         if (state.selectedAreaType === 'inventory') {
           return <InventoryChecklist state={state} updateState={updateState} />;
         }

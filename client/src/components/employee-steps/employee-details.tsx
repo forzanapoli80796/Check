@@ -85,15 +85,23 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
     }
 
     // Proceed to next step normally
-    updateState({ 
-      step: !useShifts ? 'tasks' : 'shift-phase'
-    });
+    // For whiteboard categories, go directly to tasks (which will show the whiteboard)
+    if (state.selectedAreaType === 'whiteboard') {
+      updateState({ step: 'tasks' });
+    } else {
+      updateState({ 
+        step: !useShifts ? 'tasks' : 'shift-phase'
+      });
+    }
   };
 
   const goBack = () => {
     // If Betriebsleiter, go back to store selection (they skip area selection)
     if (state.isBetriebsleiter) {
       updateState({ step: 'store' });
+    } else if (state.selectedAreaHasSubcategories) {
+      // If we came from subcategory selection, go back there
+      updateState({ step: 'subcategory' });
     } else {
       updateState({ step: 'area' });
     }

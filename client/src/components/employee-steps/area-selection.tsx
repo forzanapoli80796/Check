@@ -32,14 +32,27 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
       actualType: typeof category.useShifts 
     });
     
-    // Check if this is a whiteboard category - go directly to whiteboard view
+    // Check if this is a whiteboard category
     if (category.categoryType === 'whiteboard') {
-      updateState({ 
-        selectedArea: category.id, 
-        selectedAreaName: category.name,
-        selectedAreaType: 'whiteboard',
-        step: 'whiteboard' 
-      });
+      // If enforcement is enabled, go to details first to collect employee name
+      // The details step will then check if whiteboard needs to be read
+      if (category.enforceReading) {
+        updateState({ 
+          selectedArea: category.id, 
+          selectedAreaName: category.name,
+          selectedAreaType: 'whiteboard',
+          selectedAreaUseShifts: category.useShifts !== false,
+          step: 'details' 
+        });
+      } else {
+        // No enforcement - go directly to whiteboard view
+        updateState({ 
+          selectedArea: category.id, 
+          selectedAreaName: category.name,
+          selectedAreaType: 'whiteboard',
+          step: 'whiteboard' 
+        });
+      }
       return;
     }
     
