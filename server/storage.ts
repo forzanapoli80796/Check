@@ -82,7 +82,7 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   async getCategories(): Promise<Category[]> {
     const cats = await db.select().from(categories);
-    console.log('Getting categories from DB:', cats.map(c => ({ id: c.id, name: c.name, useShifts: c.useShifts, parentId: c.parentId })));
+    console.log('Getting categories from DB:', cats.map(c => ({ id: c.id, name: c.name, useShifts: c.useShifts, parentId: c.parentId, enforceReading: c.enforceReading })));
     return cats;
   }
 
@@ -660,6 +660,7 @@ export class MemStorage implements IStorage {
         ...cat,
         iconColor: null,
         parentId: null,
+        enforceReading: false,
         createdAt: new Date(),
       };
       this.categories.set(id, category);
@@ -683,6 +684,7 @@ export class MemStorage implements IStorage {
         iconColor: null,
         parentId: kucheId,
         isSubcategoryParent: false,
+        enforceReading: false,
         createdAt: new Date(),
       };
       this.categories.set(id, category);
@@ -777,6 +779,7 @@ export class MemStorage implements IStorage {
       categoryType: insertCategory.categoryType || (insertCategory.useShifts ? "shifts" : "simple"),
       parentId: insertCategory.parentId || null,
       isSubcategoryParent: insertCategory.isSubcategoryParent || false,
+      enforceReading: insertCategory.enforceReading ?? false,
       createdAt: new Date(),
     };
     this.categories.set(id, category);
