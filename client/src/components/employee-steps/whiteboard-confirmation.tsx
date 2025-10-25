@@ -217,12 +217,12 @@ export default function WhiteboardConfirmation({ state, onConfirmed }: Whiteboar
     }
 
     const newNote: InsertStoreWhiteboard = {
-      store: state.selectedStore!,
+      storeName: state.selectedStore!,
       employeeName: employeeName.trim(),
       message: message.trim(),
       color: selectedColor as "yellow" | "blue" | "green" | "pink" | "orange",
       imageUrl: uploadedImage,
-      expiresAt: expiresAt ? expiresAt.toISOString() : null,
+      expiresAt: expiresAt,
     };
 
     createNoteMutation.mutate(newNote);
@@ -353,6 +353,15 @@ export default function WhiteboardConfirmation({ state, onConfirmed }: Whiteboar
           <p className="text-gray-500">Keine aktuellen Mitteilungen</p>
         </div>
       )}
+
+      {/* Confirmation Notice */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardContent className="pt-4 pb-4">
+          <p className="text-sm text-blue-900 font-medium text-center">
+            ✓ Mit dem Klick auf "Weiter" bestätige ich, dass ich alle Mitteilungen gelesen und zur Kenntnis genommen habe.
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Continue Button */}
       <Button
