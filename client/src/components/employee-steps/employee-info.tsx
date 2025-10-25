@@ -67,7 +67,7 @@ export default function EmployeeInfo({ state, updateState }: EmployeeInfoProps) 
         if (!data.hasRead) {
           // Employee hasn't read whiteboard today for this shift - ENFORCE IT
           setIsChecking(false);
-          updateState({ step: 'whiteboard' });
+          updateState({ step: 'whiteboard-confirmation' });
           return;
         }
       } catch (error) {
