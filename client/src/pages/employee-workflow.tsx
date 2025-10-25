@@ -83,10 +83,9 @@ export default function EmployeeWorkflow() {
             state={state} 
             updateState={updateState}
             onConfirmed={() => {
-              // After confirmation, proceed to next step
-              const useShifts = state.selectedAreaUseShifts !== false;
+              // After confirmation, proceed to area selection
               updateState({ 
-                step: useShifts ? 'shift-phase' : 'tasks'
+                step: 'area'
               });
             }}
           />
