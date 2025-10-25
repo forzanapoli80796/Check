@@ -128,6 +128,25 @@ export const storeWhiteboard = pgTable("store_whiteboard", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Whiteboard Reads - Tracking wer wann das Whiteboard gelesen hat
+export const whiteboardReads = pgTable("whiteboard_reads", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  employeeName: text("employee_name").notNull(),
+  store: text("store").notNull(), // JP23, KP5, TS17
+  shift: text("shift").notNull(), // frühschicht, spätschicht, etc.
+  date: date("date").notNull(), // Datum der Lesebestätigung
+  readAt: timestamp("read_at").defaultNow(),
+});
+
+// Settings - System-weite Einstellungen
+export const settings = pgTable("settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  key: text("key").notNull().unique(), // Eindeutiger Schlüssel für die Einstellung
+  value: boolean("value").notNull().default(false), // Wert der Einstellung
+  description: text("description"), // Beschreibung der Einstellung
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const insertCategorySchema = createInsertSchema(categories).omit({
   id: true,
   createdAt: true,
@@ -176,6 +195,16 @@ export const insertStoreWhiteboardSchema = createInsertSchema(storeWhiteboard).o
   createdAt: true,
 });
 
+export const insertWhiteboardReadSchema = createInsertSchema(whiteboardReads).omit({
+  id: true,
+  readAt: true,
+});
+
+export const insertSettingSchema = createInsertSchema(settings).omit({
+  id: true,
+  updatedAt: true,
+});
+
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type Category = typeof categories.$inferSelect;
 
@@ -202,3 +231,9 @@ export type EmployeeMessage = typeof employeeMessages.$inferSelect;
 
 export type InsertStoreWhiteboard = z.infer<typeof insertStoreWhiteboardSchema>;
 export type StoreWhiteboard = typeof storeWhiteboard.$inferSelect;
+
+export type InsertWhiteboardRead = z.infer<typeof insertWhiteboardReadSchema>;
+export type WhiteboardRead = typeof whiteboardReads.$inferSelect;
+
+export type InsertSetting = z.infer<typeof insertSettingSchema>;
+export type Setting = typeof settings.$inferSelect;

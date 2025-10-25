@@ -3,7 +3,7 @@ export interface UserSession {
 }
 
 export interface EmployeeWorkflowState {
-  step: 'store' | 'area' | 'subcategory' | 'details' | 'shift-phase' | 'tasks' | 'success' | 'sendMessage' | 'whiteboard';
+  step: 'store' | 'area' | 'subcategory' | 'details' | 'whiteboard-confirmation' | 'shift-phase' | 'tasks' | 'success' | 'sendMessage' | 'whiteboard';
   selectedStore: string | null;
   selectedArea: string | null;
   selectedAreaName?: string | null;
@@ -20,7 +20,7 @@ export interface EmployeeWorkflowState {
 }
 
 export interface AdminTabState {
-  activeTab: 'submitted' | 'categories' | 'teig' | 'tickets' | 'employeeNotes';
+  activeTab: 'submitted' | 'categories' | 'teig' | 'tickets' | 'employeeNotes' | 'settings';
 }
 
 export const STORES = ['JP23', 'KP5', 'TS17'] as const;

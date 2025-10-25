@@ -830,5 +830,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Whiteboard Reads routes
+  app.post("/api/whiteboard-reads", async (req, res) => {
+    try {
+      // Import the schema for validation
+      const { insertWhiteboardReadSchema } = await import("@shared/schema");
+      const validatedData = insertWhiteboardReadSchema.parse(req.body);
+      
+      const storage = await getStorage();
+      const whiteboardRead = await storage.createWhiteboardRead(validatedData);
+      res.json(whiteboardRead);
+    } catch (error: any) {
+      console.error('Error creating whiteboard read:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid whiteboard read data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create whiteboard read" });
+    }
+  });
+
+  app.get("/api/whiteboard-reads/check", async (req, res) => {
+    try {
+      const { employeeName, store, shift, date } = req.query;
+      
+      if (!employeeName || !store || !shift || !date) {
+        return res.status(400).json({ message: "Missing required parameters" });
+      }
+
+      const storage = await getStorage();
+      const hasRead = await storage.checkWhiteboardRead(
+        employeeName as string,
+        store as string,
+        shift as string,
+        date as string
+      );
+      
+      res.json({ hasRead });
+    } catch (error) {
+      console.error('Error checking whiteboard read:', error);
+      res.status(500).json({ message: "Failed to check whiteboard read" });
+    }
+  });
+
+  // Settings routes
+  app.get("/api/settings", async (req, res) => {
+    try {
+      const storage = await getStorage();
+      const settings = await storage.getSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+      res.status(500).json({ message: "Failed to fetch settings" });
+    }
+  });
+
+  app.get("/api/settings/:key", async (req, res) => {
+    try {
+      const { key } = req.params;
+      const storage = await getStorage();
+      const setting = await storage.getSettingByKey(key);
+      
+      if (!setting) {
+        return res.status(404).json({ message: "Setting not found" });
+      }
+      
+      res.json(setting);
+    } catch (error) {
+      console.error('Error fetching setting:', error);
+      res.status(500).json({ message: "Failed to fetch setting" });
+    }
+  });
+
+  app.put("/api/settings/:key", async (req, res) => {
+    try {
+      const { key } = req.params;
+      const { value, description } = req.body;
+      
+      // Validate input
+      if (!key || key.trim() === '') {
+        return res.status(400).json({ message: "Key is required" });
+      }
+      
+      if (typeof value !== 'boolean') {
+        return res.status(400).json({ message: "Value must be a boolean" });
+      }
+
+      const storage = await getStorage();
+      const setting = await storage.upsertSetting(key, value, description);
+      res.json(setting);
+    } catch (error) {
+      console.error('Error upserting setting:', error);
+      res.status(500).json({ message: "Failed to upsert setting" });
+    }
+  });
+
   return createServer(app);
 }

@@ -16,6 +16,7 @@ import SuccessScreen from "@/components/employee-steps/success-screen";
 import { TicketsView } from "@/components/employee-steps/tickets-view";
 import SendMessage from "@/components/employee-steps/send-message";
 import WhiteboardStep from "@/components/employee-steps/whiteboard-step";
+import WhiteboardConfirmation from "@/components/employee-steps/whiteboard-confirmation";
 import type { Category } from "@shared/schema";
 
 
@@ -75,6 +76,20 @@ export default function EmployeeWorkflow() {
         return <SubcategorySelection state={state} updateState={updateState} />;
       case 'whiteboard':
         return <WhiteboardStep state={state} updateState={updateState} />;
+      case 'whiteboard-confirmation':
+        return (
+          <WhiteboardConfirmation 
+            state={state} 
+            updateState={updateState}
+            onConfirmed={() => {
+              // After confirmation, proceed to next step
+              const useShifts = state.selectedAreaUseShifts !== false;
+              updateState({ 
+                step: useShifts ? 'shift-phase' : 'tasks'
+              });
+            }}
+          />
+        );
       case 'details':
         return <EmployeeDetails state={state} updateState={updateState} />;
       case 'shift-phase':

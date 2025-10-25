@@ -1,8 +1,8 @@
-import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist, type TeigProduction, type InsertTeigProduction, type InventoryItem, type InsertInventoryItem, type Ticket, type InsertTicket, type EmployeeNote, type InsertEmployeeNote, type EmployeeMessage, type InsertEmployeeMessage, type StoreWhiteboard, type InsertStoreWhiteboard } from "@shared/schema";
+import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist, type TeigProduction, type InsertTeigProduction, type InventoryItem, type InsertInventoryItem, type Ticket, type InsertTicket, type EmployeeNote, type InsertEmployeeNote, type EmployeeMessage, type InsertEmployeeMessage, type StoreWhiteboard, type InsertStoreWhiteboard, type WhiteboardRead, type InsertWhiteboardRead, type Setting, type InsertSetting } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { categories, tasks, checklists, teigProduction, inventoryItems, tickets, employeeNotes, employeeMessages, storeWhiteboard } from "@shared/schema";
-import { eq, sql } from "drizzle-orm";
+import { categories, tasks, checklists, teigProduction, inventoryItems, tickets, employeeNotes, employeeMessages, storeWhiteboard, whiteboardReads, settings } from "@shared/schema";
+import { eq, sql, and } from "drizzle-orm";
 
 export interface IStorage {
   // Categories
@@ -68,6 +68,15 @@ export interface IStorage {
   createWhiteboardNote(note: InsertStoreWhiteboard): Promise<StoreWhiteboard>;
   updateWhiteboardNote(id: string, message: string, editorName: string): Promise<StoreWhiteboard | undefined>;
   deleteWhiteboardNote(id: string): Promise<boolean>;
+  
+  // Whiteboard Reads
+  checkWhiteboardRead(employeeName: string, store: string, shift: string, date: string): Promise<boolean>;
+  createWhiteboardRead(read: InsertWhiteboardRead): Promise<WhiteboardRead>;
+  
+  // Settings
+  getSettings(): Promise<Setting[]>;
+  getSettingByKey(key: string): Promise<Setting | undefined>;
+  upsertSetting(key: string, value: boolean, description?: string): Promise<Setting>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -541,6 +550,69 @@ export class DatabaseStorage implements IStorage {
     const result = await db.delete(storeWhiteboard).where(eq(storeWhiteboard.id, id));
     return (result.rowCount || 0) > 0;
   }
+
+  // Whiteboard Reads methods
+  async checkWhiteboardRead(employeeName: string, store: string, shift: string, date: string): Promise<boolean> {
+    const result = await db.select().from(whiteboardReads)
+      .where(
+        and(
+          eq(whiteboardReads.employeeName, employeeName),
+          eq(whiteboardReads.store, store),
+          eq(whiteboardReads.shift, shift),
+          eq(whiteboardReads.date, date)
+        )
+      )
+      .limit(1);
+    
+    return result.length > 0;
+  }
+
+  async createWhiteboardRead(read: InsertWhiteboardRead): Promise<WhiteboardRead> {
+    const [whiteboardRead] = await db
+      .insert(whiteboardReads)
+      .values({
+        ...read,
+        id: randomUUID(),
+        readAt: new Date(),
+      })
+      .returning();
+    return whiteboardRead;
+  }
+
+  // Settings methods
+  async getSettings(): Promise<Setting[]> {
+    return await db.select().from(settings);
+  }
+
+  async getSettingByKey(key: string): Promise<Setting | undefined> {
+    const [setting] = await db.select().from(settings).where(eq(settings.key, key));
+    return setting || undefined;
+  }
+
+  async upsertSetting(key: string, value: boolean, description?: string): Promise<Setting> {
+    const existing = await this.getSettingByKey(key);
+    
+    if (existing) {
+      const [updated] = await db
+        .update(settings)
+        .set({ value, description, updatedAt: new Date() })
+        .where(eq(settings.key, key))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(settings)
+        .values({
+          id: randomUUID(),
+          key,
+          value,
+          description: description || null,
+          updatedAt: new Date(),
+        })
+        .returning();
+      return created;
+    }
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -553,6 +625,8 @@ export class MemStorage implements IStorage {
   private employeeNotes: Map<string, EmployeeNote> = new Map();
   private employeeMessages: Map<string, EmployeeMessage> = new Map();
   private whiteboardNotes: Map<string, StoreWhiteboard> = new Map();
+  private whiteboardReadRecords: Map<string, WhiteboardRead> = new Map();
+  private settingsMap: Map<string, Setting> = new Map();
 
   constructor() {
     this.initializeDefaultData();
@@ -1057,6 +1131,59 @@ export class MemStorage implements IStorage {
 
   async deleteWhiteboardNote(id: string): Promise<boolean> {
     return this.whiteboardNotes.delete(id);
+  }
+
+  // Whiteboard Reads methods
+  async checkWhiteboardRead(employeeName: string, store: string, shift: string, date: string): Promise<boolean> {
+    const key = `${employeeName}-${store}-${shift}-${date}`;
+    return this.whiteboardReadRecords.has(key);
+  }
+
+  async createWhiteboardRead(read: InsertWhiteboardRead): Promise<WhiteboardRead> {
+    const id = randomUUID();
+    const whiteboardRead: WhiteboardRead = {
+      ...read,
+      id,
+      readAt: new Date(),
+    };
+    const key = `${read.employeeName}-${read.store}-${read.shift}-${read.date}`;
+    this.whiteboardReadRecords.set(key, whiteboardRead);
+    return whiteboardRead;
+  }
+
+  // Settings methods
+  async getSettings(): Promise<Setting[]> {
+    return Array.from(this.settingsMap.values());
+  }
+
+  async getSettingByKey(key: string): Promise<Setting | undefined> {
+    return this.settingsMap.get(key);
+  }
+
+  async upsertSetting(key: string, value: boolean, description?: string): Promise<Setting> {
+    const existing = this.settingsMap.get(key);
+    
+    if (existing) {
+      const updated: Setting = {
+        ...existing,
+        value,
+        description: description || existing.description,
+        updatedAt: new Date(),
+      };
+      this.settingsMap.set(key, updated);
+      return updated;
+    } else {
+      const id = randomUUID();
+      const created: Setting = {
+        id,
+        key,
+        value,
+        description: description || null,
+        updatedAt: new Date(),
+      };
+      this.settingsMap.set(key, created);
+      return created;
+    }
   }
 }
 

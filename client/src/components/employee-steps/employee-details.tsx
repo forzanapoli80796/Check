@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, Play, Square } from "lucide-react";
+import { ArrowLeft, Play, Square, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmployeeWorkflowState } from "@/lib/types";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useQuery } from "@tanstack/react-query";
+import type { Setting } from "@shared/schema";
 
 interface EmployeeDetailsProps {
   state: EmployeeWorkflowState;
@@ -16,21 +18,74 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
   const { t } = useLanguage();
   const [name, setName] = useState(state.employeeName);
   const [selectedShift, setSelectedShift] = useState(state.selectedShift);
+  const [isChecking, setIsChecking] = useState(false);
 
   // Skip shift selection for categories without shifts
   const useShifts = state.selectedAreaUseShifts !== false;
   const isComplete = name.trim() && (!useShifts || selectedShift);
 
+  // Fetch settings to check if whiteboard enforcement is enabled
+  const { data: settings, isLoading: isLoadingSettings, isError: settingsError } = useQuery<Setting[]>({
+    queryKey: ["/api/settings"],
+  });
+
+  const whiteboardEnforcementEnabled = settings?.find(
+    s => s.key === "enforce_whiteboard_reading"
+  )?.value ?? false;
+
   const selectShift = (shift: 'frühschicht' | 'spätschicht') => {
     setSelectedShift(shift);
   };
 
-  const proceedToShiftPhase = () => {
+  const proceedToShiftPhase = async () => {
+    const employeeName = name.trim();
+    const shift = !useShifts ? null : selectedShift;
+    
+    // Update state with employee details first
     updateState({ 
-      employeeName: name.trim(), 
-      selectedShift: !useShifts ? null : selectedShift,
-      selectedShiftPhase: !useShifts ? null : null, // Will be selected in next step if using shifts
-      step: !useShifts ? 'tasks' : 'shift-phase' // Skip phase selection for categories without shifts
+      employeeName,
+      selectedShift: shift,
+      selectedShiftPhase: !useShifts ? null : null,
+    });
+
+    // Check if whiteboard enforcement is enabled and if employee needs to read whiteboard
+    if (whiteboardEnforcementEnabled && employeeName && shift) {
+      setIsChecking(true);
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const response = await fetch(
+          `/api/whiteboard-reads/check?` + 
+          `employeeName=${encodeURIComponent(employeeName)}` +
+          `&store=${encodeURIComponent(state.selectedStore || '')}` +
+          `&shift=${encodeURIComponent(shift)}` +
+          `&date=${today}`
+        );
+        
+        if (!response.ok) {
+          throw new Error('Failed to check whiteboard read status');
+        }
+        
+        const data = await response.json();
+        
+        if (!data.hasRead) {
+          // Employee hasn't read whiteboard today for this shift
+          setIsChecking(false);
+          updateState({ step: 'whiteboard-confirmation' });
+          return;
+        }
+      } catch (error) {
+        console.error('Error checking whiteboard read:', error);
+        setIsChecking(false);
+        // Show error to user and don't proceed
+        alert('Fehler beim Prüfen der Whiteboard-Pflicht. Bitte versuchen Sie es erneut.');
+        return;
+      }
+      setIsChecking(false);
+    }
+
+    // Proceed to next step normally
+    updateState({ 
+      step: !useShifts ? 'tasks' : 'shift-phase'
     });
   };
 
@@ -103,15 +158,35 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
             </div>
           )}
         </div>
+        {settingsError && (
+          <div className="bg-red-50 p-3 rounded-lg mb-4">
+            <p className="text-sm text-red-800">
+              Fehler beim Laden der Einstellungen. Bitte versuchen Sie es erneut.
+            </p>
+          </div>
+        )}
+        
         <div className="flex space-x-3 mt-6">
           <Button 
             onClick={proceedToShiftPhase} 
             className="flex-1" 
-            disabled={!isComplete}
+            disabled={!isComplete || isChecking || isLoadingSettings}
           >
-            {t.common.next}
+            {isChecking ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Prüfe...
+              </>
+            ) : isLoadingSettings ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Lade...
+              </>
+            ) : (
+              t.common.next
+            )}
           </Button>
-          <Button variant="outline" onClick={goBack}>
+          <Button variant="outline" onClick={goBack} disabled={isChecking || isLoadingSettings}>
             {t.common.back}
           </Button>
         </div>
