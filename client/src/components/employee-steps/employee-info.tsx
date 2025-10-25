@@ -84,22 +84,20 @@ export default function EmployeeInfo({ state, updateState }: EmployeeInfoProps) 
               <Button
                 variant={selectedShift === 'frühschicht' ? 'default' : 'outline'}
                 onClick={() => selectShift('frühschicht')}
-                className="h-24 flex flex-col items-center justify-center"
+                className="h-20 flex flex-col items-center justify-center"
                 data-testid="button-shift-early"
               >
                 <Play className="mb-2" size={24} />
                 <span className="text-base font-medium">{t.employee.detailsEntry.earlyShift}</span>
-                <span className="text-xs opacity-70 mt-1">06:00 - 14:00</span>
               </Button>
               <Button
                 variant={selectedShift === 'spätschicht' ? 'default' : 'outline'}
                 onClick={() => selectShift('spätschicht')}
-                className="h-24 flex flex-col items-center justify-center"
+                className="h-20 flex flex-col items-center justify-center"
                 data-testid="button-shift-late"
               >
                 <Square className="mb-2" size={24} />
                 <span className="text-base font-medium">{t.employee.detailsEntry.lateShift}</span>
-                <span className="text-xs opacity-70 mt-1">14:00 - 22:00</span>
               </Button>
             </div>
           </div>
