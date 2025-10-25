@@ -10,6 +10,7 @@ import SubmittedLists from "@/components/admin-tabs/submitted-lists";
 import CategoriesManagement from "@/components/admin-tabs/categories-management";
 import { TicketsManagement } from "@/components/admin-tabs/tickets";
 import { EmployeeNotes } from "@/components/admin-tabs/employee-notes";
+import { DevTools } from "@/components/admin-tabs/dev-tools";
 import ErrorBoundary from "@/components/error-boundary";
 import TeigManagement from "@/components/teig-management";
 import { AdminTabState } from "@/lib/types";
@@ -51,6 +52,12 @@ export default function AdminDashboard() {
         return (
           <ErrorBoundary>
             <EmployeeNotes />
+          </ErrorBoundary>
+        );
+      case 'devTools':
+        return (
+          <ErrorBoundary>
+            <DevTools />
           </ErrorBoundary>
         );
       default:
@@ -110,6 +117,13 @@ export default function AdminDashboard() {
               className={`admin-tab ${activeTab === 'employeeNotes' ? 'active' : ''}`}
             >
               Mitarbeiter-Nachrichten
+            </button>
+            <button
+              onClick={() => setActiveTab('devTools')}
+              className={`admin-tab ${activeTab === 'devTools' ? 'active' : ''}`}
+              data-testid="button-devtools-tab"
+            >
+              Dev Tools
             </button>
           </nav>
         </div>
