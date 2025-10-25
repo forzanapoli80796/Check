@@ -71,7 +71,7 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
         if (!data.hasRead) {
           // Employee hasn't read whiteboard today for this shift
           setIsChecking(false);
-          updateState({ step: 'whiteboard-confirmation' });
+          updateState({ step: 'whiteboard' });
           return;
         }
       } catch (error) {

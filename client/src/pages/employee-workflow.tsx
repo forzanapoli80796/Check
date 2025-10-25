@@ -94,6 +94,14 @@ export default function EmployeeWorkflow() {
         return <EmployeeDetails state={state} updateState={updateState} />;
       case 'shift-phase':
         return <ShiftPhaseSelection state={state} updateState={updateState} />;
+      case 'whiteboard':
+        return <WhiteboardConfirmation 
+          state={state} 
+          updateState={updateState}
+          onConfirmed={() => {
+            updateState({ step: 'tasks' });
+          }}
+        />;
       case 'tasks':
         // Check if this is Digitales Whiteboard
         const selectedCategory = categories?.find(cat => cat.id === state.selectedArea);
