@@ -145,7 +145,12 @@ export default function WhiteboardConfirmation({ state, onConfirmed }: Whiteboar
     },
     onError: (error) => {
       console.error('Error confirming whiteboard read:', error);
-      onConfirmed();
+      setIsConfirming(false);
+      toast({
+        title: "Fehler",
+        description: "Die Bestätigung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+        variant: "destructive",
+      });
     },
   });
 
