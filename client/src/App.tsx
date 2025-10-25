@@ -9,6 +9,7 @@ import NotFound from "@/pages/not-found";
 import RoleSelection from "@/pages/role-selection";
 import AdminLogin from "@/pages/admin-login";
 import EmployeeWorkflow from "@/pages/employee-workflow";
+import EmployeePassword from "@/pages/employee-password";
 import AdminDashboard from "@/pages/admin-dashboard";
 import BetriebsleiterDashboard from "@/pages/betriebsleiter-dashboard";
 import TeigDashboard from "@/pages/teig-dashboard";
@@ -22,6 +23,7 @@ function Router() {
     <Switch>
       <Route path="/" component={RoleSelection} />
       <Route path="/admin-login" component={AdminLogin} />
+      <Route path="/employee-password" component={EmployeePassword} />
       <Route path="/employee" component={EmployeeWorkflow} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/betriebsleiter" component={BetriebsleiterDashboard} />

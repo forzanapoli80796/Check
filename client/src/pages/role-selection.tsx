@@ -1,66 +1,18 @@
-import { useState } from "react";
 import { useLocation } from "wouter";
-import { User, Shield, Settings, Cookie, Globe, Lock, Eye, EyeOff } from "lucide-react";
+import { User, Shield, Settings, Cookie, Globe } from "lucide-react";
 import logoPath from "@assets/FORZACHECK1_black_1753816621910.png";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-
-const CORRECT_PASSWORD = "0101";
 
 export default function RoleSelection() {
   const [, navigate] = useLocation();
   const { language, setLanguage, t } = useLanguage();
-  const { toast } = useToast();
-  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<string | null>(null);
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
 
   const selectRole = (role: string) => {
     if (role === 'admin') {
       navigate("/admin-login");
     } else {
-      // Für Mitarbeiter, Betriebsleiter und Teig: Passwort abfragen
-      setSelectedRole(role);
-      setShowPasswordDialog(true);
-      setPassword("");
-      setShowPassword(false);
-    }
-  };
-
-  const handlePasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (password === CORRECT_PASSWORD) {
-      setShowPasswordDialog(false);
-      
-      // Navigation je nach ausgewählter Rolle
-      if (selectedRole === 'mitarbeiter') {
-        navigate("/employee");
-      } else if (selectedRole === 'betriebsleiter') {
-        navigate("/employee?role=betriebsleiter");
-      } else if (selectedRole === 'teig') {
-        navigate("/teig");
-      }
-      
-      setPassword("");
-      setSelectedRole(null);
-    } else {
-      toast({
-        title: "Fehler",
-        description: "Falsches Passwort",
-        variant: "destructive",
-      });
-      setPassword("");
+      // Für Mitarbeiter, Betriebsleiter und Teig: Zur Passwort-Seite navigieren
+      navigate(`/employee-password?role=${role}`);
     }
   };
 
@@ -175,67 +127,6 @@ export default function RoleSelection() {
           </button>
         </div>
       </div>
-
-      {/* Password Dialog */}
-      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Lock className="w-5 h-5" />
-              Passwort erforderlich
-            </DialogTitle>
-            <DialogDescription>
-              Bitte geben Sie das Passwort ein, um fortzufahren.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handlePasswordSubmit} className="space-y-4">
-            <div className="relative">
-              <Input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Passwort eingeben"
-                className="pr-10"
-                autoFocus
-                data-testid="input-role-password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-700"
-                data-testid="button-toggle-role-password"
-              >
-                {showPassword ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </div>
-            
-            <div className="flex gap-2 justify-end">
-              <Button 
-                type="button" 
-                variant="outline"
-                onClick={() => {
-                  setShowPasswordDialog(false);
-                  setPassword("");
-                  setSelectedRole(null);
-                }}
-              >
-                Abbrechen
-              </Button>
-              <Button 
-                type="submit"
-                disabled={!password}
-                data-testid="button-submit-role-password"
-              >
-                Bestätigen
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
