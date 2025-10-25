@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, Play, Square, Loader2 } from "lucide-react";
+import { ArrowLeft, Play, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmployeeWorkflowState } from "@/lib/types";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useQuery } from "@tanstack/react-query";
-import type { Category } from "@shared/schema";
 
 interface EmployeeDetailsProps {
   state: EmployeeWorkflowState;
@@ -18,73 +16,26 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
   const { t } = useLanguage();
   const [name, setName] = useState(state.employeeName);
   const [selectedShift, setSelectedShift] = useState(state.selectedShift);
-  const [isChecking, setIsChecking] = useState(false);
-
   // Skip shift selection for categories without shifts
   const useShifts = state.selectedAreaUseShifts !== false;
   const isComplete = name.trim() && (!useShifts || selectedShift);
-
-  // Fetch category to check if whiteboard enforcement is enabled for this specific category
-  const { data: categories, isLoading: isLoadingCategories } = useQuery<Category[]>({
-    queryKey: ["/api/categories"],
-  });
-
-  const currentCategory = categories?.find(cat => cat.id === state.selectedArea);
-  const whiteboardEnforcementEnabled = currentCategory?.enforceReading ?? false;
 
   const selectShift = (shift: 'frühschicht' | 'spätschicht') => {
     setSelectedShift(shift);
   };
 
-  const proceedToShiftPhase = async () => {
+  const proceedToShiftPhase = () => {
     const employeeName = name.trim();
     const shift = !useShifts ? null : selectedShift;
     
-    // Update state with employee details first
+    // Update state with employee details
     updateState({ 
       employeeName,
       selectedShift: shift,
       selectedShiftPhase: !useShifts ? null : null,
     });
 
-    // Check if whiteboard enforcement is enabled and if employee needs to read whiteboard
-    if (whiteboardEnforcementEnabled && employeeName) {
-      setIsChecking(true);
-      try {
-        const today = new Date().toISOString().split('T')[0];
-        // Use shift if available, otherwise use 'keine' for categories without shifts
-        const shiftParam = shift || 'keine';
-        const response = await fetch(
-          `/api/whiteboard-reads/check?` + 
-          `employeeName=${encodeURIComponent(employeeName)}` +
-          `&store=${encodeURIComponent(state.selectedStore || '')}` +
-          `&shift=${encodeURIComponent(shiftParam)}` +
-          `&date=${today}`
-        );
-        
-        if (!response.ok) {
-          throw new Error('Failed to check whiteboard read status');
-        }
-        
-        const data = await response.json();
-        
-        if (!data.hasRead) {
-          // Employee hasn't read whiteboard today for this shift
-          setIsChecking(false);
-          updateState({ step: 'whiteboard' });
-          return;
-        }
-      } catch (error) {
-        console.error('Error checking whiteboard read:', error);
-        setIsChecking(false);
-        // Show error to user and don't proceed
-        alert('Fehler beim Prüfen der Whiteboard-Pflicht. Bitte versuchen Sie es erneut.');
-        return;
-      }
-      setIsChecking(false);
-    }
-
-    // Proceed to next step normally
+    // Proceed to next step
     // For whiteboard categories, go directly to tasks (which will show the whiteboard)
     if (state.selectedAreaType === 'whiteboard') {
       updateState({ step: 'tasks' });
@@ -171,23 +122,11 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
           <Button 
             onClick={proceedToShiftPhase} 
             className="flex-1" 
-            disabled={!isComplete || isChecking || isLoadingCategories}
+            disabled={!isComplete}
           >
-            {isChecking ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Prüfe...
-              </>
-            ) : isLoadingCategories ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Lade...
-              </>
-            ) : (
-              t.common.next
-            )}
+            {t.common.next}
           </Button>
-          <Button variant="outline" onClick={goBack} disabled={isChecking || isLoadingCategories}>
+          <Button variant="outline" onClick={goBack}>
             {t.common.back}
           </Button>
         </div>
