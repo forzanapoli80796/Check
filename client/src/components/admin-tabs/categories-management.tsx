@@ -111,6 +111,7 @@ export default function CategoriesManagement() {
     categoryType: "shifts" as "shifts" | "simple" | "inventory" | "tickets" | "whiteboard",
     parentId: null as string | null,
     isSubcategoryParent: false,
+    enforceReading: false,
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -228,6 +229,7 @@ export default function CategoriesManagement() {
       categoryType: "shifts",
       parentId: null,
       isSubcategoryParent: false,
+      enforceReading: false,
     });
     setEditingCategory(null);
   };
@@ -243,6 +245,7 @@ export default function CategoriesManagement() {
       categoryType: category.categoryType || (category.useShifts !== false ? "shifts" : "simple"),
       parentId: category.parentId || null,
       isSubcategoryParent: category.isSubcategoryParent || false,
+      enforceReading: category.enforceReading || false,
     });
     setIsDialogOpen(true);
   };
@@ -516,6 +519,28 @@ export default function CategoriesManagement() {
                       </SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+              )}
+
+              {/* Whiteboard Enforcement Toggle - only show for whiteboard category type */}
+              {formData.categoryType === "whiteboard" && (
+                <div className="flex items-center justify-between p-4 border rounded-lg bg-blue-50 border-blue-200">
+                  <div className="flex-1 mr-4">
+                    <Label htmlFor="enforceReading" className="text-base font-medium cursor-pointer">
+                      Lesen erzwingen
+                    </Label>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Mitarbeiter müssen das Whiteboard einmal pro Schicht lesen und bestätigen
+                    </p>
+                  </div>
+                  <Checkbox
+                    id="enforceReading"
+                    checked={formData.enforceReading}
+                    onCheckedChange={(checked) => 
+                      setFormData(prev => ({ ...prev, enforceReading: checked as boolean }))
+                    }
+                    data-testid="checkbox-enforce-reading"
+                  />
                 </div>
               )}
 

@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { EmployeeWorkflowState } from "@/lib/types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
-import type { Setting } from "@shared/schema";
+import type { Category } from "@shared/schema";
 
 interface EmployeeDetailsProps {
   state: EmployeeWorkflowState;
@@ -24,14 +24,13 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
   const useShifts = state.selectedAreaUseShifts !== false;
   const isComplete = name.trim() && (!useShifts || selectedShift);
 
-  // Fetch settings to check if whiteboard enforcement is enabled
-  const { data: settings, isLoading: isLoadingSettings, isError: settingsError } = useQuery<Setting[]>({
-    queryKey: ["/api/settings"],
+  // Fetch category to check if whiteboard enforcement is enabled for this specific category
+  const { data: categories, isLoading: isLoadingCategories } = useQuery<Category[]>({
+    queryKey: ["/api/categories"],
   });
 
-  const whiteboardEnforcementEnabled = settings?.find(
-    s => s.key === "enforce_whiteboard_reading"
-  )?.value ?? false;
+  const currentCategory = categories?.find(cat => cat.id === state.selectedArea);
+  const whiteboardEnforcementEnabled = currentCategory?.enforceReading ?? false;
 
   const selectShift = (shift: 'frühschicht' | 'spätschicht') => {
     setSelectedShift(shift);
@@ -158,26 +157,18 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
             </div>
           )}
         </div>
-        {settingsError && (
-          <div className="bg-red-50 p-3 rounded-lg mb-4">
-            <p className="text-sm text-red-800">
-              Fehler beim Laden der Einstellungen. Bitte versuchen Sie es erneut.
-            </p>
-          </div>
-        )}
-        
         <div className="flex space-x-3 mt-6">
           <Button 
             onClick={proceedToShiftPhase} 
             className="flex-1" 
-            disabled={!isComplete || isChecking || isLoadingSettings}
+            disabled={!isComplete || isChecking || isLoadingCategories}
           >
             {isChecking ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 Prüfe...
               </>
-            ) : isLoadingSettings ? (
+            ) : isLoadingCategories ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 Lade...
@@ -186,7 +177,7 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
               t.common.next
             )}
           </Button>
-          <Button variant="outline" onClick={goBack} disabled={isChecking || isLoadingSettings}>
+          <Button variant="outline" onClick={goBack} disabled={isChecking || isLoadingCategories}>
             {t.common.back}
           </Button>
         </div>

@@ -13,6 +13,7 @@ export const categories = pgTable("categories", {
   categoryType: text("category_type", { enum: ["shifts", "simple", "inventory", "tickets", "whiteboard"] }).notNull().default("shifts"), // Option 1: Mit Schichten, Option 2: Einfache Checkliste, Option 3: Mit Mengenerfassung, Option 4: Tickets, Option 5: Digitales Whiteboard
   parentId: varchar("parent_id"), // Parent category ID for subcategories
   isSubcategoryParent: boolean("is_subcategory_parent").notNull().default(false), // true if this category has subcategories
+  enforceReading: boolean("enforce_reading").notNull().default(false), // For whiteboard categories: true = employees must read and confirm once per shift
   createdAt: timestamp("created_at").defaultNow(),
 });
 
