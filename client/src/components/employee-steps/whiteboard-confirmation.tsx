@@ -65,100 +65,87 @@ export default function WhiteboardConfirmation({ state, onConfirmed }: Whiteboar
   const hasNotes = notes && notes.length > 0;
 
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-        <CardTitle className="flex items-center gap-3 text-2xl">
-          <MessageSquare className="w-8 h-8" />
-          Wichtige Mitteilungen
-        </CardTitle>
-        <p className="text-blue-100 mt-2">
-          {hasNotes 
-            ? `${notes.length} Mitteilung${notes.length === 1 ? '' : 'en'} für ${state.selectedStore}`
-            : 'Keine aktuellen Mitteilungen'
-          }
-        </p>
-      </CardHeader>
+    <Card className="shadow-sm border border-gray-200">
+      <CardContent className="pt-6">
+        <div className="flex items-center mb-6">
+          <MessageSquare className="w-6 h-6 text-blue-600 mr-3" />
+          <div>
+            <h2 className="text-xl font-medium">Wichtige Mitteilungen</h2>
+            {hasNotes && (
+              <p className="text-sm text-gray-600 mt-1">
+                {notes.length} Nachricht{notes.length === 1 ? '' : 'en'} für {state.selectedStore}
+              </p>
+            )}
+          </div>
+        </div>
 
-      <CardContent className="p-6">
         {hasNotes ? (
-          <ScrollArea className="h-[400px] pr-4">
-            <div className="space-y-4">
-              {notes.map((note) => {
-                const bgColorClass = {
-                  yellow: 'bg-yellow-50 border-yellow-200',
-                  blue: 'bg-blue-50 border-blue-200',
-                  green: 'bg-green-50 border-green-200',
-                  pink: 'bg-pink-50 border-pink-200',
-                  orange: 'bg-orange-50 border-orange-200',
-                }[note.color || 'yellow'] || 'bg-yellow-50 border-yellow-200';
+          <div className="space-y-4 mb-6 max-h-[500px] overflow-y-auto pr-2">
+            {notes.map((note) => {
+              const bgColorClass = {
+                yellow: 'bg-yellow-50 border-yellow-300',
+                blue: 'bg-blue-50 border-blue-300',
+                green: 'bg-green-50 border-green-300',
+                pink: 'bg-pink-50 border-pink-300',
+                orange: 'bg-orange-50 border-orange-300',
+              }[note.color || 'yellow'] || 'bg-yellow-50 border-yellow-300';
 
-                return (
-                  <Card 
-                    key={note.id} 
-                    className={`${bgColorClass} border-2`}
-                    data-testid={`whiteboard-note-${note.id}`}
-                  >
-                    <CardContent className="p-4">
-                      {note.imageUrl && (
-                        <div className="mb-3">
-                          <img 
-                            src={`/api/whiteboard-image?path=${encodeURIComponent(note.imageUrl)}`}
-                            alt="Whiteboard Bild"
-                            className="w-full h-48 object-cover rounded-md"
-                          />
-                        </div>
-                      )}
-                      <p className="text-gray-800 text-lg whitespace-pre-wrap leading-relaxed">
-                        {note.message}
-                      </p>
-                      <div className="mt-3 flex items-center justify-between text-sm text-gray-600">
-                        <span className="font-medium">Von: {note.employeeName}</span>
-                        <span>
-                          {format(new Date(note.createdAt!), 'dd.MM.yyyy HH:mm', { locale: de })}
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </ScrollArea>
+              return (
+                <div 
+                  key={note.id} 
+                  className={`${bgColorClass} border-l-4 p-4 rounded`}
+                  data-testid={`whiteboard-note-${note.id}`}
+                >
+                  {note.imageUrl && (
+                    <div className="mb-3">
+                      <img 
+                        src={`/api/whiteboard-image?path=${encodeURIComponent(note.imageUrl)}`}
+                        alt="Bild"
+                        className="w-full max-h-64 object-contain rounded"
+                      />
+                    </div>
+                  )}
+                  <p className="text-gray-900 whitespace-pre-wrap leading-relaxed mb-3">
+                    {note.message}
+                  </p>
+                  <div className="flex items-center justify-between text-xs text-gray-600 pt-2 border-t border-gray-300">
+                    <span>Von: {note.employeeName}</span>
+                    <span>
+                      {format(new Date(note.createdAt!), 'dd.MM.yyyy HH:mm', { locale: de })}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         ) : (
-          <div className="text-center py-12">
-            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <p className="text-xl text-gray-600">
-              Keine neuen Mitteilungen
-            </p>
-            <p className="text-gray-500 mt-2">
-              Alle Informationen sind aktuell
-            </p>
+          <div className="text-center py-8 mb-6">
+            <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
+            <p className="text-gray-600">Keine aktuellen Mitteilungen</p>
           </div>
         )}
 
-        <div className="mt-6 pt-6 border-t">
-          <Button
-            onClick={handleConfirm}
-            disabled={isConfirming}
-            className="w-full h-14 text-lg font-semibold bg-blue-600 hover:bg-blue-700"
-            data-testid="button-confirm-whiteboard-read"
-          >
-            {isConfirming ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Bestätigung wird gespeichert...
-              </>
-            ) : (
-              <>
-                <CheckCircle className="w-5 h-5 mr-2" />
-                {hasNotes ? 'Gelesen und verstanden - Weiter' : 'Weiter zu Aufgaben'}
-              </>
-            )}
-          </Button>
-        </div>
+        <Button
+          onClick={handleConfirm}
+          disabled={isConfirming}
+          className="w-full h-12"
+          data-testid="button-confirm-whiteboard-read"
+        >
+          {isConfirming ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Wird gespeichert...
+            </>
+          ) : (
+            'Weiter'
+          )}
+        </Button>
 
-        <div className="mt-4 text-center text-sm text-gray-500">
-          Durch Klicken bestätigen Sie, dass Sie die Mitteilungen gelesen haben
-        </div>
+        {hasNotes && (
+          <p className="text-xs text-gray-500 text-center mt-3">
+            Mit dem Klick auf "Weiter" bestätigen Sie, dass Sie die Mitteilungen gelesen haben
+          </p>
+        )}
       </CardContent>
     </Card>
   );
