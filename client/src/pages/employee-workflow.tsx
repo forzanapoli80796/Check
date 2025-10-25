@@ -83,10 +83,18 @@ export default function EmployeeWorkflow() {
             state={state} 
             updateState={updateState}
             onConfirmed={() => {
-              // After confirmation, proceed to area selection
-              updateState({ 
-                step: 'area'
-              });
+              // After confirmation, check where to go next
+              // If user has already selected an area with subcategories, go back to subcategory selection
+              if (state.selectedArea && state.selectedAreaHasSubcategories) {
+                updateState({ step: 'subcategory' });
+              } else if (state.selectedArea) {
+                // If area selected but no subcategories, go to details/tasks
+                const useShifts = state.selectedAreaUseShifts !== false;
+                updateState({ step: useShifts ? 'shift-phase' : 'tasks' });
+              } else {
+                // No area selected yet, go to area selection
+                updateState({ step: 'area' });
+              }
             }}
           />
         );
