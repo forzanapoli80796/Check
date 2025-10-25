@@ -84,15 +84,25 @@ export default function EmployeeWorkflow() {
             updateState={updateState}
             onConfirmed={() => {
               // After confirmation, check where to go next
+              console.log('Whiteboard confirmed, current state:', {
+                selectedArea: state.selectedArea,
+                selectedAreaName: state.selectedAreaName,
+                selectedAreaHasSubcategories: state.selectedAreaHasSubcategories,
+                selectedAreaUseShifts: state.selectedAreaUseShifts
+              });
+              
               // If user has already selected an area with subcategories, go back to subcategory selection
               if (state.selectedArea && state.selectedAreaHasSubcategories) {
+                console.log('Going to subcategory selection');
                 updateState({ step: 'subcategory' });
               } else if (state.selectedArea) {
                 // If area selected but no subcategories, go to details/tasks
+                console.log('Going to details/tasks');
                 const useShifts = state.selectedAreaUseShifts !== false;
                 updateState({ step: useShifts ? 'shift-phase' : 'tasks' });
               } else {
                 // No area selected yet, go to area selection
+                console.log('Going to area selection');
                 updateState({ step: 'area' });
               }
             }}
