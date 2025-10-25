@@ -338,13 +338,13 @@ export default function CategoriesManagement() {
               Neuer Arbeitsbereich
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingCategory ? "Arbeitsbereich bearbeiten" : "Neuer Arbeitsbereich"}
               </DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4 pb-4">
               <div>
                 <Label htmlFor="name">Name</Label>
                 <Input
