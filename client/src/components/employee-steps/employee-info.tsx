@@ -43,44 +43,8 @@ export default function EmployeeInfo({ state, updateState }: EmployeeInfoProps) 
     updateState({ 
       employeeName,
       selectedShift: shift,
+      step: 'area' // Always go to area selection first
     });
-
-    // Check if whiteboard enforcement is enabled
-    if (whiteboardCategory && employeeName && shift) {
-      setIsChecking(true);
-      try {
-        const today = new Date().toISOString().split('T')[0];
-        const response = await fetch(
-          `/api/whiteboard-reads/check?` + 
-          `employeeName=${encodeURIComponent(employeeName)}` +
-          `&store=${encodeURIComponent(state.selectedStore || '')}` +
-          `&shift=${encodeURIComponent(shift)}` +
-          `&date=${today}`
-        );
-        
-        if (!response.ok) {
-          throw new Error('Failed to check whiteboard read status');
-        }
-        
-        const data = await response.json();
-        
-        if (!data.hasRead) {
-          // Employee hasn't read whiteboard today for this shift - ENFORCE IT
-          setIsChecking(false);
-          updateState({ step: 'whiteboard-confirmation' });
-          return;
-        }
-      } catch (error) {
-        console.error('Error checking whiteboard read:', error);
-        setIsChecking(false);
-        alert('Fehler beim Prüfen der Whiteboard-Pflicht. Bitte versuchen Sie es erneut.');
-        return;
-      }
-      setIsChecking(false);
-    }
-
-    // No enforcement needed or already read - proceed to category selection
-    updateState({ step: 'area' });
   };
 
   const goBack = () => {

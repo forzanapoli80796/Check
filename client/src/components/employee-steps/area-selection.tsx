@@ -22,7 +22,7 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
   // Filter out subcategories - only show main categories (those without parentId)
   const categories = allCategories.filter(cat => !cat.parentId);
 
-  const selectArea = (category: Category) => {
+  const selectArea = async (category: Category) => {
     console.log('Selected category:', { 
       id: category.id, 
       name: category.name, 
@@ -46,21 +46,59 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
     // Check if this category actually has subcategories (not just the flag)
     const hasSubcategories = allCategories.some(cat => cat.parentId === category.id);
     
+    // Store the area selection
+    const areaUpdate = {
+      selectedArea: category.id, 
+      selectedAreaName: category.name,
+      selectedAreaHasSubcategories: hasSubcategories || category.isSubcategoryParent,
+      selectedAreaUseShifts: category.useShifts !== false,
+      selectedAreaType: category.categoryType || (category.useShifts !== false ? "shifts" : "simple")
+    };
+    
+    // Check if any subcategory has whiteboard enforcement enabled
     if (hasSubcategories || category.isSubcategoryParent) {
-      // If it has subcategories, go to subcategory selection
+      const subcategories = allCategories.filter(cat => cat.parentId === category.id);
+      const hasWhiteboardEnforcement = subcategories.some(sub => 
+        sub.categoryType === 'whiteboard' && sub.enforceReading
+      );
+      
+      if (hasWhiteboardEnforcement && state.employeeName && state.selectedShift) {
+        // Check if whiteboard has been read
+        try {
+          const today = new Date().toISOString().split('T')[0];
+          const response = await fetch(
+            `/api/whiteboard-reads/check?` + 
+            `employeeName=${encodeURIComponent(state.employeeName)}` +
+            `&store=${encodeURIComponent(state.selectedStore || '')}` +
+            `&shift=${encodeURIComponent(state.selectedShift)}` +
+            `&date=${today}`
+          );
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (!data.hasRead) {
+              // Save the area selection but show whiteboard first
+              updateState({ 
+                ...areaUpdate,
+                step: 'whiteboard-confirmation' 
+              });
+              return;
+            }
+          }
+        } catch (error) {
+          console.error('Error checking whiteboard read:', error);
+        }
+      }
+      
+      // No enforcement or already read - go to subcategory selection
       updateState({ 
-        selectedArea: category.id, 
-        selectedAreaName: category.name,
-        selectedAreaHasSubcategories: true,
+        ...areaUpdate,
         step: 'subcategory' 
       });
     } else {
-      // Otherwise, proceed to details
+      // No subcategories - proceed to details
       updateState({ 
-        selectedArea: category.id, 
-        selectedAreaName: category.name,
-        selectedAreaUseShifts: category.useShifts !== false,
-        selectedAreaType: category.categoryType || (category.useShifts !== false ? "shifts" : "simple"),
+        ...areaUpdate,
         selectedAreaHasSubcategories: false,
         step: 'details' 
       });
