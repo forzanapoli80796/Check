@@ -5,15 +5,20 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lock, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
-
-const APP_PASSWORD = "0101"; // Das Haupt-Passwort für die App
 
 export default function AppPassword() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  
+  // Load app password from database
+  const { data: appPassData } = useQuery({
+    queryKey: ["/api/app-settings/app_password"],
+    retry: false,
+  });
 
   // Check if already authenticated
   const isAuthenticated = sessionStorage.getItem("appAuthenticated") === "true";
@@ -27,7 +32,10 @@ export default function AppPassword() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (password === APP_PASSWORD) {
+    // Get password from database, fallback to default "0101"
+    const correctPassword = (appPassData as any)?.settingValue || "0101";
+    
+    if (password === correctPassword) {
       sessionStorage.setItem("appAuthenticated", "true");
       navigate("/role-selection");
     } else {
