@@ -775,37 +775,37 @@ export function TicketsManagement() {
       {/* Dialog für Ticket-Details */}
       {selectedTicket && (
         <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-          <DialogContent className="max-w-2xl max-h-[80vh]">
-            <DialogHeader>
-              <DialogTitle className="text-xl">{selectedTicket.title}</DialogTitle>
-              <div className="flex gap-2 mt-2 flex-wrap">
-                <Badge className={getStatusColor(selectedTicket.status)}>
+          <DialogContent className="w-full h-full sm:h-auto sm:max-w-2xl max-h-[95vh] sm:max-h-[85vh] p-4 sm:p-6 flex flex-col">
+            <DialogHeader className="flex-shrink-0">
+              <DialogTitle className="text-base sm:text-xl pr-8">{selectedTicket.title}</DialogTitle>
+              <div className="flex gap-1.5 sm:gap-2 mt-2 flex-wrap">
+                <Badge className={`${getStatusColor(selectedTicket.status)} text-xs`}>
                   {getStatusIcon(selectedTicket.status)}
                   <span className="ml-1">{selectedTicket.status.replace("_", " ")}</span>
                 </Badge>
-                <Badge variant="outline">{selectedTicket.store}</Badge>
-                <Badge variant="secondary">{getCategoryName(selectedTicket.categoryId)}</Badge>
-                <Badge className={getPriorityColor(selectedTicket.priority)}>
+                <Badge variant="outline" className="text-xs">{selectedTicket.store}</Badge>
+                <Badge variant="secondary" className="text-xs">{getCategoryName(selectedTicket.categoryId)}</Badge>
+                <Badge className={`${getPriorityColor(selectedTicket.priority)} text-xs`}>
                   {selectedTicket.priority}
                 </Badge>
               </div>
             </DialogHeader>
             
-            <ScrollArea className="h-[50vh]">
-              <div className="space-y-4">
+            <ScrollArea className="flex-1 -mx-4 sm:-mx-6 px-4 sm:px-6">
+              <div className="space-y-4 py-2">
                 <div>
-                  <h3 className="font-semibold mb-2">Beschreibung</h3>
-                  <p className="text-gray-600">{selectedTicket.description}</p>
+                  <h3 className="font-semibold mb-2 text-sm sm:text-base">Beschreibung</h3>
+                  <p className="text-gray-600 text-sm">{selectedTicket.description}</p>
                 </div>
                 
                 {selectedTicket.image && (
                   <div>
-                    <h3 className="font-semibold mb-2">Bild</h3>
-                    <img src={selectedTicket.image} alt="Ticket Bild" className="w-full rounded" />
+                    <h3 className="font-semibold mb-2 text-sm sm:text-base">Bild</h3>
+                    <img src={selectedTicket.image} alt="Ticket Bild" className="w-full rounded max-h-64 object-contain bg-gray-50" />
                   </div>
                 )}
                 
-                <div className="text-sm text-gray-500">
+                <div className="text-xs sm:text-sm text-gray-500 space-y-1">
                   <div>Erstellt von: {selectedTicket.createdBy}</div>
                   <div>Erstellt am: {format(new Date(selectedTicket.createdAt!), "dd.MM.yyyy HH:mm", { locale: de })}</div>
                   {selectedTicket.dueDate && (
@@ -823,7 +823,7 @@ export function TicketsManagement() {
                 </div>
                 
                 <div>
-                  <h3 className="font-semibold mb-2">Status ändern</h3>
+                  <h3 className="font-semibold mb-2 text-sm sm:text-base">Status ändern</h3>
                   <Select
                     value={selectedTicket.status}
                     onValueChange={(value) => {
@@ -833,7 +833,7 @@ export function TicketsManagement() {
                       });
                     }}
                   >
-                    <SelectTrigger className="w-[200px]" data-testid="select-ticket-status">
+                    <SelectTrigger className="w-full sm:w-[200px]" data-testid="select-ticket-status">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -845,31 +845,32 @@ export function TicketsManagement() {
                 </div>
                 
                 <div>
-                  <h3 className="font-semibold mb-2">Kommentare</h3>
+                  <h3 className="font-semibold mb-2 text-sm sm:text-base">Kommentare</h3>
                   {(selectedTicket.comments as any[])?.length > 0 ? (
                     <div className="space-y-2">
                       {(selectedTicket.comments as any[]).map((comment, index) => (
-                        <div key={index} className="bg-gray-50 p-3 rounded">
-                          <div className="flex justify-between text-sm">
+                        <div key={index} className="bg-gray-50 p-2.5 sm:p-3 rounded">
+                          <div className="flex flex-col sm:flex-row sm:justify-between gap-1 text-xs sm:text-sm">
                             <span className="font-medium">{comment.user}</span>
                             <span className="text-gray-500">
                               {format(new Date(comment.timestamp), "dd.MM.yyyy HH:mm", { locale: de })}
                             </span>
                           </div>
-                          <p className="mt-1">{comment.comment}</p>
+                          <p className="mt-1 text-sm">{comment.comment}</p>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-gray-500">Noch keine Kommentare</p>
+                    <p className="text-gray-500 text-sm">Noch keine Kommentare</p>
                   )}
                   
-                  <div className="mt-3 flex gap-2">
+                  <div className="mt-3 flex flex-col sm:flex-row gap-2">
                     <Textarea
                       placeholder="Kommentar hinzufügen..."
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
                       rows={2}
+                      className="flex-1 text-sm"
                       data-testid="textarea-ticket-comment"
                     />
                     <Button
@@ -883,27 +884,30 @@ export function TicketsManagement() {
                         }
                       }}
                       disabled={!newComment.trim() || addCommentMutation.isPending}
+                      className="w-full sm:w-auto"
                       data-testid="button-add-comment"
                     >
-                      <Send className="w-4 h-4" />
+                      <Send className="w-4 h-4 sm:mr-2" />
+                      <span className="sm:inline hidden">Senden</span>
                     </Button>
                   </div>
                 </div>
               </div>
             </ScrollArea>
             
-            <DialogFooter>
+            <DialogFooter className="flex-shrink-0 flex-col sm:flex-row gap-2 mt-4">
               <Button
                 variant="destructive"
                 onClick={() => {
                   setTicketToDelete(selectedTicket);
                 }}
+                className="w-full sm:w-auto"
                 data-testid="button-delete-ticket"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Löschen
               </Button>
-              <Button variant="outline" onClick={() => setShowDetailsDialog(false)}>
+              <Button variant="outline" onClick={() => setShowDetailsDialog(false)} className="w-full sm:w-auto">
                 Schließen
               </Button>
             </DialogFooter>
