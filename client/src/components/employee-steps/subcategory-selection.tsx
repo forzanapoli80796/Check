@@ -41,12 +41,16 @@ export default function SubcategorySelection({ state, updateState }: Subcategory
       return;
     }
     
+    // Store subcategory selection
+    const needsShiftPhase = subcategory.useShifts !== false && state.selectedShift;
+    
     updateState({ 
       selectedArea: subcategory.id, 
       selectedAreaName: subcategory.name,
       selectedAreaUseShifts: subcategory.useShifts !== false,
       selectedAreaType: subcategory.categoryType || (subcategory.useShifts !== false ? "shifts" : "simple"),
-      step: 'details' 
+      // Go to shift-phase if we have a shift selected and category uses shifts, otherwise straight to tasks
+      step: needsShiftPhase ? 'shift-phase' : 'tasks'
     });
   };
 

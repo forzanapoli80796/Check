@@ -78,11 +78,14 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
         step: 'subcategory' 
       });
     } else {
-      // No subcategories - proceed to details
+      // No subcategories
+      // If area needs shift phase (has shift selected and uses shifts), go to shift-phase, otherwise tasks
+      const needsShiftPhase = state.selectedShift && category.useShifts !== false;
+      
       updateState({ 
         ...areaUpdate,
         selectedAreaHasSubcategories: false,
-        step: 'details' 
+        step: needsShiftPhase ? 'shift-phase' : 'tasks'
       });
     }
   };

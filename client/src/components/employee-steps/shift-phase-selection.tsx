@@ -26,7 +26,15 @@ export default function ShiftPhaseSelection({ state, updateState }: ShiftPhaseSe
   };
 
   const goBack = () => {
-    updateState({ step: 'details' });
+    // If we have subcategories, go back to subcategory selection
+    // Otherwise go back to shift or area selection based on whether shift was selected
+    if (state.selectedAreaHasSubcategories) {
+      updateState({ step: 'subcategory' });
+    } else if (state.selectedShift && state.selectedAreaUseShifts) {
+      updateState({ step: 'shift' });
+    } else {
+      updateState({ step: 'area' });
+    }
   };
 
   const shiftLabel = state.selectedShift === 'frühschicht' ? t.employee.detailsEntry.earlyShift : t.employee.detailsEntry.lateShift;
