@@ -13,11 +13,22 @@ import { randomUUID } from "crypto";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Admin verification
   app.post("/api/admin/verify", async (req, res) => {
-    const { code } = req.body;
-    if (code === "0001") {
-      res.json({ success: true });
-    } else {
-      res.status(401).json({ success: false, message: "Invalid admin code" });
+    try {
+      const { code } = req.body;
+      const storage = await getStorage();
+      const adminPassword = await storage.getAppSetting("admin_password");
+      
+      // Default to "0001" if not set
+      const correctPassword = adminPassword?.settingValue || "0001";
+      
+      if (code === correctPassword) {
+        res.json({ success: true });
+      } else {
+        res.status(401).json({ success: false, message: "Invalid admin code" });
+      }
+    } catch (error) {
+      console.error("Error verifying admin code:", error);
+      res.status(500).json({ success: false, message: "Server error" });
     }
   });
 
@@ -932,6 +943,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error upserting setting:', error);
       res.status(500).json({ message: "Failed to upsert setting" });
+    }
+  });
+
+  // App Settings (Passwords etc.) routes
+  app.get("/api/app-settings/:key", async (req, res) => {
+    try {
+      const { key } = req.params;
+      const storage = await getStorage();
+      const setting = await storage.getAppSetting(key);
+      
+      if (!setting) {
+        return res.status(404).json({ message: "Setting not found" });
+      }
+      
+      res.json(setting);
+    } catch (error) {
+      console.error('Error fetching app setting:', error);
+      res.status(500).json({ message: "Failed to fetch app setting" });
+    }
+  });
+
+  app.put("/api/app-settings/:key", async (req, res) => {
+    try {
+      const { key } = req.params;
+      const { value } = req.body;
+      
+      if (!key || key.trim() === '') {
+        return res.status(400).json({ message: "Key is required" });
+      }
+      
+      if (!value || typeof value !== 'string') {
+        return res.status(400).json({ message: "Value is required and must be a string" });
+      }
+
+      const storage = await getStorage();
+      const setting = await storage.updateAppSetting(key, value);
+      res.json(setting);
+    } catch (error) {
+      console.error('Error updating app setting:', error);
+      res.status(500).json({ message: "Failed to update app setting" });
     }
   });
 

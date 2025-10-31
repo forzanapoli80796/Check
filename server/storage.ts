@@ -1,7 +1,7 @@
-import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist, type TeigProduction, type InsertTeigProduction, type InventoryItem, type InsertInventoryItem, type Ticket, type InsertTicket, type EmployeeNote, type InsertEmployeeNote, type EmployeeMessage, type InsertEmployeeMessage, type StoreWhiteboard, type InsertStoreWhiteboard, type WhiteboardRead, type InsertWhiteboardRead, type Setting, type InsertSetting } from "@shared/schema";
+import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist, type TeigProduction, type InsertTeigProduction, type InventoryItem, type InsertInventoryItem, type Ticket, type InsertTicket, type EmployeeNote, type InsertEmployeeNote, type EmployeeMessage, type InsertEmployeeMessage, type StoreWhiteboard, type InsertStoreWhiteboard, type WhiteboardRead, type InsertWhiteboardRead, type Setting, type InsertSetting, type AppSetting, type InsertAppSetting } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { categories, tasks, checklists, teigProduction, inventoryItems, tickets, employeeNotes, employeeMessages, storeWhiteboard, whiteboardReads, settings } from "@shared/schema";
+import { categories, tasks, checklists, teigProduction, inventoryItems, tickets, employeeNotes, employeeMessages, storeWhiteboard, whiteboardReads, settings, appSettings } from "@shared/schema";
 import { eq, sql, and } from "drizzle-orm";
 
 export interface IStorage {
@@ -78,6 +78,10 @@ export interface IStorage {
   getSettings(): Promise<Setting[]>;
   getSettingByKey(key: string): Promise<Setting | undefined>;
   upsertSetting(key: string, value: boolean, description?: string): Promise<Setting>;
+  
+  // App Settings (Passwords etc.)
+  getAppSetting(key: string): Promise<AppSetting | undefined>;
+  updateAppSetting(key: string, value: string): Promise<AppSetting>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -618,6 +622,36 @@ export class DatabaseStorage implements IStorage {
       return created;
     }
   }
+
+  // App Settings methods
+  async getAppSetting(key: string): Promise<AppSetting | undefined> {
+    const [setting] = await db.select().from(appSettings).where(eq(appSettings.settingKey, key));
+    return setting || undefined;
+  }
+
+  async updateAppSetting(key: string, value: string): Promise<AppSetting> {
+    const existing = await this.getAppSetting(key);
+    
+    if (existing) {
+      const [updated] = await db
+        .update(appSettings)
+        .set({ settingValue: value, updatedAt: new Date() })
+        .where(eq(appSettings.settingKey, key))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(appSettings)
+        .values({
+          id: randomUUID(),
+          settingKey: key,
+          settingValue: value,
+          updatedAt: new Date(),
+        })
+        .returning();
+      return created;
+    }
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -632,6 +666,7 @@ export class MemStorage implements IStorage {
   private whiteboardNotes: Map<string, StoreWhiteboard> = new Map();
   private whiteboardReadRecords: Map<string, WhiteboardRead> = new Map();
   private settingsMap: Map<string, Setting> = new Map();
+  private appSettingsMap: Map<string, AppSetting> = new Map();
 
   constructor() {
     this.initializeDefaultData();
@@ -1194,6 +1229,35 @@ export class MemStorage implements IStorage {
         updatedAt: new Date(),
       };
       this.settingsMap.set(key, created);
+      return created;
+    }
+  }
+
+  // App Settings methods
+  async getAppSetting(key: string): Promise<AppSetting | undefined> {
+    return this.appSettingsMap.get(key);
+  }
+
+  async updateAppSetting(key: string, value: string): Promise<AppSetting> {
+    const existing = this.appSettingsMap.get(key);
+    
+    if (existing) {
+      const updated: AppSetting = {
+        ...existing,
+        settingValue: value,
+        updatedAt: new Date(),
+      };
+      this.appSettingsMap.set(key, updated);
+      return updated;
+    } else {
+      const id = randomUUID();
+      const created: AppSetting = {
+        id,
+        settingKey: key,
+        settingValue: value,
+        updatedAt: new Date(),
+      };
+      this.appSettingsMap.set(key, created);
       return created;
     }
   }

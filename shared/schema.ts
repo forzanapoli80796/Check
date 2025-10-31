@@ -115,6 +115,14 @@ export const employeeMessages = pgTable("employee_messages", {
   createdAt: timestamp("created_at").defaultNow(), // Automatischer Zeitstempel
 });
 
+// App-Einstellungen - Passwörter und andere Konfigurationen
+export const appSettings = pgTable("app_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  settingKey: text("setting_key").notNull().unique(), // z.B. "app_password", "admin_password"
+  settingValue: text("setting_value").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Store Whiteboard - Digitales Whiteboard für jeden Store
 export const storeWhiteboard = pgTable("store_whiteboard", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -206,6 +214,11 @@ export const insertSettingSchema = createInsertSchema(settings).omit({
   updatedAt: true,
 });
 
+export const insertAppSettingSchema = createInsertSchema(appSettings).omit({
+  id: true,
+  updatedAt: true,
+});
+
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type Category = typeof categories.$inferSelect;
 
@@ -238,3 +251,6 @@ export type WhiteboardRead = typeof whiteboardReads.$inferSelect;
 
 export type InsertSetting = z.infer<typeof insertSettingSchema>;
 export type Setting = typeof settings.$inferSelect;
+
+export type InsertAppSetting = z.infer<typeof insertAppSettingSchema>;
+export type AppSetting = typeof appSettings.$inferSelect;
