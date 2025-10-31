@@ -377,12 +377,12 @@ export default function WhiteboardConfirmation({ state, updateState, onConfirmed
         disabled={isConfirming}
       />
 
-      {/* Zurück Button mit Skip-Funktion */}
-      <div className="flex gap-2 mt-6">
+      {/* Mobile-freundliche Buttons */}
+      <div className="flex flex-col sm:flex-row gap-3 mt-6">
         <Button
           variant="outline"
           onClick={() => updateState({ step: 'area' })}
-          className="flex-1"
+          className="w-full sm:flex-1 h-12 text-base"
           data-testid="button-back-to-area"
         >
           ← Zurück zur Startseite
@@ -391,10 +391,10 @@ export default function WhiteboardConfirmation({ state, updateState, onConfirmed
         <Button
           variant="secondary"
           onClick={() => onConfirmed()}
-          className="flex-1"
+          className="w-full sm:flex-1 h-12 text-base"
           data-testid="button-skip-whiteboard"
         >
-          Beim nächsten Mal trotzdem erzwingen
+          Überspringen (nächstes Mal wieder anzeigen)
         </Button>
       </div>
 
