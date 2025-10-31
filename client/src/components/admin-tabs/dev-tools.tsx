@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, RotateCcw, Key } from "lucide-react";
+import { Loader2, RotateCcw, Key, LogOut } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -92,6 +92,11 @@ export function DevTools() {
     if (confirm("Möchten Sie wirklich alle Whiteboard-Bestätigungen zurücksetzen? Alle Mitarbeiter müssen das Whiteboard heute erneut lesen.")) {
       resetWhiteboardMutation.mutate();
     }
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem("appAuthenticated");
+    window.location.href = "/";
   };
 
   return (
@@ -215,6 +220,25 @@ export function DevTools() {
                 Whiteboard-Erzwingung zurücksetzen
               </>
             )}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>App-Zugang</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-600 mb-4">
+            Ausloggen und zur App-Passwort-Seite zurückkehren. Damit kannst du testen, ob das neue Passwort funktioniert.
+          </p>
+          <Button
+            onClick={handleLogout}
+            variant="outline"
+            data-testid="button-logout"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Ausloggen und Passwort testen
           </Button>
         </CardContent>
       </Card>
