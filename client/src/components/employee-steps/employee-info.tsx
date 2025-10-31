@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Play, Square, Loader2 } from "lucide-react";
+import { ArrowLeft, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,33 +17,25 @@ interface EmployeeInfoProps {
 export default function EmployeeInfo({ state, updateState }: EmployeeInfoProps) {
   const { t } = useLanguage();
   const [name, setName] = useState(state.employeeName || '');
-  const [selectedShift, setSelectedShift] = useState<'frühschicht' | 'spätschicht' | null>(state.selectedShift);
-  const [isChecking, setIsChecking] = useState(false);
 
   // Fetch categories to check if whiteboard enforcement is enabled
   const { data: categories = [], isLoading: isLoadingCategories } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
 
-  const whiteboardCategory = categories.find(cat => cat.categoryType === 'whiteboard' && cat.enforceReading);
+  const hasEnforcedWhiteboard = categories.some(cat => cat.categoryType === 'whiteboard' && cat.enforceReading);
 
-  const selectShift = (shift: 'frühschicht' | 'spätschicht') => {
-    setSelectedShift(shift);
-  };
-
-  const proceedToNext = async () => {
+  const proceedToNext = () => {
     const employeeName = name.trim();
-    const shift = selectedShift;
     
-    if (!employeeName || !shift) {
+    if (!employeeName) {
       return;
     }
 
-    // Update state with employee details
+    // Update state with employee name
     updateState({ 
       employeeName,
-      selectedShift: shift,
-      step: 'area' // Always go to area selection first
+      step: hasEnforcedWhiteboard ? 'whiteboard-confirmation' : 'area'
     });
   };
 
@@ -51,7 +43,7 @@ export default function EmployeeInfo({ state, updateState }: EmployeeInfoProps) 
     updateState({ step: 'store' });
   };
 
-  const isComplete = name.trim() && selectedShift;
+  const isComplete = name.trim();
 
   return (
     <Card className="shadow-sm border border-gray-200">
@@ -59,12 +51,13 @@ export default function EmployeeInfo({ state, updateState }: EmployeeInfoProps) 
         <div className="flex items-center mb-6">
           <div className="step-indicator mr-3">2</div>
           <h2 className="text-xl font-medium">
-            {t.employee.detailsEntry.title}
+            Mitarbeiter-Information
           </h2>
         </div>
         <div className="space-y-4">
           <div>
-            <Label htmlFor="employee-name">
+            <Label htmlFor="employee-name" className="flex items-center gap-2 mb-2">
+              <User className="w-4 h-4" />
               {t.employee.detailsEntry.employeeName}
             </Label>
             <Input
@@ -73,55 +66,25 @@ export default function EmployeeInfo({ state, updateState }: EmployeeInfoProps) 
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t.employee.detailsEntry.enterName}
-              className="mt-1"
+              className="text-lg"
+              autoFocus
               data-testid="input-employee-name"
             />
           </div>
 
-          <div>
-            <Label className="mb-2 block">{t.employee.detailsEntry.shift}</Label>
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                variant={selectedShift === 'frühschicht' ? 'default' : 'outline'}
-                onClick={() => selectShift('frühschicht')}
-                className="h-20 flex flex-col items-center justify-center"
-                data-testid="button-shift-early"
-              >
-                <Play className="mb-2" size={24} />
-                <span className="text-base font-medium">{t.employee.detailsEntry.earlyShift}</span>
-              </Button>
-              <Button
-                variant={selectedShift === 'spätschicht' ? 'default' : 'outline'}
-                onClick={() => selectShift('spätschicht')}
-                className="h-20 flex flex-col items-center justify-center"
-                data-testid="button-shift-late"
-              >
-                <Square className="mb-2" size={24} />
-                <span className="text-base font-medium">{t.employee.detailsEntry.lateShift}</span>
-              </Button>
-            </div>
-          </div>
-
           <Button
             onClick={proceedToNext}
-            disabled={!isComplete || isChecking}
+            disabled={!isComplete}
             className="w-full h-12 text-base font-medium"
             data-testid="button-proceed-next"
           >
-            {isChecking ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Prüfe...
-              </>
-            ) : (
-              "Weiter"
-            )}
+            Weiter
           </Button>
         </div>
         <Button
           variant="outline"
           onClick={goBack}
-          className="mt-4"
+          className="mt-4 w-full"
           data-testid="button-back"
         >
           <ArrowLeft size={16} className="mr-2" />
