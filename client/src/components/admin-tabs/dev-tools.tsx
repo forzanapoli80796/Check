@@ -1,13 +1,72 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, RotateCcw } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2, RotateCcw, Key } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 export function DevTools() {
   const { toast } = useToast();
+  const [appPassword, setAppPassword] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
+  
+  // Load current passwords (values only, not displayed for security)
+  const { data: appPassData } = useQuery({
+    queryKey: ["/api/app-settings/app_password"],
+    retry: false,
+  });
+  
+  const { data: adminPassData } = useQuery({
+    queryKey: ["/api/app-settings/admin_password"],
+    retry: false,
+  });
+
+  const updateAppPasswordMutation = useMutation({
+    mutationFn: async (password: string) => {
+      await apiRequest("PUT", "/api/app-settings/app_password", { value: password });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/app-settings/app_password"] });
+      toast({
+        title: "Erfolgreich geändert",
+        description: "Das App-Passwort wurde aktualisiert.",
+      });
+      setAppPassword("");
+    },
+    onError: (error) => {
+      toast({
+        title: "Fehler",
+        description: "App-Passwort konnte nicht geändert werden.",
+        variant: "destructive",
+      });
+      console.error("Error updating app password:", error);
+    },
+  });
+
+  const updateAdminPasswordMutation = useMutation({
+    mutationFn: async (password: string) => {
+      await apiRequest("PUT", "/api/app-settings/admin_password", { value: password });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/app-settings/admin_password"] });
+      toast({
+        title: "Erfolgreich geändert",
+        description: "Das Admin-Passwort wurde aktualisiert.",
+      });
+      setAdminPassword("");
+    },
+    onError: (error) => {
+      toast({
+        title: "Fehler",
+        description: "Admin-Passwort konnte nicht geändert werden.",
+        variant: "destructive",
+      });
+      console.error("Error updating admin password:", error);
+    },
+  });
   
   const resetWhiteboardMutation = useMutation({
     mutationFn: async () => {
@@ -54,6 +113,82 @@ export function DevTools() {
           </div>
         </div>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Key className="w-5 h-5" />
+            Passwörter verwalten
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div>
+            <Label htmlFor="app-password" className="font-medium">
+              App-Passwort ändern
+            </Label>
+            <p className="text-sm text-gray-600 mb-2">
+              Aktuelles Passwort: {(appPassData as any)?.settingValue || "0101"}
+            </p>
+            <div className="flex gap-2">
+              <Input
+                id="app-password"
+                type="text"
+                placeholder="Neues Passwort eingeben"
+                value={appPassword}
+                onChange={(e) => setAppPassword(e.target.value)}
+                data-testid="input-app-password"
+              />
+              <Button
+                onClick={() => updateAppPasswordMutation.mutate(appPassword)}
+                disabled={!appPassword || updateAppPasswordMutation.isPending}
+                data-testid="button-update-app-password"
+              >
+                {updateAppPasswordMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Speichern...
+                  </>
+                ) : (
+                  "Ändern"
+                )}
+              </Button>
+            </div>
+          </div>
+
+          <div className="border-t pt-4">
+            <Label htmlFor="admin-password" className="font-medium">
+              Admin-Passwort ändern
+            </Label>
+            <p className="text-sm text-gray-600 mb-2">
+              Aktuelles Passwort: {(adminPassData as any)?.settingValue || "0001"}
+            </p>
+            <div className="flex gap-2">
+              <Input
+                id="admin-password"
+                type="text"
+                placeholder="Neues Passwort eingeben"
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                data-testid="input-admin-password"
+              />
+              <Button
+                onClick={() => updateAdminPasswordMutation.mutate(adminPassword)}
+                disabled={!adminPassword || updateAdminPasswordMutation.isPending}
+                data-testid="button-update-admin-password"
+              >
+                {updateAdminPasswordMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Speichern...
+                  </>
+                ) : (
+                  "Ändern"
+                )}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
