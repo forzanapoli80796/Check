@@ -34,24 +34,18 @@ export default function EmployeeWorkflow() {
   });
   
   const [state, setState] = useState<EmployeeWorkflowState>(() => {
-    // Load saved preferences from localStorage
-    const savedStore = localStorage.getItem('employeeStore');
+    // Load saved employee name from localStorage (but NOT store - always ask fresh)
     const savedName = localStorage.getItem('employeeName');
     
-    // If store and name are saved, skip to area selection
+    // Determine initial step: always start at store selection to ensure whiteboard has correct context
     let initialStep: EmployeeWorkflowState['step'] = 'store';
-    if (savedStore && savedName) {
-      initialStep = 'area'; // Skip store and employee-info
-    } else if (savedStore) {
-      initialStep = 'employee-info'; // Skip only store selection
-    }
     
     return {
       step: initialStep,
-      selectedStore: savedStore || null,
+      selectedStore: null, // Always null - user must select store fresh
       selectedArea: null,
       selectedAreaName: null,
-      employeeName: savedName || '',
+      employeeName: savedName || '', // Keep saved name for convenience
       selectedShift: null, // Don't restore shift, always ask fresh
       selectedShiftPhase: null,
       completedTasks: [],
@@ -80,11 +74,8 @@ export default function EmployeeWorkflow() {
   const updateState = (updates: Partial<EmployeeWorkflowState>) => {
     setState(prev => ({ ...prev, ...updates }));
     
-    // Save to localStorage when these specific fields change
-    if (updates.selectedStore !== undefined) {
-      localStorage.setItem('employeeStore', updates.selectedStore || '');
-    }
-    // Don't save shift to localStorage - we want to ask fresh each time
+    // Save only employee name to localStorage for convenience
+    // DON'T save store - must be selected fresh each time for whiteboard context
     if (updates.employeeName !== undefined) {
       localStorage.setItem('employeeName', updates.employeeName || '');
     }
