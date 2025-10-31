@@ -129,9 +129,9 @@ export const storeWhiteboard = pgTable("store_whiteboard", {
   storeName: text("store_name").notNull(), // JP23, KP5, TS17
   message: text("message").notNull(),
   employeeName: text("employee_name").notNull(),
-  color: text("color").default("yellow"), // Farbe der Notiz (yellow, blue, green, pink, orange)
+  entryType: text("entry_type").default("info"), // "task" für Aufgaben, "info" für Informationen
+  color: text("color").default("yellow"), // Farbe wird automatisch vergeben
   imageUrl: text("image_url"), // Optional: URL zum hochgeladenen Bild
-  expiresAt: timestamp("expires_at"), // Optional: Ablaufdatum für automatische Löschung
   editedBy: jsonb("edited_by").default('[]'), // Array von Bearbeitern [{name, editedAt}]
   lastEditedAt: timestamp("last_edited_at"), // Zeitstempel der letzten Bearbeitung
   createdAt: timestamp("created_at").defaultNow(),
