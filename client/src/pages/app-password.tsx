@@ -7,7 +7,7 @@ import { Lock, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
 
-const APP_PASSWORD = "Forza2024"; // Das Haupt-Passwort für die App
+const APP_PASSWORD = "0101"; // Das Haupt-Passwort für die App
 
 export default function AppPassword() {
   const [password, setPassword] = useState("");
