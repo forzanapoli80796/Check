@@ -17,6 +17,7 @@ export interface EmployeeWorkflowState {
   totalTasks: number;
   isBetriebsleiter?: boolean; // Whether the user is a Betriebsleiter
   betriebsleiterCategoryId?: string; // The ID of the Betriebsleiter category
+  navigationHistory?: EmployeeWorkflowState['step'][]; // History of steps for consistent back navigation
 }
 
 export interface AdminTabState {
