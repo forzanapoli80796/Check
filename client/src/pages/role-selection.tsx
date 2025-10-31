@@ -10,9 +10,13 @@ export default function RoleSelection() {
   const selectRole = (role: string) => {
     if (role === 'admin') {
       navigate("/admin-login");
+    } else if (role === 'teig') {
+      navigate("/teig");
+    } else if (role === 'betriebsleiter') {
+      navigate("/betriebsleiter");
     } else {
-      // Für Mitarbeiter, Betriebsleiter und Teig: Zur Passwort-Seite navigieren
-      navigate(`/employee-password?role=${role}`);
+      // Mitarbeiter
+      navigate("/employee?role=mitarbeiter");
     }
   };
 
