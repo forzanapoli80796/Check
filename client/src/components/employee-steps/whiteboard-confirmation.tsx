@@ -40,7 +40,7 @@ interface WhiteboardConfirmationProps {
   onConfirmed: () => void;
 }
 
-export default function WhiteboardConfirmation({ state, onConfirmed }: WhiteboardConfirmationProps) {
+export default function WhiteboardConfirmation({ state, updateState, onConfirmed }: WhiteboardConfirmationProps) {
   const { toast } = useToast();
   const [isConfirming, setIsConfirming] = useState(false);
   const [showAddNote, setShowAddNote] = useState(false);
@@ -377,15 +377,26 @@ export default function WhiteboardConfirmation({ state, onConfirmed }: Whiteboar
         disabled={isConfirming}
       />
 
-      {/* Skip Button - Beim nächsten Mal trotzdem erzwingen */}
-      <Button
-        variant="ghost"
-        onClick={() => onConfirmed()}
-        className="w-full mt-2 text-gray-600 hover:text-gray-800"
-        data-testid="button-skip-whiteboard"
-      >
-        Beim nächsten Mal trotzdem erzwingen (ohne Speichern fortfahren)
-      </Button>
+      {/* Zurück Button mit Skip-Funktion */}
+      <div className="flex gap-2 mt-6">
+        <Button
+          variant="outline"
+          onClick={() => updateState({ step: 'area' })}
+          className="flex-1"
+          data-testid="button-back-to-area"
+        >
+          ← Zurück zur Startseite
+        </Button>
+        
+        <Button
+          variant="secondary"
+          onClick={() => onConfirmed()}
+          className="flex-1"
+          data-testid="button-skip-whiteboard"
+        >
+          Beim nächsten Mal trotzdem erzwingen
+        </Button>
+      </div>
 
       {/* Add/Edit Note Dialog */}
       <Dialog open={showAddNote || editingNote !== null} onOpenChange={(open) => {
