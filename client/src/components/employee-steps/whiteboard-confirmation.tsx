@@ -377,6 +377,16 @@ export default function WhiteboardConfirmation({ state, onConfirmed }: Whiteboar
         disabled={isConfirming}
       />
 
+      {/* Skip Button - Beim nächsten Mal trotzdem erzwingen */}
+      <Button
+        variant="ghost"
+        onClick={() => onConfirmed()}
+        className="w-full mt-2 text-gray-600 hover:text-gray-800"
+        data-testid="button-skip-whiteboard"
+      >
+        Beim nächsten Mal trotzdem erzwingen (ohne Speichern fortfahren)
+      </Button>
+
       {/* Add/Edit Note Dialog */}
       <Dialog open={showAddNote || editingNote !== null} onOpenChange={(open) => {
         if (!open) {
