@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { SlideToUnlock } from "@/components/ui/slide-to-unlock";
-import { Loader2, Plus, Edit2, Trash2, Image as ImageIcon } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Loader2, Plus, Edit2, Trash2, Image as ImageIcon, CheckSquare, Info } from "lucide-react";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import type { StoreWhiteboard, InsertStoreWhiteboard } from "@shared/schema";
@@ -17,27 +17,27 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 const NOTE_COLORS = [
-  { name: "Gelb", value: "yellow", bgClass: "bg-yellow-100", borderClass: "border-yellow-300" },
-  { name: "Blau", value: "blue", bgClass: "bg-blue-100", borderClass: "border-blue-300" },
-  { name: "Grün", value: "green", bgClass: "bg-green-100", borderClass: "border-green-300" },
-  { name: "Rosa", value: "pink", bgClass: "bg-pink-100", borderClass: "border-pink-300" },
-  { name: "Orange", value: "orange", bgClass: "bg-orange-100", borderClass: "border-orange-300" },
-];
-
-const EXPIRY_OPTIONS = [
-  { label: "Kein Ablaufdatum", value: null },
-  { label: "1 Stunde", hours: 1 },
-  { label: "4 Stunden", hours: 4 },
-  { label: "8 Stunden", hours: 8 },
-  { label: "1 Tag", hours: 24 },
-  { label: "3 Tage", hours: 72 },
-  { label: "1 Woche", hours: 168 },
-];
+  "yellow",
+  "blue", 
+  "green",
+  "pink",
+  "orange"
+] as const;
 
 interface WhiteboardConfirmationProps {
   state: EmployeeWorkflowState;
   updateState: (updates: Partial<EmployeeWorkflowState>) => void;
   onConfirmed: () => void;
+}
+
+// Funktion für automatische Farbrotation
+function getNextColor(existingNotes: StoreWhiteboard[]): string {
+  if (!existingNotes || existingNotes.length === 0) return NOTE_COLORS[0];
+  
+  const lastNote = existingNotes[0]; // Neueste Notiz ist erste im Array
+  const lastColorIndex = NOTE_COLORS.indexOf(lastNote.color as any);
+  const nextIndex = (lastColorIndex + 1) % NOTE_COLORS.length;
+  return NOTE_COLORS[nextIndex];
 }
 
 export default function WhiteboardConfirmation({ state, updateState, onConfirmed }: WhiteboardConfirmationProps) {
@@ -47,8 +47,7 @@ export default function WhiteboardConfirmation({ state, updateState, onConfirmed
   const [editingNote, setEditingNote] = useState<StoreWhiteboard | null>(null);
   const [employeeName, setEmployeeName] = useState("");
   const [message, setMessage] = useState("");
-  const [selectedColor, setSelectedColor] = useState("yellow");
-  const [selectedExpiry, setSelectedExpiry] = useState<string>("none");
+  const [entryType, setEntryType] = useState<"task" | "info">("info");
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -159,8 +158,7 @@ export default function WhiteboardConfirmation({ state, updateState, onConfirmed
     setShowAddNote(false);
     setEmployeeName("");
     setMessage("");
-    setSelectedColor("yellow");
-    setSelectedExpiry("none");
+    setEntryType("info");
     setUploadedImage(null);
   };
 
@@ -213,22 +211,16 @@ export default function WhiteboardConfirmation({ state, updateState, onConfirmed
       return;
     }
 
-    let expiresAt: Date | null = null;
-    if (selectedExpiry !== "none") {
-      const hours = EXPIRY_OPTIONS.find(opt => opt.label === selectedExpiry)?.hours;
-      if (hours) {
-        expiresAt = new Date();
-        expiresAt.setHours(expiresAt.getHours() + hours);
-      }
-    }
+    // Automatische Farbzuweisung basierend auf vorherigen Notizen
+    const autoColor = getNextColor(notes || []);
 
     const newNote: InsertStoreWhiteboard = {
       storeName: state.selectedStore!,
       employeeName: employeeName.trim(),
       message: message.trim(),
-      color: selectedColor as "yellow" | "blue" | "green" | "pink" | "orange",
+      entryType: entryType,
+      color: autoColor,
       imageUrl: uploadedImage,
-      expiresAt: expiresAt,
     };
 
     createNoteMutation.mutate(newNote);
@@ -304,24 +296,34 @@ export default function WhiteboardConfirmation({ state, updateState, onConfirmed
               orange: 'bg-orange-50 border-orange-200',
             }[note.color || 'yellow'] || 'bg-yellow-50 border-yellow-200';
 
+            const isTask = (note as any).entryType === 'task';
+
             return (
               <div 
                 key={note.id} 
                 className={`${bgColorClass} border p-4 rounded relative`}
                 data-testid={`whiteboard-note-${note.id}`}
               >
-                {note.imageUrl && (
-                  <div className="mb-3">
-                    <img 
-                      src={`/api/whiteboard-image?path=${encodeURIComponent(note.imageUrl)}`}
-                      alt=""
-                      className="w-full max-h-80 object-contain rounded"
-                    />
+                {/* Icon für Eintragstyp */}
+                <div className="flex items-start gap-3">
+                  <div className={`mt-1 ${isTask ? 'text-blue-600' : 'text-gray-600'}`}>
+                    {isTask ? <CheckSquare size={20} /> : <Info size={20} />}
                   </div>
-                )}
-                <p className="text-gray-900 whitespace-pre-wrap leading-relaxed mb-3">
-                  {note.message}
-                </p>
+                  <div className="flex-1">
+                    {note.imageUrl && (
+                      <div className="mb-3">
+                        <img 
+                          src={`/api/whiteboard-image?path=${encodeURIComponent(note.imageUrl)}`}
+                          alt=""
+                          className="w-full max-h-80 object-contain rounded"
+                        />
+                      </div>
+                    )}
+                    <p className="text-gray-900 whitespace-pre-wrap leading-relaxed mb-3">
+                      {note.message}
+                    </p>
+                  </div>
+                </div>
                 <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-300">
                   <span>Von: {note.employeeName}</span>
                   <span>
@@ -439,39 +441,22 @@ export default function WhiteboardConfirmation({ state, updateState, onConfirmed
             {!editingNote && (
               <>
                 <div>
-                  <Label>Farbe</Label>
-                  <div className="flex gap-2 mt-2">
-                    {NOTE_COLORS.map((color) => (
-                      <button
-                        key={color.value}
-                        type="button"
-                        onClick={() => setSelectedColor(color.value)}
-                        className={`w-10 h-10 rounded border-2 ${color.bgClass} ${
-                          selectedColor === color.value ? color.borderClass : 'border-gray-300'
-                        }`}
-                        data-testid={`button-color-${color.value}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <Label>Ablaufdatum</Label>
-                  <Select value={selectedExpiry} onValueChange={setSelectedExpiry}>
-                    <SelectTrigger data-testid="select-expiry">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {EXPIRY_OPTIONS.map((option) => (
-                        <SelectItem
-                          key={option.label}
-                          value={option.label}
-                        >
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label>Eintragstyp</Label>
+                  <ToggleGroup 
+                    type="single" 
+                    value={entryType}
+                    onValueChange={(value) => value && setEntryType(value as "task" | "info")}
+                    className="justify-start mt-2"
+                  >
+                    <ToggleGroupItem value="info" aria-label="Information">
+                      <Info className="h-4 w-4 mr-2" />
+                      Information
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="task" aria-label="Aufgabe">
+                      <CheckSquare className="h-4 w-4 mr-2" />
+                      Aufgabe
+                    </ToggleGroupItem>
+                  </ToggleGroup>
                 </div>
 
                 <div>
