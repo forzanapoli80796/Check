@@ -951,7 +951,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { key } = req.params;
       const storage = await getStorage();
-      const setting = await storage.getAppSetting(key);
+      let setting = await storage.getAppSetting(key);
+      
+      // If setting doesn't exist, create default values for passwords
+      if (!setting && (key === "app_password" || key === "admin_password")) {
+        const defaultValue = key === "app_password" ? "0101" : "0001";
+        console.log(`Creating default ${key}: ${defaultValue}`);
+        setting = await storage.updateAppSetting(key, defaultValue);
+      }
       
       if (!setting) {
         return res.status(404).json({ message: "Setting not found" });

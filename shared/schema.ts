@@ -142,7 +142,7 @@ export const whiteboardReads = pgTable("whiteboard_reads", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   employeeName: text("employee_name").notNull(),
   store: text("store").notNull(), // JP23, KP5, TS17
-  shift: text("shift").notNull(), // frühschicht, spätschicht, etc.
+  shift: text("shift"), // Optional: nur für Kategorien mit useShifts=true
   date: date("date").notNull(), // Datum der Lesebestätigung
   readAt: timestamp("read_at").defaultNow(),
 });

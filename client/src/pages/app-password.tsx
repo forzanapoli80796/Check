@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,7 @@ export default function AppPassword() {
   const { toast } = useToast();
   
   // Load app password from database
-  const { data: appPassData } = useQuery({
+  const { data: appPassData, isLoading } = useQuery({
     queryKey: ["/api/app-settings/app_password"],
     retry: false,
   });
@@ -23,9 +23,15 @@ export default function AppPassword() {
   // Check if already authenticated
   const isAuthenticated = sessionStorage.getItem("appAuthenticated") === "true";
   
-  // If already authenticated, redirect to role selection
+  // If already authenticated, redirect to role selection (using useEffect to prevent React warning)
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/role-selection");
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Don't render form if already authenticated
   if (isAuthenticated) {
-    navigate("/role-selection");
     return null;
   }
 
@@ -70,36 +76,43 @@ export default function AppPassword() {
           </p>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="relative">
-              <Input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Passwort eingeben"
-                className="pr-10 text-lg"
-                autoFocus
-                data-testid="input-app-password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                data-testid="button-toggle-password"
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+              <span className="ml-3 text-gray-600">Lade Einstellungen...</span>
             </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full h-12 text-lg"
-              disabled={!password}
-              data-testid="button-submit-password"
-            >
-              Anmelden
-            </Button>
-          </form>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Passwort eingeben"
+                  className="pr-10 text-lg"
+                  autoFocus
+                  data-testid="input-app-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  data-testid="button-toggle-password"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+              
+              <Button 
+                type="submit" 
+                className="w-full h-12 text-lg"
+                disabled={!password}
+                data-testid="button-submit-password"
+              >
+                Anmelden
+              </Button>
+            </form>
+          )}
         </CardContent>
       </Card>
       
