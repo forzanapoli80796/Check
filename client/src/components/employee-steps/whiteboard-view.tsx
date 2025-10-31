@@ -66,8 +66,8 @@ export function WhiteboardView({ state, updateState }: WhiteboardViewProps) {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <Card>
+    <div className="space-y-6 max-w-4xl mx-auto px-3 sm:px-4">
+      <Card className="shadow-lg">
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
             <CardTitle className="flex items-center gap-2">
@@ -98,10 +98,10 @@ export function WhiteboardView({ state, updateState }: WhiteboardViewProps) {
                 {entries.map((entry) => (
                   <Card
                     key={entry.id}
-                    className={`border-2 ${getColorClass(entry.color || "yellow")}`}
+                    className={`border-2 shadow-md hover:shadow-lg transition-all ${getColorClass(entry.color || "yellow")}`}
                     data-testid={`whiteboard-entry-${entry.id}`}
                   >
-                    <CardContent className="p-4">
+                    <CardContent className="p-4 space-y-3">
                       <div className="space-y-3">
                         <div className="flex justify-between items-start">
                           <p className="text-sm font-semibold text-gray-600">

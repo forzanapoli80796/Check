@@ -40,19 +40,19 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Logo Header */}
-      <div className="flex justify-center py-6">
+      {/* Logo Header - Mobile optimized */}
+      <div className="flex justify-center py-4 sm:py-6">
         <img 
           src={forzaCheckLogo} 
           alt="ForzaCheck Logo" 
-          className="h-16 object-contain"
+          className="h-14 sm:h-16 object-contain"
         />
       </div>
       
-      <div className="flex-1 flex items-center justify-center px-4">
+      <div className="flex-1 flex items-center justify-center px-3 sm:px-4">
         <div className="max-w-md w-full mx-auto">
-          <Card className="shadow-sm border border-gray-200">
-            <CardContent className="pt-6">
+          <Card className="shadow-lg border border-gray-100">
+            <CardContent className="pt-6 space-y-4">
               <h2 className="text-2xl font-medium text-center mb-6">Admin-Code eingeben</h2>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <Input

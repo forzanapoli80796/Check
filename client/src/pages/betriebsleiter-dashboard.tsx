@@ -261,17 +261,17 @@ export default function BetriebsleiterDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Logo Header */}
-      <div className="flex justify-center py-6">
+      {/* Logo Header - Mobile optimized */}
+      <div className="flex justify-center py-4 sm:py-6">
         <img 
           src={forzaCheckLogo} 
           alt="ForzaCheck Logo" 
-          className="h-16 object-contain"
+          className="h-14 sm:h-16 object-contain"
         />
       </div>
       
       <div className="flex-1">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+        <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Betriebsleiter Aufgaben</h1>
             <p className="text-gray-600">Ihre täglichen Aufgaben und Kontrollen</p>
