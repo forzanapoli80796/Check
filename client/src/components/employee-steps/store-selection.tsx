@@ -1,4 +1,4 @@
-import { Store } from "lucide-react";
+import { Store, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { STORES, EmployeeWorkflowState } from "@/lib/types";
@@ -29,6 +29,17 @@ export default function StoreSelection({ state, updateState }: StoreSelectionPro
     }
   };
 
+  const resetSavedPreferences = () => {
+    localStorage.removeItem('employeeStore');
+    localStorage.removeItem('employeeShift');
+    localStorage.removeItem('employeeName');
+    updateState({
+      selectedStore: null,
+      selectedShift: null,
+      employeeName: '',
+    });
+  };
+
   return (
     <Card className="shadow-sm border border-gray-200">
       <CardContent className="pt-6">
@@ -49,6 +60,21 @@ export default function StoreSelection({ state, updateState }: StoreSelectionPro
             </Button>
           ))}
         </div>
+        
+        {(state.selectedStore || state.selectedShift || state.employeeName) && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={resetSavedPreferences}
+              className="w-full text-gray-500 hover:text-gray-700"
+              data-testid="button-reset-preferences"
+            >
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Gespeicherte Einstellungen zurücksetzen
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

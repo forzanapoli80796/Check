@@ -33,16 +33,23 @@ export default function EmployeeWorkflow() {
     queryKey: ['/api/categories']
   });
   
-  const [state, setState] = useState<EmployeeWorkflowState>({
-    step: 'store',
-    selectedStore: null,
-    selectedArea: null,
-    selectedAreaName: null,
-    employeeName: '',
-    selectedShift: null,
-    selectedShiftPhase: null,
-    completedTasks: [],
-    totalTasks: 0,
+  const [state, setState] = useState<EmployeeWorkflowState>(() => {
+    // Load saved preferences from localStorage
+    const savedStore = localStorage.getItem('employeeStore');
+    const savedShift = localStorage.getItem('employeeShift');
+    const savedName = localStorage.getItem('employeeName');
+    
+    return {
+      step: 'store',
+      selectedStore: savedStore || null,
+      selectedArea: null,
+      selectedAreaName: null,
+      employeeName: savedName || '',
+      selectedShift: (savedShift as 'frühschicht' | 'spätschicht' | null) || null,
+      selectedShiftPhase: null,
+      completedTasks: [],
+      totalTasks: 0,
+    };
   });
   
   // Automatically set area for Betriebsleiter
@@ -65,6 +72,17 @@ export default function EmployeeWorkflow() {
 
   const updateState = (updates: Partial<EmployeeWorkflowState>) => {
     setState(prev => ({ ...prev, ...updates }));
+    
+    // Save to localStorage when these specific fields change
+    if (updates.selectedStore !== undefined) {
+      localStorage.setItem('employeeStore', updates.selectedStore || '');
+    }
+    if (updates.selectedShift !== undefined) {
+      localStorage.setItem('employeeShift', updates.selectedShift || '');
+    }
+    if (updates.employeeName !== undefined) {
+      localStorage.setItem('employeeName', updates.employeeName || '');
+    }
   };
 
   const renderStep = () => {
