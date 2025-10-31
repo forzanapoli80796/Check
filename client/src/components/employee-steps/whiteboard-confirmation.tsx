@@ -394,7 +394,7 @@ export default function WhiteboardConfirmation({ state, updateState, onConfirmed
           className="w-full sm:flex-1 h-12 text-base"
           data-testid="button-skip-whiteboard"
         >
-          Überspringen (nächstes Mal wieder anzeigen)
+          Beim nächsten Mal trotzdem erzwingen
         </Button>
       </div>
 
