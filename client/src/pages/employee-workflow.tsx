@@ -8,6 +8,7 @@ import { EmployeeWorkflowState } from "@/lib/types";
 import StoreSelection from "@/components/employee-steps/store-selection";
 import EmployeeInfo from "@/components/employee-steps/employee-info";
 import AreaSelection from "@/components/employee-steps/area-selection";
+import ShiftSelection from "@/components/employee-steps/shift-selection";
 import SubcategorySelection from "@/components/employee-steps/subcategory-selection";
 import EmployeeDetails from "@/components/employee-steps/employee-details";
 import ShiftPhaseSelection from "@/components/employee-steps/shift-phase-selection";
@@ -96,6 +97,8 @@ export default function EmployeeWorkflow() {
         return <EmployeeInfo state={state} updateState={updateState} />;
       case 'area':
         return <AreaSelection state={state} updateState={updateState} />;
+      case 'shift':
+        return <ShiftSelection state={state} updateState={updateState} />;
       case 'subcategory':
         return <SubcategorySelection state={state} updateState={updateState} />;
       case 'whiteboard-confirmation':
@@ -104,28 +107,8 @@ export default function EmployeeWorkflow() {
             state={state} 
             updateState={updateState}
             onConfirmed={() => {
-              // After confirmation, check where to go next
-              console.log('Whiteboard confirmed, current state:', {
-                selectedArea: state.selectedArea,
-                selectedAreaName: state.selectedAreaName,
-                selectedAreaHasSubcategories: state.selectedAreaHasSubcategories,
-                selectedAreaUseShifts: state.selectedAreaUseShifts
-              });
-              
-              // If user has already selected an area with subcategories, go back to subcategory selection
-              if (state.selectedArea && state.selectedAreaHasSubcategories) {
-                console.log('Going to subcategory selection');
-                updateState({ step: 'subcategory' });
-              } else if (state.selectedArea) {
-                // If area selected but no subcategories, go to details/tasks
-                console.log('Going to details/tasks');
-                const useShifts = state.selectedAreaUseShifts !== false;
-                updateState({ step: useShifts ? 'shift-phase' : 'tasks' });
-              } else {
-                // No area selected yet, go to area selection
-                console.log('Going to area selection');
-                updateState({ step: 'area' });
-              }
+              // After whiteboard confirmation, go to area selection
+              updateState({ step: 'area' });
             }}
           />
         );
