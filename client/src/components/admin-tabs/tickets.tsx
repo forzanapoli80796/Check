@@ -123,7 +123,7 @@ const compressImage = async (file: File): Promise<string> => {
 export function TicketsManagement() {
   const [storeFilter, setStoreFilter] = useState<string>("alle");
   const [dateFilter, setDateFilter] = useState<string>("heute");
-  const [statusFilter, setStatusFilter] = useState<string>("offen"); // New: Status filter
+  const [statusFilter, setStatusFilter] = useState<string>("alle"); // New: Status filter
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
