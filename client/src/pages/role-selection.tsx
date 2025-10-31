@@ -1,11 +1,11 @@
 import { useLocation } from "wouter";
-import { User, Settings, Cookie, Globe } from "lucide-react";
+import { User, Settings, Cookie } from "lucide-react";
 import logoPath from "@assets/FORZACHECK1_black_1753816621910.png";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function RoleSelection() {
   const [, navigate] = useLocation();
-  const { language, setLanguage, t } = useLanguage();
+  const { t } = useLanguage();
 
   const selectRole = (role: string) => {
     if (role === 'admin') {
@@ -16,10 +16,6 @@ export default function RoleSelection() {
       // Mitarbeiter
       navigate("/employee?role=mitarbeiter");
     }
-  };
-
-  const toggleLanguage = () => {
-    setLanguage(language === 'de' ? 'en' : 'de');
   };
 
   return (
@@ -89,24 +85,6 @@ export default function RoleSelection() {
               </span>
               <span className="text-sm text-gray-500">
                 {t.startPage.roles.adminDesc}
-              </span>
-            </div>
-          </button>
-
-          {/* Language Switcher Button */}
-          <button
-            onClick={toggleLanguage}
-            className="w-full flex items-center p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200"
-          >
-            <div className="w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center mr-4">
-              <Globe className="text-white" size={24} />
-            </div>
-            <div className="text-left">
-              <span className="text-lg font-medium text-gray-900 block" translate="no">
-                {language === 'de' ? 'English' : 'Deutsch'}
-              </span>
-              <span className="text-sm text-gray-500">
-                {t.startPage.roles.languageDesc}
               </span>
             </div>
           </button>
