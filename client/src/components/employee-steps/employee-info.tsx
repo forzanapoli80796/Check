@@ -6,8 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmployeeWorkflowState } from "@/lib/types";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useQuery } from "@tanstack/react-query";
-import type { Category } from "@shared/schema";
 
 interface EmployeeInfoProps {
   state: EmployeeWorkflowState;
@@ -18,13 +16,6 @@ export default function EmployeeInfo({ state, updateState }: EmployeeInfoProps) 
   const { t } = useLanguage();
   const [name, setName] = useState(state.employeeName || '');
 
-  // Fetch categories to check if whiteboard enforcement is enabled
-  const { data: categories = [], isLoading: isLoadingCategories } = useQuery<Category[]>({
-    queryKey: ["/api/categories"],
-  });
-
-  const hasEnforcedWhiteboard = categories.some(cat => cat.categoryType === 'whiteboard' && cat.enforceReading);
-
   const proceedToNext = () => {
     const employeeName = name.trim();
     
@@ -32,10 +23,11 @@ export default function EmployeeInfo({ state, updateState }: EmployeeInfoProps) 
       return;
     }
 
-    // Update state with employee name
+    // Update state with employee name - IMMER zu 'area' gehen!
+    // Whiteboard kommt NACH Area-Auswahl, nie vorher
     updateState({ 
       employeeName,
-      step: hasEnforcedWhiteboard ? 'whiteboard-confirmation' : 'area'
+      step: 'area'
     });
   };
 
