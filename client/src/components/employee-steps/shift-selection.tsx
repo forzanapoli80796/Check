@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { EmployeeWorkflowState } from "@/lib/types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Sun, Moon } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import type { Category } from "@shared/schema";
 
 interface ShiftSelectionProps {
   state: EmployeeWorkflowState;
@@ -17,15 +19,35 @@ export default function ShiftSelection({ state, updateState }: ShiftSelectionPro
     state.selectedShift
   );
 
+  // Load subcategories to check if any have enforceReading
+  const { data: subcategories = [] } = useQuery<Category[]>({
+    queryKey: [`/api/categories/${state.selectedArea}/subcategories`],
+    enabled: !!state.selectedArea && state.selectedAreaHasSubcategories,
+  });
+
   const selectShift = (shift: 'frühschicht' | 'spätschicht') => {
     setSelectedShift(shift);
+    
+    // Check if any subcategory has enforceReading enabled
+    const hasEnforcedWhiteboard = subcategories.some(sub => sub.enforceReading);
+    
+    // Determine next step
+    let nextStep: EmployeeWorkflowState['step'];
+    if (hasEnforcedWhiteboard) {
+      // Must read whiteboard first
+      nextStep = 'whiteboard-confirmation';
+    } else if (state.selectedAreaHasSubcategories) {
+      // Go to subcategory selection
+      nextStep = 'subcategory';
+    } else {
+      // Go to shift phase
+      nextStep = 'shift-phase';
+    }
     
     // Update state and proceed to next step
     updateState({ 
       selectedShift: shift,
-      // If area has subcategories, go to subcategory selection
-      // Otherwise go to shift phase
-      step: state.selectedAreaHasSubcategories ? 'subcategory' : 'shift-phase'
+      step: nextStep
     });
   };
 
