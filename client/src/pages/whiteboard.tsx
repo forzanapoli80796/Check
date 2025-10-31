@@ -326,19 +326,10 @@ export default function Whiteboard() {
         <Button 
           variant="outline" 
           onClick={() => setSelectedStore(null)}
-          className="px-8 mr-4"
+          className="px-8"
           data-testid="button-change-store"
         >
           Standort wechseln
-        </Button>
-        <Button 
-          variant="outline" 
-          onClick={() => navigate("/")}
-          className="px-8"
-          data-testid="button-back-home-whiteboard"
-        >
-          <ArrowLeft size={16} className="mr-2" />
-          Zurück zur Startseite
         </Button>
       </div>
     </div>

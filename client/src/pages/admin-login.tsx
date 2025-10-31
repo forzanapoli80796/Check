@@ -82,17 +82,6 @@ export default function AdminLogin() {
         </div>
       </div>
       
-      {/* Footer mit Zurück Button */}
-      <div className="py-6 flex justify-center">
-        <Button 
-          variant="outline" 
-          onClick={() => navigate("/")}
-          className="px-8"
-        >
-          <ArrowLeft size={16} className="mr-2" />
-          Zurück zur Startseite
-        </Button>
-      </div>
     </div>
   );
 }
