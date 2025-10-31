@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { User, Shield, Settings, Cookie, Globe } from "lucide-react";
+import { User, Settings, Cookie, Globe } from "lucide-react";
 import logoPath from "@assets/FORZACHECK1_black_1753816621910.png";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -12,8 +12,6 @@ export default function RoleSelection() {
       navigate("/admin-login");
     } else if (role === 'teig') {
       navigate("/teig");
-    } else if (role === 'betriebsleiter') {
-      navigate("/betriebsleiter");
     } else {
       // Mitarbeiter
       navigate("/employee?role=mitarbeiter");
@@ -57,23 +55,6 @@ export default function RoleSelection() {
               </span>
               <span className="text-sm text-gray-500">
                 {t.startPage.roles.employeeDesc}
-              </span>
-            </div>
-          </button>
-          
-          <button
-            onClick={() => selectRole('betriebsleiter')}
-            className="w-full flex items-center p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200"
-          >
-            <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mr-4">
-              <Shield className="text-white" size={24} />
-            </div>
-            <div className="text-left">
-              <span className="text-lg font-medium text-gray-900 block">
-                {t.startPage.roles.manager}
-              </span>
-              <span className="text-sm text-gray-500">
-                {t.startPage.roles.managerDesc}
               </span>
             </div>
           </button>
