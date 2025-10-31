@@ -13,9 +13,10 @@ import { EmployeeWorkflowState } from "@/lib/types";
 interface SendMessageProps {
   state: EmployeeWorkflowState;
   updateState: (updates: Partial<EmployeeWorkflowState>) => void;
+  goBack: () => void;
 }
 
-export default function SendMessage({ state, updateState }: SendMessageProps) {
+export default function SendMessage({ state, updateState, goBack }: SendMessageProps) {
   const { toast } = useToast();
   const [message, setMessage] = useState("");
   const [employeeName, setEmployeeName] = useState("");
@@ -128,10 +129,6 @@ export default function SendMessage({ state, updateState }: SendMessageProps) {
     }
 
     addMessageMutation.mutate({ message: message.trim(), imageUrl });
-  };
-
-  const goBack = () => {
-    updateState({ step: 'area' });
   };
 
   return (

@@ -27,6 +27,7 @@ const NOTE_COLORS = [
 interface WhiteboardConfirmationProps {
   state: EmployeeWorkflowState;
   updateState: (updates: Partial<EmployeeWorkflowState>) => void;
+  goBack: () => void;
   onConfirmed: () => void;
 }
 
@@ -40,7 +41,7 @@ function getNextColor(existingNotes: StoreWhiteboard[]): string {
   return NOTE_COLORS[nextIndex];
 }
 
-export default function WhiteboardConfirmation({ state, updateState, onConfirmed }: WhiteboardConfirmationProps) {
+export default function WhiteboardConfirmation({ state, updateState, goBack, onConfirmed }: WhiteboardConfirmationProps) {
   const { toast } = useToast();
   const [isConfirming, setIsConfirming] = useState(false);
   const [showAddNote, setShowAddNote] = useState(false);

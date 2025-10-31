@@ -10,9 +10,10 @@ import { useLanguage } from "@/contexts/LanguageContext";
 interface EmployeeDetailsProps {
   state: EmployeeWorkflowState;
   updateState: (updates: Partial<EmployeeWorkflowState>) => void;
+  goBack: () => void;
 }
 
-export default function EmployeeDetails({ state, updateState }: EmployeeDetailsProps) {
+export default function EmployeeDetails({ state, updateState, goBack }: EmployeeDetailsProps) {
   const { t } = useLanguage();
   const [name, setName] = useState(state.employeeName);
   const [selectedShift, setSelectedShift] = useState(state.selectedShift);
@@ -43,18 +44,6 @@ export default function EmployeeDetails({ state, updateState }: EmployeeDetailsP
       updateState({ 
         step: !useShifts ? 'tasks' : 'shift-phase'
       });
-    }
-  };
-
-  const goBack = () => {
-    // If Betriebsleiter, go back to store selection (they skip area selection)
-    if (state.isBetriebsleiter) {
-      updateState({ step: 'store' });
-    } else if (state.selectedAreaHasSubcategories) {
-      // If we came from subcategory selection, go back there
-      updateState({ step: 'subcategory' });
-    } else {
-      updateState({ step: 'area' });
     }
   };
 

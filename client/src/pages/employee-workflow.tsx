@@ -115,20 +115,21 @@ export default function EmployeeWorkflow() {
   const renderStep = () => {
     switch (state.step) {
       case 'store':
-        return <StoreSelection state={state} updateState={updateState} />;
+        return <StoreSelection state={state} updateState={updateState} goBack={goBack} />;
       case 'employee-info':
-        return <EmployeeInfo state={state} updateState={updateState} />;
+        return <EmployeeInfo state={state} updateState={updateState} goBack={goBack} />;
       case 'area':
-        return <AreaSelection state={state} updateState={updateState} />;
+        return <AreaSelection state={state} updateState={updateState} goBack={goBack} />;
       case 'shift':
-        return <ShiftSelection state={state} updateState={updateState} />;
+        return <ShiftSelection state={state} updateState={updateState} goBack={goBack} />;
       case 'subcategory':
-        return <SubcategorySelection state={state} updateState={updateState} />;
+        return <SubcategorySelection state={state} updateState={updateState} goBack={goBack} />;
       case 'whiteboard-confirmation':
         return (
           <WhiteboardConfirmation 
             state={state} 
             updateState={updateState}
+            goBack={goBack}
             onConfirmed={() => {
               // After whiteboard confirmation, go to shift selection
               updateState({ step: 'shift' });
@@ -136,11 +137,12 @@ export default function EmployeeWorkflow() {
           />
         );
       case 'shift-phase':
-        return <ShiftPhaseSelection state={state} updateState={updateState} />;
+        return <ShiftPhaseSelection state={state} updateState={updateState} goBack={goBack} />;
       case 'whiteboard':
         return <WhiteboardConfirmation 
           state={state} 
           updateState={updateState}
+          goBack={goBack}
           onConfirmed={() => {
             updateState({ step: 'tasks' });
           }}
@@ -148,21 +150,21 @@ export default function EmployeeWorkflow() {
       case 'tasks':
         // Check category type to determine which view to show
         if (state.selectedAreaType === 'whiteboard') {
-          return <WhiteboardStep state={state} updateState={updateState} />;
+          return <WhiteboardStep state={state} updateState={updateState} goBack={goBack} />;
         }
         if (state.selectedAreaType === 'inventory') {
-          return <InventoryChecklist state={state} updateState={updateState} />;
+          return <InventoryChecklist state={state} updateState={updateState} goBack={goBack} />;
         }
         if (state.selectedAreaType === 'tickets') {
-          return <TicketsView state={state} updateState={updateState} />;
+          return <TicketsView state={state} updateState={updateState} goBack={goBack} />;
         }
-        return <TaskChecklist state={state} updateState={updateState} />;
+        return <TaskChecklist state={state} updateState={updateState} goBack={goBack} />;
       case 'success':
-        return <SuccessScreen state={state} updateState={updateState} />;
+        return <SuccessScreen state={state} updateState={updateState} goBack={goBack} />;
       case 'sendMessage':
-        return <SendMessage state={state} updateState={updateState} />;
+        return <SendMessage state={state} updateState={updateState} goBack={goBack} />;
       default:
-        return <StoreSelection state={state} updateState={updateState} />;
+        return <StoreSelection state={state} updateState={updateState} goBack={goBack} />;
     }
   };
 

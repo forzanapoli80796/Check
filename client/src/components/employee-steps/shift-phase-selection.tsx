@@ -8,9 +8,10 @@ import { useLanguage } from "@/contexts/LanguageContext";
 interface ShiftPhaseSelectionProps {
   state: EmployeeWorkflowState;
   updateState: (updates: Partial<EmployeeWorkflowState>) => void;
+  goBack: () => void;
 }
 
-export default function ShiftPhaseSelection({ state, updateState }: ShiftPhaseSelectionProps) {
+export default function ShiftPhaseSelection({ state, updateState, goBack }: ShiftPhaseSelectionProps) {
   const { t } = useLanguage();
   const [selectedPhase, setSelectedPhase] = useState(state.selectedShiftPhase);
 
@@ -23,18 +24,6 @@ export default function ShiftPhaseSelection({ state, updateState }: ShiftPhaseSe
       selectedShiftPhase: selectedPhase,
       step: 'tasks' 
     });
-  };
-
-  const goBack = () => {
-    // If we have subcategories, go back to subcategory selection
-    // Otherwise go back to shift or area selection based on whether shift was selected
-    if (state.selectedAreaHasSubcategories) {
-      updateState({ step: 'subcategory' });
-    } else if (state.selectedShift && state.selectedAreaUseShifts) {
-      updateState({ step: 'shift' });
-    } else {
-      updateState({ step: 'area' });
-    }
   };
 
   const shiftLabel = state.selectedShift === 'frühschicht' ? t.employee.detailsEntry.earlyShift : t.employee.detailsEntry.lateShift;

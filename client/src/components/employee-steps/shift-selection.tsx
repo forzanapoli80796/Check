@@ -9,9 +9,10 @@ import { Sun, Moon } from "lucide-react";
 interface ShiftSelectionProps {
   state: EmployeeWorkflowState;
   updateState: (updates: Partial<EmployeeWorkflowState>) => void;
+  goBack: () => void;
 }
 
-export default function ShiftSelection({ state, updateState }: ShiftSelectionProps) {
+export default function ShiftSelection({ state, updateState, goBack }: ShiftSelectionProps) {
   const { t } = useLanguage();
   const [selectedShift, setSelectedShift] = useState<'frühschicht' | 'spätschicht' | null>(
     state.selectedShift
@@ -28,10 +29,6 @@ export default function ShiftSelection({ state, updateState }: ShiftSelectionPro
       selectedShift: shift,
       step: nextStep
     });
-  };
-
-  const goBack = () => {
-    updateState({ step: 'area' });
   };
 
   return (

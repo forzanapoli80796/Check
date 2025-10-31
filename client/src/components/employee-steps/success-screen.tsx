@@ -6,9 +6,10 @@ import { EmployeeWorkflowState } from "@/lib/types";
 interface SuccessScreenProps {
   state: EmployeeWorkflowState;
   updateState: (updates: Partial<EmployeeWorkflowState>) => void;
+  goBack: () => void;
 }
 
-export default function SuccessScreen({ updateState }: SuccessScreenProps) {
+export default function SuccessScreen({ updateState, goBack }: SuccessScreenProps) {
   const startNewChecklist = () => {
     // Load saved preferences from localStorage
     const savedStore = localStorage.getItem('employeeStore');

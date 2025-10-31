@@ -23,6 +23,7 @@ const UNIT_OPTIONS = [
 interface InventoryChecklistProps {
   state: EmployeeWorkflowState;
   updateState: (updates: Partial<EmployeeWorkflowState>) => void;
+  goBack: () => void;
 }
 
 interface InventoryTaskData {
@@ -32,7 +33,7 @@ interface InventoryTaskData {
   completed: boolean;
 }
 
-export default function InventoryChecklist({ state, updateState }: InventoryChecklistProps) {
+export default function InventoryChecklist({ state, updateState, goBack }: InventoryChecklistProps) {
   const [inventoryData, setInventoryData] = useState<Map<string, InventoryTaskData>>(new Map());
   const { toast } = useToast();
   const queryClient = useQueryClient();

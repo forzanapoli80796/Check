@@ -10,9 +10,10 @@ import { useLanguage } from "@/contexts/LanguageContext";
 interface EmployeeInfoProps {
   state: EmployeeWorkflowState;
   updateState: (updates: Partial<EmployeeWorkflowState>) => void;
+  goBack: () => void;
 }
 
-export default function EmployeeInfo({ state, updateState }: EmployeeInfoProps) {
+export default function EmployeeInfo({ state, updateState, goBack }: EmployeeInfoProps) {
   const { t } = useLanguage();
   const [name, setName] = useState(state.employeeName || '');
 
@@ -29,10 +30,6 @@ export default function EmployeeInfo({ state, updateState }: EmployeeInfoProps) 
       employeeName,
       step: 'area'
     });
-  };
-
-  const goBack = () => {
-    updateState({ step: 'store' });
   };
 
   const isComplete = name.trim();

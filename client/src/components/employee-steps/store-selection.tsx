@@ -7,20 +7,21 @@ import { useLanguage } from "@/contexts/LanguageContext";
 interface StoreSelectionProps {
   state: EmployeeWorkflowState;
   updateState: (updates: Partial<EmployeeWorkflowState>) => void;
+  goBack: () => void;
 }
 
-export default function StoreSelection({ state, updateState }: StoreSelectionProps) {
+export default function StoreSelection({ state, updateState, goBack }: StoreSelectionProps) {
   const { t } = useLanguage();
   
   const selectStore = (store: string) => {
-    // If this is a Betriebsleiter, skip area selection and go directly to details
+    // If this is a Betriebsleiter, skip area selection and go directly to employee-info
     if (state.isBetriebsleiter && state.betriebsleiterCategoryId) {
       updateState({ 
         selectedStore: store, 
         selectedArea: state.betriebsleiterCategoryId,
         selectedAreaName: 'Betriebsleiter',
         selectedAreaUseShifts: false,
-        step: 'details' 
+        step: 'employee-info' 
       });
     } else {
       // Normal employees: go to employee-info to enter name/shift

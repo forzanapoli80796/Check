@@ -45,9 +45,10 @@ interface TicketsViewProps {
     employeeName: string;
   };
   updateState: (updates: any) => void;
+  goBack: () => void;
 }
 
-export function TicketsView({ state, updateState }: TicketsViewProps) {
+export function TicketsView({ state, updateState, goBack }: TicketsViewProps) {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [newComment, setNewComment] = useState("");

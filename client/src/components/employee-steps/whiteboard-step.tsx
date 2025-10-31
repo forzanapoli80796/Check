@@ -34,9 +34,10 @@ const EXPIRY_OPTIONS = [
 interface WhiteboardStepProps {
   state: EmployeeWorkflowState;
   updateState: (updates: Partial<EmployeeWorkflowState>) => void;
+  goBack: () => void;
 }
 
-export default function WhiteboardStep({ state, updateState }: WhiteboardStepProps) {
+export default function WhiteboardStep({ state, updateState, goBack }: WhiteboardStepProps) {
   const { toast } = useToast();
   const [showAddNote, setShowAddNote] = useState(false);
   const [editingNote, setEditingNote] = useState<StoreWhiteboard | null>(null);

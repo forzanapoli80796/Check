@@ -11,9 +11,10 @@ import { useLanguage } from "@/contexts/LanguageContext";
 interface AreaSelectionProps {
   state: EmployeeWorkflowState;
   updateState: (updates: Partial<EmployeeWorkflowState>) => void;
+  goBack: () => void;
 }
 
-export default function AreaSelection({ state, updateState }: AreaSelectionProps) {
+export default function AreaSelection({ state, updateState, goBack }: AreaSelectionProps) {
   const { t } = useLanguage();
   const { data: allCategories = [], isLoading } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
@@ -96,11 +97,6 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
         });
       }
     }
-  };
-
-  const goBack = () => {
-    // Go back to employee info (where name is entered)
-    updateState({ step: 'employee-info' });
   };
 
   const getIcon = (iconName: string, color?: string) => {

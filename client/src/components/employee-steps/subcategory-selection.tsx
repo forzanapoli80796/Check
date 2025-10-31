@@ -11,9 +11,10 @@ import * as Icons from "lucide-react";
 interface SubcategorySelectionProps {
   state: EmployeeWorkflowState;
   updateState: (updates: Partial<EmployeeWorkflowState>) => void;
+  goBack: () => void;
 }
 
-export default function SubcategorySelection({ state, updateState }: SubcategorySelectionProps) {
+export default function SubcategorySelection({ state, updateState, goBack }: SubcategorySelectionProps) {
   const { t } = useLanguage();
   
   const { data: subcategories = [], isLoading } = useQuery<Category[]>({
@@ -52,20 +53,6 @@ export default function SubcategorySelection({ state, updateState }: Subcategory
       // Go to shift-phase if we have a shift selected and category uses shifts, otherwise straight to tasks
       step: needsShiftPhase ? 'shift-phase' : 'tasks'
     });
-  };
-
-  const goBack = () => {
-    // If we have a shift selected (came from shift selection), go back there
-    // Otherwise go back to area selection
-    if (state.selectedShift) {
-      updateState({ step: 'shift' });
-    } else {
-      updateState({ 
-        selectedArea: null,
-        selectedAreaName: null,
-        step: 'area' 
-      });
-    }
   };
 
   const getIcon = (iconName: string, color?: string) => {

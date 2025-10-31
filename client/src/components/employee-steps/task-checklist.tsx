@@ -18,9 +18,10 @@ import { getTranslatedTask } from "@/lib/taskTranslations";
 interface TaskChecklistProps {
   state: EmployeeWorkflowState;
   updateState: (updates: Partial<EmployeeWorkflowState>) => void;
+  goBack: () => void;
 }
 
-export default function TaskChecklist({ state, updateState }: TaskChecklistProps) {
+export default function TaskChecklist({ state, updateState, goBack }: TaskChecklistProps) {
   const { t, language } = useLanguage();
   const [completedTasks, setCompletedTasks] = useState<string[]>(state.completedTasks);
   const [comments, setComments] = useState<string>("");
@@ -135,10 +136,6 @@ export default function TaskChecklist({ state, updateState }: TaskChecklistProps
         return [...prev, taskId];
       }
     });
-  };
-
-  const goBack = () => {
-    updateState({ step: 'details' });
   };
 
   const submitChecklist = () => {
