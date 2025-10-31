@@ -39,8 +39,11 @@ export default function EmployeeWorkflow() {
     const savedShift = localStorage.getItem('employeeShift');
     const savedName = localStorage.getItem('employeeName');
     
+    // If store, shift and name are saved, skip to employee-info (which will then go to area selection)
+    const initialStep = (savedStore && savedShift && savedName) ? 'employee-info' : 'store';
+    
     return {
-      step: 'store',
+      step: initialStep,
       selectedStore: savedStore || null,
       selectedArea: null,
       selectedAreaName: null,

@@ -10,12 +10,17 @@ interface SuccessScreenProps {
 
 export default function SuccessScreen({ updateState }: SuccessScreenProps) {
   const startNewChecklist = () => {
+    // Load saved preferences from localStorage
+    const savedStore = localStorage.getItem('employeeStore');
+    const savedShift = localStorage.getItem('employeeShift');
+    const savedName = localStorage.getItem('employeeName');
+    
     updateState({
-      step: 'store',
-      selectedStore: null,
+      step: 'employee-info',
+      selectedStore: savedStore || null,
       selectedArea: null,
-      employeeName: '',
-      selectedShift: null,
+      employeeName: savedName || '',
+      selectedShift: (savedShift as 'frühschicht' | 'spätschicht' | null) || null,
       completedTasks: [],
       totalTasks: 0,
     });
