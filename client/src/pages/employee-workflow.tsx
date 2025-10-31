@@ -36,11 +36,15 @@ export default function EmployeeWorkflow() {
   const [state, setState] = useState<EmployeeWorkflowState>(() => {
     // Load saved preferences from localStorage
     const savedStore = localStorage.getItem('employeeStore');
-    const savedShift = localStorage.getItem('employeeShift');
     const savedName = localStorage.getItem('employeeName');
     
-    // If store, shift and name are saved, skip to employee-info (which will then go to area selection)
-    const initialStep = (savedStore && savedShift && savedName) ? 'employee-info' : 'store';
+    // If store and name are saved, skip to area selection
+    let initialStep: EmployeeWorkflowState['step'] = 'store';
+    if (savedStore && savedName) {
+      initialStep = 'area'; // Skip store and employee-info
+    } else if (savedStore) {
+      initialStep = 'employee-info'; // Skip only store selection
+    }
     
     return {
       step: initialStep,
@@ -48,7 +52,7 @@ export default function EmployeeWorkflow() {
       selectedArea: null,
       selectedAreaName: null,
       employeeName: savedName || '',
-      selectedShift: (savedShift as 'frühschicht' | 'spätschicht' | null) || null,
+      selectedShift: null, // Don't restore shift, always ask fresh
       selectedShiftPhase: null,
       completedTasks: [],
       totalTasks: 0,
@@ -80,9 +84,7 @@ export default function EmployeeWorkflow() {
     if (updates.selectedStore !== undefined) {
       localStorage.setItem('employeeStore', updates.selectedStore || '');
     }
-    if (updates.selectedShift !== undefined) {
-      localStorage.setItem('employeeShift', updates.selectedShift || '');
-    }
+    // Don't save shift to localStorage - we want to ask fresh each time
     if (updates.employeeName !== undefined) {
       localStorage.setItem('employeeName', updates.employeeName || '');
     }

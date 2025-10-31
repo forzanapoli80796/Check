@@ -3,7 +3,7 @@ export interface UserSession {
 }
 
 export interface EmployeeWorkflowState {
-  step: 'store' | 'employee-info' | 'area' | 'shift' | 'subcategory' | 'details' | 'whiteboard-confirmation' | 'shift-phase' | 'tasks' | 'success' | 'sendMessage' | 'whiteboard';
+  step: 'store' | 'employee-info' | 'area' | 'shift' | 'subcategory' | 'whiteboard-confirmation' | 'shift-phase' | 'tasks' | 'success' | 'sendMessage' | 'whiteboard';
   selectedStore: string | null;
   selectedArea: string | null;
   selectedAreaName?: string | null;

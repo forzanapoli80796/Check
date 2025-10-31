@@ -91,7 +91,8 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
   };
 
   const goBack = () => {
-    updateState({ step: 'store' });
+    // Go back to employee info (where name is entered)
+    updateState({ step: 'employee-info' });
   };
 
   const getIcon = (iconName: string, color?: string) => {

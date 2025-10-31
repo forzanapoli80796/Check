@@ -55,11 +55,17 @@ export default function SubcategorySelection({ state, updateState }: Subcategory
   };
 
   const goBack = () => {
-    updateState({ 
-      selectedArea: null,
-      selectedAreaName: null,
-      step: 'area' 
-    });
+    // If we have a shift selected (came from shift selection), go back there
+    // Otherwise go back to area selection
+    if (state.selectedShift) {
+      updateState({ step: 'shift' });
+    } else {
+      updateState({ 
+        selectedArea: null,
+        selectedAreaName: null,
+        step: 'area' 
+      });
+    }
   };
 
   const getIcon = (iconName: string, color?: string) => {
