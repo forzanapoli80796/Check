@@ -21,19 +21,13 @@ export default function RoleSelection() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col items-center justify-center p-4">
       <div className="max-w-5xl w-full mx-auto">
-        {/* Logo & Header */}
+        {/* Logo */}
         <div className="text-center mb-16">
           <img 
             src={logoPath} 
             alt="ForzaCheck Logo" 
-            className="max-h-64 max-w-full mx-auto mb-8 object-contain drop-shadow-lg"
+            className="max-h-64 max-w-full mx-auto object-contain drop-shadow-lg"
           />
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">
-            {t.startPage.title}
-          </h1>
-          <p className="text-lg text-gray-600">
-            {t.startPage.subtitle}
-          </p>
         </div>
 
         {/* Role Cards Grid */}
