@@ -99,8 +99,8 @@ export default function EmployeeWorkflow() {
             state={state} 
             updateState={updateState}
             onConfirmed={() => {
-              // After whiteboard confirmation, go to area selection
-              updateState({ step: 'area' });
+              // After whiteboard confirmation, go to shift selection
+              updateState({ step: 'shift' });
             }}
           />
         );

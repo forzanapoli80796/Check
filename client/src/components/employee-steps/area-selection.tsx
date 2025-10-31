@@ -46,6 +46,10 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
     // Check if this category actually has subcategories (not just the flag)
     const hasSubcategories = allCategories.some(cat => cat.parentId === category.id);
     
+    // Check if any subcategory has enforceReading enabled (whiteboard enforcement)
+    const subcategories = allCategories.filter(cat => cat.parentId === category.id);
+    const hasEnforcedWhiteboard = subcategories.some(sub => sub.enforceReading);
+    
     // Store the area selection
     const areaUpdate = {
       selectedArea: category.id, 
@@ -55,38 +59,42 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
       selectedAreaType: category.categoryType || (category.useShifts !== false ? "shifts" : "simple")
     };
     
-    // Update the state with area selection
-    updateState(areaUpdate);
+    // Determine the next step - WICHTIG: Whiteboard kommt NACH Area-Auswahl, VOR Shift!
+    // Reihenfolge: Area → Whiteboard (wenn enforceReading) → Shift → Subcategory → Tasks
     
-    // Determine the next step:
-    // 1. If area needs shifts AND we haven't selected one yet -> go to shift selection
-    // 2. If area has subcategories -> go to subcategory selection
-    // 3. Otherwise -> go to details
-    
-    const needsShift = category.useShifts !== false && !state.selectedShift;
-    
-    if (needsShift) {
-      // Go to shift selection
+    if (hasEnforcedWhiteboard) {
+      // Whiteboard muss gelesen werden BEVOR Shift gewählt wird
       updateState({ 
         ...areaUpdate,
-        step: 'shift' 
-      });
-    } else if (hasSubcategories || category.isSubcategoryParent) {
-      // Go to subcategory selection
-      updateState({ 
-        ...areaUpdate,
-        step: 'subcategory' 
+        step: 'whiteboard-confirmation'
       });
     } else {
-      // No subcategories
-      // If area needs shift phase (has shift selected and uses shifts), go to shift-phase, otherwise tasks
-      const needsShiftPhase = state.selectedShift && category.useShifts !== false;
+      // Kein Whiteboard - normale Reihenfolge
+      const needsShift = category.useShifts !== false && !state.selectedShift;
       
-      updateState({ 
-        ...areaUpdate,
-        selectedAreaHasSubcategories: false,
-        step: needsShiftPhase ? 'shift-phase' : 'tasks'
-      });
+      if (needsShift) {
+        // Go to shift selection
+        updateState({ 
+          ...areaUpdate,
+          step: 'shift' 
+        });
+      } else if (hasSubcategories || category.isSubcategoryParent) {
+        // Go to subcategory selection
+        updateState({ 
+          ...areaUpdate,
+          step: 'subcategory' 
+        });
+      } else {
+        // No subcategories
+        // If area needs shift phase (has shift selected and uses shifts), go to shift-phase, otherwise tasks
+        const needsShiftPhase = state.selectedShift && category.useShifts !== false;
+        
+        updateState({ 
+          ...areaUpdate,
+          selectedAreaHasSubcategories: false,
+          step: needsShiftPhase ? 'shift-phase' : 'tasks'
+        });
+      }
     }
   };
 
