@@ -59,6 +59,13 @@ export default function WhiteboardConfirmation({ state, updateState, goBack, onC
     enabled: !!state.selectedStore,
   });
 
+  // Fetch app setting for skip button visibility
+  const { data: skipButtonSetting } = useQuery<{ settingValue: string }>({
+    queryKey: ["/api/app-settings/whiteboard_skip_button_enabled"],
+  });
+
+  const showSkipButton = skipButtonSetting?.settingValue === 'true';
+
   // Create note mutation
   const createNoteMutation = useMutation({
     mutationFn: async (data: InsertStoreWhiteboard) => {
@@ -391,14 +398,16 @@ export default function WhiteboardConfirmation({ state, updateState, goBack, onC
           ← Zurück zur Startseite
         </Button>
         
-        <Button
-          variant="secondary"
-          onClick={() => onConfirmed()}
-          className="w-full sm:flex-1 h-12 text-base"
-          data-testid="button-skip-whiteboard"
-        >
-          Beim nächsten Mal trotzdem erzwingen
-        </Button>
+        {showSkipButton && (
+          <Button
+            variant="secondary"
+            onClick={() => onConfirmed()}
+            className="w-full sm:flex-1 h-12 text-base"
+            data-testid="button-skip-whiteboard"
+          >
+            Beim nächsten Mal trotzdem erzwingen
+          </Button>
+        )}
       </div>
 
       {/* Add/Edit Note Dialog */}

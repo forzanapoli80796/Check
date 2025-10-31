@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Loader2, RotateCcw, Key, LogOut } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -23,6 +24,13 @@ export function DevTools() {
     queryKey: ["/api/app-settings/admin_password"],
     retry: false,
   });
+
+  const { data: skipButtonData } = useQuery({
+    queryKey: ["/api/app-settings/whiteboard_skip_button_enabled"],
+    retry: false,
+  });
+
+  const skipButtonEnabled = (skipButtonData as any)?.settingValue === 'true';
 
   const updateAppPasswordMutation = useMutation({
     mutationFn: async (password: string) => {
@@ -68,6 +76,27 @@ export function DevTools() {
     },
   });
   
+  const updateSkipButtonMutation = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      await apiRequest("PUT", "/api/app-settings/whiteboard_skip_button_enabled", { value: enabled ? 'true' : 'false' });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/app-settings/whiteboard_skip_button_enabled"] });
+      toast({
+        title: "Erfolgreich geändert",
+        description: "Die Whiteboard-Skip-Button-Einstellung wurde aktualisiert.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Fehler",
+        description: "Einstellung konnte nicht geändert werden.",
+        variant: "destructive",
+      });
+      console.error("Error updating skip button setting:", error);
+    },
+  });
+
   const resetWhiteboardMutation = useMutation({
     mutationFn: async () => {
       await apiRequest("DELETE", "/api/whiteboard-reads/reset");
@@ -197,30 +226,50 @@ export function DevTools() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Whiteboard Erzwingung</CardTitle>
+          <CardTitle>Whiteboard Einstellungen</CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-gray-600 mb-4">
-            Setzt alle Whiteboard-Bestätigungen zurück. Nach dem Zurücksetzen müssen alle Mitarbeiter das Whiteboard heute erneut lesen.
-          </p>
-          <Button
-            onClick={handleResetWhiteboard}
-            disabled={resetWhiteboardMutation.isPending}
-            variant="destructive"
-            data-testid="button-reset-whiteboard"
-          >
-            {resetWhiteboardMutation.isPending ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Wird zurückgesetzt...
-              </>
-            ) : (
-              <>
-                <RotateCcw className="w-4 h-4 mr-2" />
-                Whiteboard-Erzwingung zurücksetzen
-              </>
-            )}
-          </Button>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="skip-button-toggle" className="font-medium">
+                "Trotzdem fortfahren" Button anzeigen
+              </Label>
+              <p className="text-sm text-gray-600">
+                Wenn aktiviert, können Mitarbeiter das Whiteboard überspringen, ohne es zu lesen.
+              </p>
+            </div>
+            <Switch
+              id="skip-button-toggle"
+              checked={skipButtonEnabled}
+              onCheckedChange={(checked) => updateSkipButtonMutation.mutate(checked)}
+              disabled={updateSkipButtonMutation.isPending}
+              data-testid="switch-whiteboard-skip-button"
+            />
+          </div>
+
+          <div className="border-t pt-4">
+            <p className="text-gray-600 mb-4">
+              Setzt alle Whiteboard-Bestätigungen zurück. Nach dem Zurücksetzen müssen alle Mitarbeiter das Whiteboard heute erneut lesen.
+            </p>
+            <Button
+              onClick={handleResetWhiteboard}
+              disabled={resetWhiteboardMutation.isPending}
+              variant="destructive"
+              data-testid="button-reset-whiteboard"
+            >
+              {resetWhiteboardMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Wird zurückgesetzt...
+                </>
+              ) : (
+                <>
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Whiteboard-Erzwingung zurücksetzen
+                </>
+              )}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
