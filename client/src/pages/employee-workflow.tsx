@@ -50,6 +50,7 @@ export default function EmployeeWorkflow() {
       selectedShiftPhase: null,
       completedTasks: [],
       totalTasks: 0,
+      navigationHistory: ['store'], // Initialize with the starting step
     };
   });
   
@@ -72,13 +73,43 @@ export default function EmployeeWorkflow() {
   }, [roleParam, categories]);
 
   const updateState = (updates: Partial<EmployeeWorkflowState>) => {
-    setState(prev => ({ ...prev, ...updates }));
+    setState(prev => {
+      const newState = { ...prev, ...updates };
+      
+      // When step changes, update navigation history
+      if (updates.step && updates.step !== prev.step) {
+        const currentHistory = prev.navigationHistory || [];
+        newState.navigationHistory = [...currentHistory, updates.step];
+      }
+      
+      return newState;
+    });
     
     // Save only employee name to localStorage for convenience
     // DON'T save store - must be selected fresh each time for whiteboard context
     if (updates.employeeName !== undefined) {
       localStorage.setItem('employeeName', updates.employeeName || '');
     }
+  };
+
+  const goBack = () => {
+    const history = state.navigationHistory || [];
+    
+    if (history.length <= 1) {
+      // No history to go back to, return to home
+      navigate('/');
+      return;
+    }
+    
+    // Remove current step and go to previous step
+    const newHistory = history.slice(0, -1);
+    const previousStep = newHistory[newHistory.length - 1];
+    
+    setState(prev => ({
+      ...prev,
+      step: previousStep,
+      navigationHistory: newHistory,
+    }));
   };
 
   const renderStep = () => {
