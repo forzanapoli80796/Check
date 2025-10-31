@@ -55,42 +55,24 @@ export default function AreaSelection({ state, updateState }: AreaSelectionProps
       selectedAreaType: category.categoryType || (category.useShifts !== false ? "shifts" : "simple")
     };
     
-    // Check if any subcategory has whiteboard enforcement enabled
-    if (hasSubcategories || category.isSubcategoryParent) {
-      const subcategories = allCategories.filter(cat => cat.parentId === category.id);
-      const hasWhiteboardEnforcement = subcategories.some(sub => 
-        sub.categoryType === 'whiteboard' && sub.enforceReading
-      );
-      
-      if (hasWhiteboardEnforcement && state.employeeName && state.selectedShift) {
-        // Check if whiteboard has been read
-        try {
-          const today = new Date().toISOString().split('T')[0];
-          const response = await fetch(
-            `/api/whiteboard-reads/check?` + 
-            `employeeName=${encodeURIComponent(state.employeeName)}` +
-            `&store=${encodeURIComponent(state.selectedStore || '')}` +
-            `&shift=${encodeURIComponent(state.selectedShift)}` +
-            `&date=${today}`
-          );
-          
-          if (response.ok) {
-            const data = await response.json();
-            if (!data.hasRead) {
-              // Save the area selection but show whiteboard first
-              updateState({ 
-                ...areaUpdate,
-                step: 'whiteboard-confirmation' 
-              });
-              return;
-            }
-          }
-        } catch (error) {
-          console.error('Error checking whiteboard read:', error);
-        }
-      }
-      
-      // No enforcement or already read - go to subcategory selection
+    // Update the state with area selection
+    updateState(areaUpdate);
+    
+    // Determine the next step:
+    // 1. If area needs shifts AND we haven't selected one yet -> go to shift selection
+    // 2. If area has subcategories -> go to subcategory selection
+    // 3. Otherwise -> go to details
+    
+    const needsShift = category.useShifts !== false && !state.selectedShift;
+    
+    if (needsShift) {
+      // Go to shift selection
+      updateState({ 
+        ...areaUpdate,
+        step: 'shift' 
+      });
+    } else if (hasSubcategories || category.isSubcategoryParent) {
+      // Go to subcategory selection
       updateState({ 
         ...areaUpdate,
         step: 'subcategory' 
