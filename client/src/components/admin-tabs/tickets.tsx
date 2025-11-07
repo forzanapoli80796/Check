@@ -1,839 +1,355 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/hooks/use-toast";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { queryClient, apiRequest } from "@/lib/queryClient";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { Edit, Trash2, MessageSquare, Calendar, Store, User, AlertCircle, Clock, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
-import { 
-  Plus, 
-  Filter, 
-  Calendar, 
-  Store, 
-  AlertCircle, 
-  CheckCircle, 
-  Clock,
-  Image,
-  MessageSquare,
-  Send,
-  Edit,
-  Trash2
-} from "lucide-react";
-import type { Ticket, Category } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
+import type { Ticket } from "@shared/schema";
 
 const STORES = ["JP23", "KP5", "TS17"];
 
-const createTicketSchema = z.object({
-  description: z.string().min(1, "Aufgabe ist erforderlich"),
-  store: z.string().min(1, "Store ist erforderlich"),
-  categoryId: z.string().min(1, "Arbeitsbereich ist erforderlich"),
-  priority: z.enum(["niedrig", "mittel", "hoch"]).default("mittel"),
-  dueDate: z.date().optional(),
-  image: z.string().optional(),
-});
-
-const commentSchema = z.object({
-  comment: z.string().min(1, "Kommentar ist erforderlich"),
-});
-
-// Komponente für die Bildkomprimierung
-const compressImage = async (file: File): Promise<string> => {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = document.createElement("img") as HTMLImageElement;
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d")!;
-        
-        const MAX_WIDTH = 800;
-        const MAX_HEIGHT = 600;
-        let width = img.width;
-        let height = img.height;
-        
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height = height * (MAX_WIDTH / width);
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width = width * (MAX_HEIGHT / height);
-            height = MAX_HEIGHT;
-          }
-        }
-        
-        canvas.width = width;
-        canvas.height = height;
-        
-        ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL("image/jpeg", 0.7));
-      };
-      img.src = e.target?.result as string;
-    };
-    reader.readAsDataURL(file);
-  });
-};
-
 export function TicketsManagement() {
-  const [storeFilter, setStoreFilter] = useState<string>("alle");
-  const [dateFilter, setDateFilter] = useState<string>("alle");
-  const [statusFilter, setStatusFilter] = useState<string>("alle"); // New: Status filter
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
-  const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
-  const [newComment, setNewComment] = useState("");
-  const [ticketToDelete, setTicketToDelete] = useState<Ticket | null>(null); // New: For delete confirmation
   const { toast } = useToast();
-
-  const form = useForm({
-    resolver: zodResolver(createTicketSchema),
-    defaultValues: {
-      description: "",
-      store: "JP23",
-      categoryId: "",
-      priority: "mittel" as "niedrig" | "mittel" | "hoch",
-      dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 Stunden in der Zukunft
-      image: "",
-    },
+  const [selectedStore, setSelectedStore] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("alle");
+  const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [newComment, setNewComment] = useState("");
+  
+  // Formular-State für Bearbeitung
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    status: "offen" as "offen" | "in_bearbeitung" | "erledigt",
+    priority: "mittel" as "niedrig" | "mittel" | "hoch",
+    assignedTo: "",
+    dueDate: "",
   });
 
-  const commentForm = useForm({
-    resolver: zodResolver(commentSchema),
-    defaultValues: {
-      comment: "",
-    },
+  // Tickets abrufen
+  const { data: tickets = [], isLoading } = useQuery<Ticket[]>({
+    queryKey: ["/api/tickets"],
   });
 
-  // Fetch categories to find Kugelfahrer-Hausmeister
-  const { data: categories } = useQuery<Category[]>({
-    queryKey: ["/api/categories"],
+  // Gefilterte Tickets
+  const filteredTickets = tickets.filter(ticket => {
+    const matchesStore = !selectedStore || ticket.store === selectedStore;
+    const matchesStatus = statusFilter === "alle" || ticket.status === statusFilter;
+    return matchesStore && matchesStatus;
   });
 
-  // Fetch tickets with filters
-  const { data: tickets, isLoading } = useQuery<Ticket[]>({
-    queryKey: ["/api/tickets", storeFilter, dateFilter, statusFilter],
-    queryFn: async () => {
-      // Build query parameters
-      const params = new URLSearchParams();
-      
-      // Add store filter
-      if (storeFilter !== "alle") {
-        params.append("store", storeFilter);
-      }
-      
-      // Add date filter
-      if (dateFilter !== "alle") {
-        const now = new Date();
-        let startDate: Date;
-        
-        switch (dateFilter) {
-          case "heute":
-            startDate = new Date(now.setHours(0, 0, 0, 0));
-            break;
-          case "gestern":
-            startDate = new Date(now.setDate(now.getDate() - 1));
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "woche":
-            startDate = new Date(now.setDate(now.getDate() - 7));
-            break;
-          case "monat":
-            startDate = new Date(now.setDate(now.getDate() - 30));
-            break;
-          default:
-            startDate = new Date(0); // Beginning of time
-        }
-        
-        if (dateFilter !== "alle") {
-          params.append("startDate", startDate.toISOString());
-          params.append("endDate", new Date().toISOString());
-        }
-      }
-      
-      const url = `/api/tickets${params.toString() ? `?${params.toString()}` : ""}`;
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error("Failed to fetch tickets");
-      }
-      const allTickets = await response.json();
-      
-      // Filter by status
-      if (statusFilter === "offen") {
-        return allTickets.filter((t: Ticket) => t.status === "offen");
-      } else if (statusFilter === "erledigt") {
-        return allTickets.filter((t: Ticket) => t.status === "erledigt");
-      }
-      return allTickets; // "alle"
-    },
-  });
-
-  // Create ticket mutation
-  const createTicketMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof createTicketSchema>) => {
-      const ticketData = {
-        ...data,
-        dueDate: data.dueDate?.toISOString(),
-        title: data.description.substring(0, 50), // Use first 50 chars of description as title
-        status: "offen", // Default status
-        createdBy: "Admin",
-      };
-      
-      console.log('Sending ticket data:', ticketData);
-      
-      const response = await apiRequest("POST", "/api/tickets", ticketData);
-      return response.json();
+  // Ticket aktualisieren
+  const updateMutation = useMutation({
+    mutationFn: async (data: { id: string; updateData: Partial<Ticket> }) => {
+      return await apiRequest("PUT", `/api/tickets/${data.id}`, data.updateData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
       toast({
-        title: "Erfolg",
-        description: "Ticket wurde erfolgreich erstellt",
+        title: "Erfolgreich aktualisiert",
+        description: "Das Ticket wurde erfolgreich bearbeitet.",
       });
-      setShowCreateDialog(false);
-      form.reset({
-        description: "",
-        store: "JP23",
-        categoryId: "",
-        priority: "mittel" as "niedrig" | "mittel" | "hoch",
-        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        image: "",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Fehler",
-        description: "Ticket konnte nicht erstellt werden",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Update ticket mutation
-  const updateTicketMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<Ticket> }) => {
-      return await apiRequest("PUT", `/api/tickets/${id}`, data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
-      toast({
-        title: "Erfolg",
-        description: "Ticket wurde aktualisiert",
-      });
+      setShowEditDialog(false);
       setEditingTicket(null);
     },
     onError: () => {
       toast({
         title: "Fehler",
-        description: "Ticket konnte nicht aktualisiert werden",
+        description: "Das Ticket konnte nicht aktualisiert werden.",
         variant: "destructive",
       });
     },
   });
 
-  // Delete ticket mutation
-  const deleteTicketMutation = useMutation({
+  // Ticket löschen
+  const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       return await apiRequest("DELETE", `/api/tickets/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
       toast({
-        title: "Erfolg",
-        description: "Ticket wurde gelöscht",
+        title: "Erfolgreich gelöscht",
+        description: "Das Ticket wurde gelöscht.",
       });
-      setShowDetailsDialog(false);
-      setSelectedTicket(null);
     },
     onError: () => {
       toast({
         title: "Fehler",
-        description: "Ticket konnte nicht gelöscht werden",
+        description: "Das Ticket konnte nicht gelöscht werden.",
         variant: "destructive",
       });
     },
   });
 
-  // Add comment mutation
+  // Kommentar hinzufügen
   const addCommentMutation = useMutation({
-    mutationFn: async ({ ticketId, comment }: { ticketId: string; comment: string }) => {
-      const response = await apiRequest("POST", `/api/tickets/${ticketId}/comments`, {
-        user: "Admin",
-        comment,
+    mutationFn: async (data: { ticketId: string; user: string; comment: string }) => {
+      return await apiRequest("POST", `/api/tickets/${data.ticketId}/comments`, {
+        user: data.user,
+        comment: data.comment,
       });
-      return response.json();
     },
-    onSuccess: (updatedTicket: Ticket) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
-      setSelectedTicket(updatedTicket);
-      commentForm.reset();
       toast({
-        title: "Erfolg",
-        description: "Kommentar wurde hinzugefügt",
+        title: "Kommentar hinzugefügt",
+        description: "Der Kommentar wurde erfolgreich hinzugefügt.",
       });
+      setNewComment("");
     },
     onError: () => {
       toast({
         title: "Fehler",
-        description: "Kommentar konnte nicht hinzugefügt werden",
+        description: "Der Kommentar konnte nicht hinzugefügt werden.",
         variant: "destructive",
       });
     },
   });
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleEditTicket = (ticket: Ticket) => {
+    setEditingTicket(ticket);
+    setFormData({
+      title: ticket.title,
+      description: ticket.description,
+      status: ticket.status,
+      priority: ticket.priority,
+      assignedTo: ticket.assignedTo || "",
+      dueDate: ticket.dueDate ? format(new Date(ticket.dueDate), "yyyy-MM-dd'T'HH:mm") : "",
+    });
+    setShowEditDialog(true);
+  };
+
+  const handleSaveTicket = () => {
+    if (!editingTicket) return;
     
-    try {
-      const compressedImage = await compressImage(file);
-      if (editingTicket) {
-        updateTicketMutation.mutate({
-          id: editingTicket.id,
-          data: { image: compressedImage },
-        });
-      } else {
-        form.setValue("image", compressedImage);
-      }
-    } catch (error) {
-      toast({
-        title: "Fehler",
-        description: "Bild konnte nicht hochgeladen werden",
-        variant: "destructive",
-      });
+    updateMutation.mutate({
+      id: editingTicket.id,
+      updateData: {
+        ...formData,
+        dueDate: formData.dueDate ? new Date(formData.dueDate) : null,
+      },
+    });
+  };
+
+  const handleDeleteTicket = (id: string) => {
+    if (confirm("Möchten Sie dieses Ticket wirklich löschen?")) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const handleAddComment = (ticketId: string) => {
+    if (!newComment.trim()) return;
+    
+    addCommentMutation.mutate({
+      ticketId,
+      user: "Admin",
+      comment: newComment,
+    });
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "hoch": return "bg-red-500";
+      case "mittel": return "bg-yellow-500";
+      case "niedrig": return "bg-green-500";
+      default: return "bg-gray-500";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "offen":
-        return <AlertCircle className="w-4 h-4" />;
-      case "in_bearbeitung":
-        return <Clock className="w-4 h-4" />;
-      case "erledigt":
-        return <CheckCircle className="w-4 h-4" />;
-      default:
-        return null;
+      case "offen": return <AlertCircle className="w-4 h-4" />;
+      case "in_bearbeitung": return <Clock className="w-4 h-4" />;
+      case "erledigt": return <CheckCircle className="w-4 h-4" />;
+      default: return null;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "offen":
-        return "bg-red-100 text-red-800";
-      case "in_bearbeitung":
-        return "bg-yellow-100 text-yellow-800";
-      case "erledigt":
-        return "bg-green-100 text-green-800";
-      default:
-        return "";
+      case "offen": return "bg-red-100 text-red-800";
+      case "in_bearbeitung": return "bg-yellow-100 text-yellow-800";
+      case "erledigt": return "bg-green-100 text-green-800";
+      default: return "bg-gray-100 text-gray-800";
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "hoch":
-        return "bg-red-100 text-red-800";
-      case "mittel":
-        return "bg-yellow-100 text-yellow-800";
-      case "niedrig":
-        return "bg-blue-100 text-blue-800";
-      default:
-        return "";
-    }
-  };
-
-  const getCategoryName = (categoryId: string | null | undefined) => {
-    if (!categoryId) return "Kein Bereich";
-    const category = categories?.find((cat) => cat.id === categoryId);
-    return category?.name || "Unbekannt";
-  };
+  if (isLoading) {
+    return <div className="text-center p-8">Tickets werden geladen...</div>;
+  }
 
   return (
     <div className="space-y-6">
-      {/* Header mit Filtern */}
-      <div className="space-y-4">
-        {/* Button oben für mobile Geräte */}
-        <Button 
-          onClick={() => setShowCreateDialog(true)} 
-          data-testid="button-create-ticket"
-          className="w-full sm:hidden"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Neues Ticket
-        </Button>
-
-        {/* Filter und Button für Desktop */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-          <div className="flex flex-col sm:flex-row gap-2 flex-1">
-            <Select value={storeFilter} onValueChange={setStoreFilter}>
-              <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-store-filter">
-                <Store className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Store wählen" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="alle">Alle Stores</SelectItem>
-                {STORES.map(store => (
-                  <SelectItem key={store} value={store}>{store}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-date-filter">
-                <Calendar className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Zeitraum wählen" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="heute">Heute</SelectItem>
-                <SelectItem value="gestern">Gestern</SelectItem>
-                <SelectItem value="woche">Letzte 7 Tage</SelectItem>
-                <SelectItem value="monat">Letzte 30 Tage</SelectItem>
-                <SelectItem value="alle">Alle Tickets</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-status-filter">
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Status wählen" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="offen">Offen</SelectItem>
-                <SelectItem value="erledigt">Erledigt</SelectItem>
-                <SelectItem value="alle">Alle Status</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-medium">Tickets verwalten</h3>
+        
+        {/* Filter */}
+        <div className="flex gap-4">
+          <Select value={selectedStore} onValueChange={setSelectedStore}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Alle Stores" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Alle Stores</SelectItem>
+              {STORES.map(store => (
+                <SelectItem key={store} value={store}>{store}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           
-          {/* Button für Desktop */}
-          <Button 
-            onClick={() => setShowCreateDialog(true)} 
-            data-testid="button-create-ticket"
-            className="hidden sm:flex"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Neues Ticket
-          </Button>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Alle Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="alle">Alle Status</SelectItem>
+              <SelectItem value="offen">Offen</SelectItem>
+              <SelectItem value="in_bearbeitung">In Bearbeitung</SelectItem>
+              <SelectItem value="erledigt">Erledigt</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       {/* Tickets Liste */}
-      {isLoading ? (
-        <Card>
-          <CardContent className="p-8 text-center text-gray-500">
-            Lade Tickets...
-          </CardContent>
-        </Card>
-      ) : tickets && tickets.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {tickets.map((ticket) => (
-            <Card 
-              key={ticket.id} 
-              className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => {
-                setSelectedTicket(ticket);
-                setShowDetailsDialog(true);
-              }}
-              data-testid={`card-ticket-${ticket.id}`}
-            >
-              <CardHeader className="pb-2">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
-                  <CardTitle className="text-lg">{ticket.title}</CardTitle>
-                  <Badge className={`${getStatusColor(ticket.status)} shrink-0`}>
-                    {getStatusIcon(ticket.status)}
-                    <span className="ml-1">{ticket.status.replace("_", " ")}</span>
-                  </Badge>
-                </div>
-                <div className="flex gap-2 mt-2 flex-wrap">
-                  <Badge variant="outline">{ticket.store}</Badge>
-                  <Badge variant="secondary">{getCategoryName(ticket.categoryId)}</Badge>
-                  <Badge className={getPriorityColor(ticket.priority)}>
-                    {ticket.priority}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600 line-clamp-2">
-                  {ticket.description}
-                </p>
-                {ticket.image && (
-                  <div className="mt-2">
-                    <Badge variant="secondary">
-                      <Image className="w-3 h-3 mr-1" />
-                      Bild vorhanden
-                    </Badge>
+      <div className="grid gap-4">
+        {filteredTickets.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-8 text-gray-500">
+              Keine Tickets vorhanden
+            </CardContent>
+          </Card>
+        ) : (
+          filteredTickets.map(ticket => (
+            <Card key={ticket.id} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h4 className="font-semibold text-lg">{ticket.title}</h4>
+                      <Badge className={`${getStatusColor(ticket.status)} flex items-center gap-1`}>
+                        {getStatusIcon(ticket.status)}
+                        {ticket.status.replace("_", " ")}
+                      </Badge>
+                      <Badge className={`${getPriorityColor(ticket.priority)} text-white`}>
+                        {ticket.priority}
+                      </Badge>
+                    </div>
+                    
+                    <p className="text-gray-600 mb-3">{ticket.description}</p>
+                    
+                    <div className="flex gap-4 text-sm text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <Store className="w-4 h-4" />
+                        {ticket.store}
+                      </div>
+                      {ticket.assignedTo && (
+                        <div className="flex items-center gap-1">
+                          <User className="w-4 h-4" />
+                          {ticket.assignedTo}
+                        </div>
+                      )}
+                      {ticket.dueDate && (
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          {format(new Date(ticket.dueDate), "dd.MM.yyyy HH:mm", { locale: de })}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Kommentare */}
+                    {ticket.comments && (ticket.comments as any[]).length > 0 && (
+                      <div className="mt-4 p-3 bg-gray-50 rounded">
+                        <div className="text-sm font-medium mb-2 flex items-center gap-1">
+                          <MessageSquare className="w-4 h-4" />
+                          Kommentare ({(ticket.comments as any[]).length})
+                        </div>
+                        <div className="space-y-2">
+                          {(ticket.comments as any[]).map((comment, idx) => (
+                            <div key={idx} className="text-sm">
+                              <span className="font-medium">{comment.user}:</span> {comment.comment}
+                              <span className="text-gray-400 ml-2">
+                                ({format(new Date(comment.timestamp), "dd.MM. HH:mm")})
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-                <div className="mt-3 text-xs text-gray-500">
-                  Erstellt: {format(new Date(ticket.createdAt!), "dd.MM.yyyy HH:mm", { locale: de })}
-                </div>
-                {ticket.assignedTo && (
-                  <div className="text-xs text-gray-500">
-                    Zugewiesen an: {ticket.assignedTo}
+                  
+                  {/* Actions */}
+                  <div className="flex gap-2 ml-4">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleEditTicket(ticket)}
+                      data-testid={`button-edit-ticket-${ticket.id}`}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleDeleteTicket(ticket.id)}
+                      className="hover:bg-red-50"
+                      data-testid={`button-delete-ticket-${ticket.id}`}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-600" />
+                    </Button>
                   </div>
-                )}
+                </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
-      ) : (
-        <Card>
-          <CardContent className="p-8 text-center text-gray-500">
-            Keine Tickets gefunden
-          </CardContent>
-        </Card>
-      )}
+          ))
+        )}
+      </div>
 
-      {/* Dialog für neues Ticket */}
-      <Dialog open={showCreateDialog} onOpenChange={(open) => {
-        if (open) {
-          // Beim Öffnen des Dialogs das Fälligkeitsdatum auf morgen setzen
-          form.reset({
-            description: "",
-            store: "JP23",
-            categoryId: "",
-            priority: "mittel" as "niedrig" | "mittel" | "hoch",
-            dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
-            image: "",
-          });
-        }
-        setShowCreateDialog(open);
-      }}>
-        <DialogContent className="max-w-sm">
+      {/* Edit Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-base">Neues Ticket erstellen</DialogTitle>
-            <DialogDescription className="text-xs">
-              Erstellen Sie ein neues Ticket für einen beliebigen Arbeitsbereich
-            </DialogDescription>
+            <DialogTitle>Ticket bearbeiten</DialogTitle>
           </DialogHeader>
           
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit((data) => createTicketMutation.mutate(data))} className="space-y-3">
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm">Aufgabe</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Was muss gemacht werden?" 
-                        {...field} 
-                        rows={2}
-                        className="text-sm"
-                        data-testid="textarea-ticket-description"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="store"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm">Store</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="h-8 text-sm" data-testid="select-ticket-store">
-                          <SelectValue placeholder="Store wählen" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {STORES.map(store => (
-                          <SelectItem key={store} value={store}>{store}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="categoryId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm">Arbeitsbereich</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="h-8 text-sm" data-testid="select-ticket-category">
-                          <SelectValue placeholder="Arbeitsbereich wählen" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {categories?.filter(cat => cat.categoryType === 'tickets').map(category => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="priority"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm">Priorität</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="h-8 text-sm" data-testid="select-ticket-priority">
-                          <SelectValue placeholder="Priorität wählen" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="niedrig">Niedrig</SelectItem>
-                        <SelectItem value="mittel">Mittel</SelectItem>
-                        <SelectItem value="hoch">Hoch</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="dueDate"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel className="text-sm">Fällig bis</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "h-8 text-sm font-normal justify-start text-left",
-                              !field.value && "text-muted-foreground"
-                            )}
-                            data-testid="button-select-due-date"
-                          >
-                            <Calendar className="mr-2 h-3 w-3" />
-                            {field.value ? format(field.value, "dd.MM.yyyy HH:mm", { locale: de }) : "Datum wählen"}
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <CalendarComponent
-                          mode="single"
-                          selected={field.value}
-                          onSelect={(date) => {
-                            if (date) {
-                              // Preserve the time or set to end of day if new date
-                              const newDate = new Date(date);
-                              if (field.value) {
-                                newDate.setHours(field.value.getHours(), field.value.getMinutes());
-                              } else {
-                                newDate.setHours(23, 59);
-                              }
-                              field.onChange(newDate);
-                            }
-                          }}
-                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                          initialFocus
-                        />
-                        <div className="p-3 border-t">
-                          <Label className="text-xs">Uhrzeit</Label>
-                          <div className="flex gap-2 mt-1">
-                            <Input
-                              type="number"
-                              min="0"
-                              max="23"
-                              placeholder="HH"
-                              className="h-7 text-xs"
-                              value={field.value ? field.value.getHours() : ""}
-                              onChange={(e) => {
-                                const hours = parseInt(e.target.value);
-                                if (hours >= 0 && hours <= 23) {
-                                  const newDate = field.value ? new Date(field.value) : new Date();
-                                  newDate.setHours(hours);
-                                  field.onChange(newDate);
-                                }
-                              }}
-                            />
-                            <span className="text-xs pt-1">:</span>
-                            <Input
-                              type="number"
-                              min="0"
-                              max="59"
-                              placeholder="MM"
-                              className="h-7 text-xs"
-                              value={field.value ? field.value.getMinutes() : ""}
-                              onChange={(e) => {
-                                const minutes = parseInt(e.target.value);
-                                if (minutes >= 0 && minutes <= 59) {
-                                  const newDate = field.value ? new Date(field.value) : new Date();
-                                  newDate.setMinutes(minutes);
-                                  field.onChange(newDate);
-                                }
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                    <p className="text-[10px] text-muted-foreground">Wann soll das Ticket erledigt sein?</p>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="image"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm">Bild hinzufügen (optional)</FormLabel>
-                    <FormControl>
-                      <div className="space-y-1">
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          className="h-8 text-sm"
-                          data-testid="input-ticket-image"
-                        />
-                        {field.value && (
-                          <img src={field.value} alt="Vorschau" className="w-full h-20 object-cover rounded" />
-                        )}
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <DialogFooter className="gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => setShowCreateDialog(false)}>
-                  Abbrechen
-                </Button>
-                <Button type="submit" size="sm" disabled={createTicketMutation.isPending} data-testid="button-submit-ticket">
-                  {createTicketMutation.isPending ? "Erstelle..." : "Ticket erstellen"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog für Ticket-Details */}
-      {selectedTicket && (
-        <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-          <DialogContent className="w-full h-full sm:h-auto sm:max-w-2xl max-h-[95vh] sm:max-h-[85vh] p-4 sm:p-6 flex flex-col">
-            <DialogHeader className="flex-shrink-0">
-              <DialogTitle className="text-base sm:text-xl pr-8">{selectedTicket.title}</DialogTitle>
-              <div className="flex gap-1.5 sm:gap-2 mt-2 flex-wrap">
-                <Badge className={`${getStatusColor(selectedTicket.status)} text-xs`}>
-                  {getStatusIcon(selectedTicket.status)}
-                  <span className="ml-1">{selectedTicket.status.replace("_", " ")}</span>
-                </Badge>
-                <Badge variant="outline" className="text-xs">{selectedTicket.store}</Badge>
-                <Badge variant="secondary" className="text-xs">{getCategoryName(selectedTicket.categoryId)}</Badge>
-                <Badge className={`${getPriorityColor(selectedTicket.priority)} text-xs`}>
-                  {selectedTicket.priority}
-                </Badge>
+          {editingTicket && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="title">Titel</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="mt-1"
+                />
               </div>
-            </DialogHeader>
-            
-            <ScrollArea className="flex-1 -mx-4 sm:-mx-6 px-4 sm:px-6">
-              <div className="space-y-4 py-2">
+              
+              <div>
+                <Label htmlFor="description">Beschreibung</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="mt-1 min-h-[100px]"
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h3 className="font-semibold mb-2 text-sm sm:text-base">Beschreibung</h3>
-                  <p className="text-gray-600 text-sm">{selectedTicket.description}</p>
-                </div>
-                
-                {selectedTicket.image && (
-                  <div>
-                    <h3 className="font-semibold mb-2 text-sm sm:text-base">Bild</h3>
-                    <img src={selectedTicket.image} alt="Ticket Bild" className="w-full rounded max-h-64 object-contain bg-gray-50" />
-                  </div>
-                )}
-                
-                <div className="text-xs sm:text-sm text-gray-500 space-y-1">
-                  <div>Erstellt von: {selectedTicket.createdBy}</div>
-                  <div>Erstellt am: {format(new Date(selectedTicket.createdAt!), "dd.MM.yyyy HH:mm", { locale: de })}</div>
-                  {selectedTicket.dueDate && (
-                    <div className="font-semibold text-orange-600">
-                      Fällig bis: {format(new Date(selectedTicket.dueDate), "dd.MM.yyyy HH:mm", { locale: de })}
-                    </div>
-                  )}
-                  {selectedTicket.assignedTo && <div>Zugewiesen an: {selectedTicket.assignedTo}</div>}
-                  {selectedTicket.updatedAt && (
-                    <div>Aktualisiert: {format(new Date(selectedTicket.updatedAt), "dd.MM.yyyy HH:mm", { locale: de })}</div>
-                  )}
-                  {selectedTicket.completedAt && (
-                    <div>Erledigt: {format(new Date(selectedTicket.completedAt), "dd.MM.yyyy HH:mm", { locale: de })}</div>
-                  )}
-                </div>
-                
-                <div>
-                  <h3 className="font-semibold mb-2 text-sm sm:text-base">Status ändern</h3>
-                  <Select
-                    value={selectedTicket.status}
-                    onValueChange={(value) => {
-                      updateTicketMutation.mutate({
-                        id: selectedTicket.id,
-                        data: { status: value as "offen" | "in_bearbeitung" | "erledigt" },
-                      });
-                    }}
-                  >
-                    <SelectTrigger className="w-full sm:w-[200px]" data-testid="select-ticket-status">
+                  <Label htmlFor="status">Status</Label>
+                  <Select value={formData.status} onValueChange={(value: any) => setFormData({ ...formData, status: value })}>
+                    <SelectTrigger className="mt-1">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -845,102 +361,95 @@ export function TicketsManagement() {
                 </div>
                 
                 <div>
-                  <h3 className="font-semibold mb-2 text-sm sm:text-base">Kommentare</h3>
-                  {(selectedTicket.comments as any[])?.length > 0 ? (
+                  <Label htmlFor="priority">Priorität</Label>
+                  <Select value={formData.priority} onValueChange={(value: any) => setFormData({ ...formData, priority: value })}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="niedrig">Niedrig</SelectItem>
+                      <SelectItem value="mittel">Mittel</SelectItem>
+                      <SelectItem value="hoch">Hoch</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="assignedTo">Zugewiesen an</Label>
+                <Input
+                  id="assignedTo"
+                  value={formData.assignedTo}
+                  onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
+                  placeholder="Name des zugewiesenen Mitarbeiters"
+                  className="mt-1"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="dueDate">Fälligkeitsdatum</Label>
+                <Input
+                  id="dueDate"
+                  type="datetime-local"
+                  value={formData.dueDate}
+                  onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+              
+              {/* Neuer Kommentar */}
+              <div>
+                <Label htmlFor="comment">Kommentar hinzufügen</Label>
+                <div className="flex gap-2 mt-1">
+                  <Textarea
+                    id="comment"
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Kommentar eingeben..."
+                    className="min-h-[60px]"
+                  />
+                  <Button
+                    onClick={() => handleAddComment(editingTicket.id)}
+                    disabled={!newComment.trim() || addCommentMutation.isPending}
+                  >
+                    Senden
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Bestehende Kommentare */}
+              {editingTicket.comments && (editingTicket.comments as any[]).length > 0 && (
+                <div>
+                  <Label>Kommentare</Label>
+                  <ScrollArea className="h-[200px] border rounded p-3 mt-1">
                     <div className="space-y-2">
-                      {(selectedTicket.comments as any[]).map((comment, index) => (
-                        <div key={index} className="bg-gray-50 p-2.5 sm:p-3 rounded">
-                          <div className="flex flex-col sm:flex-row sm:justify-between gap-1 text-xs sm:text-sm">
-                            <span className="font-medium">{comment.user}</span>
-                            <span className="text-gray-500">
-                              {format(new Date(comment.timestamp), "dd.MM.yyyy HH:mm", { locale: de })}
-                            </span>
+                      {(editingTicket.comments as any[]).map((comment, idx) => (
+                        <div key={idx} className="text-sm p-2 bg-gray-50 rounded">
+                          <div className="font-medium">{comment.user}</div>
+                          <div>{comment.comment}</div>
+                          <div className="text-gray-400 text-xs mt-1">
+                            {format(new Date(comment.timestamp), "dd.MM.yyyy HH:mm", { locale: de })}
                           </div>
-                          <p className="mt-1 text-sm">{comment.comment}</p>
                         </div>
                       ))}
                     </div>
-                  ) : (
-                    <p className="text-gray-500 text-sm">Noch keine Kommentare</p>
-                  )}
-                  
-                  <div className="mt-3 flex flex-col sm:flex-row gap-2">
-                    <Textarea
-                      placeholder="Kommentar hinzufügen..."
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      rows={2}
-                      className="flex-1 text-sm"
-                      data-testid="textarea-ticket-comment"
-                    />
-                    <Button
-                      onClick={() => {
-                        if (newComment.trim()) {
-                          addCommentMutation.mutate({
-                            ticketId: selectedTicket.id,
-                            comment: newComment,
-                          });
-                          setNewComment("");
-                        }
-                      }}
-                      disabled={!newComment.trim() || addCommentMutation.isPending}
-                      className="w-full sm:w-auto"
-                      data-testid="button-add-comment"
-                    >
-                      <Send className="w-4 h-4 sm:mr-2" />
-                      <span className="sm:inline hidden">Senden</span>
-                    </Button>
-                  </div>
+                  </ScrollArea>
                 </div>
+              )}
+              
+              {/* Actions */}
+              <div className="flex justify-end gap-2 pt-4">
+                <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+                  Abbrechen
+                </Button>
+                <Button onClick={handleSaveTicket} disabled={updateMutation.isPending}>
+                  {updateMutation.isPending ? "Speichern..." : "Speichern"}
+                </Button>
               </div>
-            </ScrollArea>
-            
-            <DialogFooter className="flex-shrink-0 flex-col sm:flex-row gap-2 mt-4">
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  setTicketToDelete(selectedTicket);
-                }}
-                className="w-full sm:w-auto"
-                data-testid="button-delete-ticket"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Löschen
-              </Button>
-              <Button variant="outline" onClick={() => setShowDetailsDialog(false)} className="w-full sm:w-auto">
-                Schließen
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {/* AlertDialog für Löschbestätigung */}
-      <AlertDialog open={!!ticketToDelete} onOpenChange={(open) => !open && setTicketToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Ticket löschen?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Möchten Sie dieses Ticket wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel data-testid="button-cancel-delete">Abbrechen</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (ticketToDelete) {
-                  deleteTicketMutation.mutate(ticketToDelete.id);
-                  setTicketToDelete(null);
-                }
-              }}
-              className="bg-red-600 hover:bg-red-700"
-              data-testid="button-confirm-delete"
-            >
-              Löschen
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
