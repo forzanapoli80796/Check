@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Edit, Trash2, MessageSquare, Calendar, Store, User, AlertCircle, Clock, CheckCircle } from "lucide-react";
+import { Edit, Trash2, MessageSquare, Calendar, Store, User, AlertCircle, Clock, CheckCircle, Image as ImageIcon } from "lucide-react";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +25,7 @@ export function TicketsManagement() {
   const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [newComment, setNewComment] = useState("");
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   
   // Formular-State für Bearbeitung
   const [formData, setFormData] = useState({
@@ -249,6 +250,19 @@ export function TicketsManagement() {
                     
                     <p className="text-gray-600 mb-3">{ticket.description}</p>
                     
+                    {/* Bild Vorschau */}
+                    {ticket.image && (
+                      <div className="mb-3">
+                        <img 
+                          src={ticket.image} 
+                          alt="Ticket Bild" 
+                          className="rounded-lg max-w-xs max-h-48 object-cover cursor-pointer border border-gray-200 hover:border-blue-400 transition-colors"
+                          onClick={() => setImagePreview(ticket.image)}
+                          data-testid={`img-ticket-${ticket.id}`}
+                        />
+                      </div>
+                    )}
+                    
                     <div className="flex gap-4 text-sm text-gray-500">
                       <div className="flex items-center gap-1">
                         <Store className="w-4 h-4" />
@@ -344,6 +358,21 @@ export function TicketsManagement() {
                   className="mt-1 min-h-[100px]"
                 />
               </div>
+              
+              {/* Bild Anzeige */}
+              {editingTicket.image && (
+                <div>
+                  <Label>Angehängtes Bild</Label>
+                  <div className="mt-2">
+                    <img 
+                      src={editingTicket.image} 
+                      alt="Ticket Bild" 
+                      className="rounded-lg max-w-md max-h-64 object-cover cursor-pointer border border-gray-200 hover:border-blue-400 transition-colors"
+                      onClick={() => setImagePreview(editingTicket.image)}
+                    />
+                  </div>
+                </div>
+              )}
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -448,6 +477,22 @@ export function TicketsManagement() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Bild Vorschau Dialog */}
+      <Dialog open={!!imagePreview} onOpenChange={() => setImagePreview(null)}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Bild Vorschau</DialogTitle>
+          </DialogHeader>
+          <div className="flex justify-center">
+            <img 
+              src={imagePreview || ""} 
+              alt="Ticket Bild Vorschau" 
+              className="max-w-full max-h-[70vh] object-contain rounded-lg"
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </div>
