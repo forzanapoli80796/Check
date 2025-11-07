@@ -20,7 +20,7 @@ const STORES = ["JP23", "KP5", "TS17"];
 
 export function TicketsManagement() {
   const { toast } = useToast();
-  const [selectedStore, setSelectedStore] = useState<string>("");
+  const [selectedStore, setSelectedStore] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("alle");
   const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -43,7 +43,7 @@ export function TicketsManagement() {
 
   // Gefilterte Tickets
   const filteredTickets = tickets.filter(ticket => {
-    const matchesStore = !selectedStore || ticket.store === selectedStore;
+    const matchesStore = selectedStore === "all" || ticket.store === selectedStore;
     const matchesStatus = statusFilter === "alle" || ticket.status === statusFilter;
     return matchesStore && matchesStatus;
   });
@@ -201,7 +201,7 @@ export function TicketsManagement() {
               <SelectValue placeholder="Alle Stores" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Alle Stores</SelectItem>
+              <SelectItem value="all">Alle Stores</SelectItem>
               {STORES.map(store => (
                 <SelectItem key={store} value={store}>{store}</SelectItem>
               ))}
