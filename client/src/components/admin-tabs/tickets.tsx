@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Ticket } from "@shared/schema";
 
 const STORES = ["JP23", "KP5", "TS17"];
+const BEREICHE = ["Hausmeister", "Betriebsleiter", "Küche", "Terminal", "Fahrer"];
 
 export function TicketsManagement() {
   const { toast } = useToast();
@@ -476,14 +477,17 @@ export function TicketsManagement() {
               </div>
               
               <div>
-                <Label htmlFor="assignedTo">Zugewiesen an</Label>
-                <Input
-                  id="assignedTo"
-                  value={formData.assignedTo}
-                  onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
-                  placeholder="Name des zugewiesenen Mitarbeiters"
-                  className="mt-1"
-                />
+                <Label htmlFor="assignedTo">Bereich zuweisen</Label>
+                <Select value={formData.assignedTo} onValueChange={(value) => setFormData({ ...formData, assignedTo: value })}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Bereich auswählen..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {BEREICHE.map(bereich => (
+                      <SelectItem key={bereich} value={bereich}>{bereich}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div>
@@ -628,15 +632,17 @@ export function TicketsManagement() {
             </div>
             
             <div>
-              <Label htmlFor="create-assignedTo">Zugewiesen an</Label>
-              <Input
-                id="create-assignedTo"
-                value={createFormData.assignedTo}
-                onChange={(e) => setCreateFormData({ ...createFormData, assignedTo: e.target.value })}
-                placeholder="Name des zugewiesenen Mitarbeiters"
-                className="mt-1"
-                data-testid="input-create-assignedTo"
-              />
+              <Label htmlFor="create-assignedTo">Bereich zuweisen</Label>
+              <Select value={createFormData.assignedTo} onValueChange={(value) => setCreateFormData({ ...createFormData, assignedTo: value })}>
+                <SelectTrigger className="mt-1" data-testid="select-create-assignedTo">
+                  <SelectValue placeholder="Bereich auswählen..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {BEREICHE.map(bereich => (
+                    <SelectItem key={bereich} value={bereich}>{bereich}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             
             <div>
