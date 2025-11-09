@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Edit, Trash2, MessageSquare, Calendar, Store, User, AlertCircle, Clock, CheckCircle, Image as ImageIcon } from "lucide-react";
+import { Edit, Trash2, MessageSquare, Calendar, Store, User, AlertCircle, Clock, CheckCircle, Image as ImageIcon, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -24,6 +24,7 @@ export function TicketsManagement() {
   const [statusFilter, setStatusFilter] = useState<string>("alle");
   const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   
@@ -33,6 +34,17 @@ export function TicketsManagement() {
     description: "",
     status: "offen" as "offen" | "in_bearbeitung" | "erledigt",
     priority: "mittel" as "niedrig" | "mittel" | "hoch",
+    assignedTo: "",
+    dueDate: "",
+  });
+
+  // Formular-State für Erstellung
+  const [createFormData, setCreateFormData] = useState({
+    title: "",
+    description: "",
+    status: "offen" as "offen" | "in_bearbeitung" | "erledigt",
+    priority: "mittel" as "niedrig" | "mittel" | "hoch",
+    store: "JP23",
     assignedTo: "",
     dueDate: "",
   });
@@ -47,6 +59,37 @@ export function TicketsManagement() {
     const matchesStore = selectedStore === "all" || ticket.store === selectedStore;
     const matchesStatus = statusFilter === "alle" || ticket.status === statusFilter;
     return matchesStore && matchesStatus;
+  });
+
+  // Ticket erstellen
+  const createMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest("POST", "/api/tickets", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
+      toast({
+        title: "Erfolgreich erstellt",
+        description: "Das Ticket wurde erfolgreich erstellt.",
+      });
+      setShowCreateDialog(false);
+      setCreateFormData({
+        title: "",
+        description: "",
+        status: "offen",
+        priority: "mittel",
+        store: "JP23",
+        assignedTo: "",
+        dueDate: "",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Fehler",
+        description: "Das Ticket konnte nicht erstellt werden.",
+        variant: "destructive",
+      });
+    },
   });
 
   // Ticket aktualisieren
@@ -117,6 +160,22 @@ export function TicketsManagement() {
       });
     },
   });
+
+  const handleCreateTicket = () => {
+    if (!createFormData.title.trim()) {
+      toast({
+        title: "Fehler",
+        description: "Bitte geben Sie einen Titel ein.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    createMutation.mutate({
+      ...createFormData,
+      dueDate: createFormData.dueDate ? new Date(createFormData.dueDate) : null,
+    });
+  };
 
   const handleEditTicket = (ticket: Ticket) => {
     setEditingTicket(ticket);
@@ -195,31 +254,43 @@ export function TicketsManagement() {
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium">Tickets verwalten</h3>
         
-        {/* Filter */}
-        <div className="flex gap-4">
-          <Select value={selectedStore} onValueChange={setSelectedStore}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Alle Stores" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Alle Stores</SelectItem>
-              {STORES.map(store => (
-                <SelectItem key={store} value={store}>{store}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex gap-4 items-center">
+          {/* Neues Ticket Button */}
+          <Button 
+            onClick={() => setShowCreateDialog(true)}
+            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-md"
+            data-testid="button-create-ticket"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Neues Ticket
+          </Button>
           
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Alle Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="alle">Alle Status</SelectItem>
-              <SelectItem value="offen">Offen</SelectItem>
-              <SelectItem value="in_bearbeitung">In Bearbeitung</SelectItem>
-              <SelectItem value="erledigt">Erledigt</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Filter */}
+          <div className="flex gap-4">
+            <Select value={selectedStore} onValueChange={setSelectedStore}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Alle Stores" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Alle Stores</SelectItem>
+                {STORES.map(store => (
+                  <SelectItem key={store} value={store}>{store}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Alle Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="alle">Alle Status</SelectItem>
+                <SelectItem value="offen">Offen</SelectItem>
+                <SelectItem value="in_bearbeitung">In Bearbeitung</SelectItem>
+                <SelectItem value="erledigt">Erledigt</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -477,6 +548,119 @@ export function TicketsManagement() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Neues Ticket erstellen</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="create-title">Titel *</Label>
+              <Input
+                id="create-title"
+                value={createFormData.title}
+                onChange={(e) => setCreateFormData({ ...createFormData, title: e.target.value })}
+                placeholder="Ticket Titel eingeben..."
+                className="mt-1"
+                data-testid="input-create-title"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="create-description">Beschreibung</Label>
+              <Textarea
+                id="create-description"
+                value={createFormData.description}
+                onChange={(e) => setCreateFormData({ ...createFormData, description: e.target.value })}
+                placeholder="Beschreibung eingeben..."
+                className="mt-1 min-h-[100px]"
+                data-testid="input-create-description"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="create-store">Store *</Label>
+              <Select value={createFormData.store} onValueChange={(value) => setCreateFormData({ ...createFormData, store: value })}>
+                <SelectTrigger className="mt-1" data-testid="select-create-store">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {STORES.map(store => (
+                    <SelectItem key={store} value={store}>{store}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="create-status">Status</Label>
+                <Select value={createFormData.status} onValueChange={(value: any) => setCreateFormData({ ...createFormData, status: value })}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="offen">Offen</SelectItem>
+                    <SelectItem value="in_bearbeitung">In Bearbeitung</SelectItem>
+                    <SelectItem value="erledigt">Erledigt</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="create-priority">Priorität</Label>
+                <Select value={createFormData.priority} onValueChange={(value: any) => setCreateFormData({ ...createFormData, priority: value })}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="niedrig">Niedrig</SelectItem>
+                    <SelectItem value="mittel">Mittel</SelectItem>
+                    <SelectItem value="hoch">Hoch</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="create-assignedTo">Zugewiesen an</Label>
+              <Input
+                id="create-assignedTo"
+                value={createFormData.assignedTo}
+                onChange={(e) => setCreateFormData({ ...createFormData, assignedTo: e.target.value })}
+                placeholder="Name des zugewiesenen Mitarbeiters"
+                className="mt-1"
+                data-testid="input-create-assignedTo"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="create-dueDate">Fälligkeitsdatum</Label>
+              <Input
+                id="create-dueDate"
+                type="datetime-local"
+                value={createFormData.dueDate}
+                onChange={(e) => setCreateFormData({ ...createFormData, dueDate: e.target.value })}
+                className="mt-1"
+                data-testid="input-create-dueDate"
+              />
+            </div>
+            
+            {/* Actions */}
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={() => setShowCreateDialog(false)} data-testid="button-cancel-create">
+                Abbrechen
+              </Button>
+              <Button onClick={handleCreateTicket} disabled={createMutation.isPending} data-testid="button-submit-create">
+                {createMutation.isPending ? "Erstellen..." : "Ticket erstellen"}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
