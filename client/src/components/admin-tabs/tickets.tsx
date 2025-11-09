@@ -207,11 +207,15 @@ export function TicketsManagement() {
       return;
     }
     
+    // Find the categoryId for the selected ticket area
+    const selectedCategory = ticketKategorien.find(cat => cat.name === createFormData.assignedTo);
+    
     createMutation.mutate({
       ...createFormData,
       dueDate: createFormData.dueDate ? new Date(createFormData.dueDate) : null,
       image: uploadedImage || "",
       createdBy: "Admin",
+      categoryId: selectedCategory?.id || undefined,
     });
   };
 
