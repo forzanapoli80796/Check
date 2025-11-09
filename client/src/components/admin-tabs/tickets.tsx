@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Edit, Trash2, MessageSquare, Calendar, Store, User, AlertCircle, Clock, CheckCircle, Image as ImageIcon, Plus } from "lucide-react";
+import { Edit, Trash2, MessageSquare, Calendar, Store, User, AlertCircle, Clock, CheckCircle, Image as ImageIcon, Plus, Upload } from "lucide-react";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +27,7 @@ export function TicketsManagement() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   
   // Formular-State für Bearbeitung
   const [formData, setFormData] = useState({
@@ -84,6 +85,7 @@ export function TicketsManagement() {
         description: "Das Ticket wurde erfolgreich erstellt.",
       });
       setShowCreateDialog(false);
+      setUploadedImage(null);
       setCreateFormData({
         title: "",
         description: "",
@@ -173,6 +175,28 @@ export function TicketsManagement() {
     },
   });
 
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({
+          title: "Fehler",
+          description: "Das Bild ist zu groß. Maximal 5MB erlaubt.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setUploadedImage(base64String);
+        setCreateFormData({ ...createFormData, image: base64String });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleCreateTicket = () => {
     if (!createFormData.title.trim()) {
       toast({
@@ -186,6 +210,7 @@ export function TicketsManagement() {
     createMutation.mutate({
       ...createFormData,
       dueDate: createFormData.dueDate ? new Date(createFormData.dueDate) : null,
+      image: uploadedImage || "",
     });
   };
 
@@ -573,7 +598,22 @@ export function TicketsManagement() {
       </Dialog>
 
       {/* Create Dialog */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+      <Dialog open={showCreateDialog} onOpenChange={(open) => {
+        setShowCreateDialog(open);
+        if (!open) {
+          setUploadedImage(null);
+          setCreateFormData({
+            title: "",
+            description: "",
+            status: "offen",
+            priority: "mittel",
+            store: "JP23",
+            assignedTo: "",
+            dueDate: "",
+            image: "",
+          });
+        }
+      }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Neues Ticket erstellen</DialogTitle>
@@ -681,27 +721,55 @@ export function TicketsManagement() {
             </div>
             
             <div>
-              <Label htmlFor="create-image">Foto hinzufügen (URL)</Label>
-              <Input
-                id="create-image"
-                value={createFormData.image}
-                onChange={(e) => setCreateFormData({ ...createFormData, image: e.target.value })}
-                placeholder="Bild-URL eingeben (z.B. https://...)"
-                className="mt-1"
-                data-testid="input-create-image"
-              />
-              {createFormData.image && (
-                <div className="mt-2">
-                  <img 
-                    src={createFormData.image} 
-                    alt="Vorschau" 
-                    className="rounded-lg max-w-xs max-h-32 object-cover border border-gray-200"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
+              <Label htmlFor="create-image">Foto hinzufügen</Label>
+              <div className="mt-1">
+                <label htmlFor="image-upload" className="cursor-pointer">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                    {uploadedImage ? (
+                      <div>
+                        <img 
+                          src={uploadedImage} 
+                          alt="Vorschau" 
+                          className="mx-auto rounded-lg max-w-xs max-h-48 object-cover mb-2"
+                        />
+                        <p className="text-sm text-gray-600">Klicken zum Ändern</p>
+                      </div>
+                    ) : (
+                      <div>
+                        <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                        <p className="mt-2 text-sm text-gray-600">
+                          Klicken zum Hochladen oder Foto aufnehmen
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          PNG, JPG bis zu 5MB
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    data-testid="input-image-upload"
                   />
-                </div>
-              )}
+                </label>
+                {uploadedImage && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setUploadedImage(null);
+                      setCreateFormData({ ...createFormData, image: "" });
+                    }}
+                    className="mt-2 w-full"
+                  >
+                    Bild entfernen
+                  </Button>
+                )}
+              </div>
             </div>
             
             {/* Actions */}
