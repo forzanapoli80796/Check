@@ -211,6 +211,7 @@ export function TicketsManagement() {
       ...createFormData,
       dueDate: createFormData.dueDate ? new Date(createFormData.dueDate) : null,
       image: uploadedImage || "",
+      createdBy: "Admin",
     });
   };
 
