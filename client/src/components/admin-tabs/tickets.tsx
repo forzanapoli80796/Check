@@ -14,10 +14,9 @@ import { Edit, Trash2, MessageSquare, Calendar, Store, User, AlertCircle, Clock,
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-import type { Ticket } from "@shared/schema";
+import type { Ticket, Category } from "@shared/schema";
 
 const STORES = ["JP23", "KP5", "TS17"];
-const BEREICHE = ["Hausmeister", "Betriebsleiter", "Küche", "Terminal", "Fahrer"];
 
 export function TicketsManagement() {
   const { toast } = useToast();
@@ -54,6 +53,16 @@ export function TicketsManagement() {
   const { data: tickets = [], isLoading } = useQuery<Ticket[]>({
     queryKey: ["/api/tickets"],
   });
+
+  // Kategorien abrufen für Ticket-Bereiche
+  const { data: categories = [] } = useQuery<Category[]>({
+    queryKey: ["/api/categories"],
+  });
+
+  // Nur Ticket-Kategorien filtern (Kategorien mit "Ticket" im Namen)
+  const ticketKategorien = categories.filter(cat => 
+    cat.name.toLowerCase().includes("ticket")
+  );
 
   // Gefilterte Tickets
   const filteredTickets = tickets.filter(ticket => {
@@ -477,15 +486,21 @@ export function TicketsManagement() {
               </div>
               
               <div>
-                <Label htmlFor="assignedTo">Bereich zuweisen</Label>
+                <Label htmlFor="assignedTo">Ticket-Bereich zuweisen</Label>
                 <Select value={formData.assignedTo} onValueChange={(value) => setFormData({ ...formData, assignedTo: value })}>
                   <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Bereich auswählen..." />
+                    <SelectValue placeholder="Ticket-Bereich auswählen..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {BEREICHE.map(bereich => (
-                      <SelectItem key={bereich} value={bereich}>{bereich}</SelectItem>
-                    ))}
+                    {ticketKategorien.length === 0 ? (
+                      <SelectItem value="none" disabled>Keine Ticket-Bereiche vorhanden</SelectItem>
+                    ) : (
+                      ticketKategorien.map(kategorie => (
+                        <SelectItem key={kategorie.id} value={kategorie.name}>
+                          {kategorie.name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -632,15 +647,21 @@ export function TicketsManagement() {
             </div>
             
             <div>
-              <Label htmlFor="create-assignedTo">Bereich zuweisen</Label>
+              <Label htmlFor="create-assignedTo">Ticket-Bereich zuweisen</Label>
               <Select value={createFormData.assignedTo} onValueChange={(value) => setCreateFormData({ ...createFormData, assignedTo: value })}>
                 <SelectTrigger className="mt-1" data-testid="select-create-assignedTo">
-                  <SelectValue placeholder="Bereich auswählen..." />
+                  <SelectValue placeholder="Ticket-Bereich auswählen..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {BEREICHE.map(bereich => (
-                    <SelectItem key={bereich} value={bereich}>{bereich}</SelectItem>
-                  ))}
+                  {ticketKategorien.length === 0 ? (
+                    <SelectItem value="none" disabled>Keine Ticket-Bereiche vorhanden</SelectItem>
+                  ) : (
+                    ticketKategorien.map(kategorie => (
+                      <SelectItem key={kategorie.id} value={kategorie.name}>
+                        {kategorie.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
