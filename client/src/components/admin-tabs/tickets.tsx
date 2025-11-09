@@ -47,6 +47,7 @@ export function TicketsManagement() {
     store: "JP23",
     assignedTo: "",
     dueDate: "",
+    image: "",
   });
 
   // Tickets abrufen
@@ -91,6 +92,7 @@ export function TicketsManagement() {
         store: "JP23",
         assignedTo: "",
         dueDate: "",
+        image: "",
       });
     },
     onError: () => {
@@ -676,6 +678,30 @@ export function TicketsManagement() {
                 className="mt-1"
                 data-testid="input-create-dueDate"
               />
+            </div>
+            
+            <div>
+              <Label htmlFor="create-image">Foto hinzufügen (URL)</Label>
+              <Input
+                id="create-image"
+                value={createFormData.image}
+                onChange={(e) => setCreateFormData({ ...createFormData, image: e.target.value })}
+                placeholder="Bild-URL eingeben (z.B. https://...)"
+                className="mt-1"
+                data-testid="input-create-image"
+              />
+              {createFormData.image && (
+                <div className="mt-2">
+                  <img 
+                    src={createFormData.image} 
+                    alt="Vorschau" 
+                    className="rounded-lg max-w-xs max-h-32 object-cover border border-gray-200"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
             </div>
             
             {/* Actions */}
