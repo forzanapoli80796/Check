@@ -755,7 +755,6 @@ export function TicketsManagement() {
                     id="image-upload"
                     type="file"
                     accept="image/*"
-                    capture="environment"
                     onChange={handleImageUpload}
                     className="hidden"
                     data-testid="input-image-upload"
