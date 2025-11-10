@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { de, enUS } from "date-fns/locale";
-import { Eye, Trash2, X, CheckCircle2 } from "lucide-react";
+import { Eye, Trash2, X, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -135,9 +135,37 @@ export default function SubmittedLists() {
     },
   });
 
+  const deleteOldChecklistsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("DELETE", "/api/checklists/old");
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/checklists"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      toast({
+        title: "Erfolgreich gelöscht",
+        description: `${data.deletedCount} alte Checklisten wurden gelöscht.`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Fehler",
+        description: "Die alten Checklisten konnten nicht gelöscht werden.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const deleteChecklist = (id: string) => {
     if (confirm("Sind Sie sicher, dass Sie diese Checkliste löschen möchten?")) {
       deleteMutation.mutate(id);
+    }
+  };
+
+  const deleteOldChecklists = () => {
+    if (confirm("Möchten Sie wirklich alle Checklisten löschen, die älter als 14 Tage sind? Diese Aktion kann nicht rückgängig gemacht werden.")) {
+      deleteOldChecklistsMutation.mutate();
     }
   };
 
@@ -202,6 +230,17 @@ export default function SubmittedLists() {
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-medium">Eingereichte Checklisten</h3>
         <div className="flex space-x-3">
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={deleteOldChecklists}
+            disabled={deleteOldChecklistsMutation.isPending}
+            className="flex items-center gap-2"
+            title="Löscht alle Checklisten die älter als 14 Tage sind"
+          >
+            <AlertTriangle className="h-4 w-4" />
+            Alte Checklisten löschen (&gt;14 Tage)
+          </Button>
           <Select value={storeFilter} onValueChange={setStoreFilter}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Store wählen" />

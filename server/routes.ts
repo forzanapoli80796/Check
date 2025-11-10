@@ -233,6 +233,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete all checklists older than 14 days
+  app.delete("/api/checklists/old", async (req, res) => {
+    try {
+      const storage = await getStorage();
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - 14); // 14 days ago
+      
+      // Get all checklists
+      const allChecklists = await storage.getChecklists();
+      
+      // Filter checklists older than 14 days
+      const oldChecklists = allChecklists.filter(checklist => {
+        if (!checklist.submittedAt) return false;
+        const submittedDate = new Date(checklist.submittedAt);
+        return submittedDate < cutoffDate;
+      });
+      
+      // Delete each old checklist
+      let deletedCount = 0;
+      for (const checklist of oldChecklists) {
+        const success = await storage.deleteChecklist(checklist.id);
+        if (success) deletedCount++;
+      }
+      
+      res.json({ 
+        success: true, 
+        deletedCount,
+        message: `${deletedCount} Checklisten älter als 14 Tage wurden gelöscht.`
+      });
+    } catch (error) {
+      console.error("Error deleting old checklists:", error);
+      res.status(500).json({ message: "Fehler beim Löschen der alten Checklisten" });
+    }
+  });
+
   app.delete("/api/checklists/:id", async (req, res) => {
     const storage = await getStorage();
     const success = await storage.deleteChecklist(req.params.id);
