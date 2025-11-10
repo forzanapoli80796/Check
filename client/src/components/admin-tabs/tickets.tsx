@@ -292,25 +292,25 @@ export function TicketsManagement() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Tickets verwalten</h3>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <h3 className="text-base sm:text-lg font-medium">Tickets verwalten</h3>
         
-        <div className="flex gap-4 items-center">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-stretch sm:items-center w-full sm:w-auto">
           {/* Neues Ticket Button */}
           <Button 
             onClick={() => setShowCreateDialog(true)}
-            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-md"
+            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-md w-full sm:w-auto"
             data-testid="button-create-ticket"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Neues Ticket
+            <span>Neues Ticket</span>
           </Button>
           
           {/* Filter */}
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
             <Select value={selectedStore} onValueChange={setSelectedStore}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="w-full sm:w-[150px]">
                 <SelectValue placeholder="Alle Stores" />
               </SelectTrigger>
               <SelectContent>
@@ -322,7 +322,7 @@ export function TicketsManagement() {
             </Select>
             
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Alle Status" />
               </SelectTrigger>
               <SelectContent>

@@ -329,13 +329,13 @@ export default function CategoriesManagement() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-medium">Arbeitsbereiche verwalten</h3>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3">
+        <h3 className="text-base sm:text-lg font-medium">Arbeitsbereiche verwalten</h3>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={resetForm}>
+            <Button onClick={resetForm} className="w-full sm:w-auto">
               <Plus size={16} className="mr-2" />
-              Neuer Arbeitsbereich
+              <span>Neuer Arbeitsbereich</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">

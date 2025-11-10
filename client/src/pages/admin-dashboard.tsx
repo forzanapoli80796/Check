@@ -3,8 +3,9 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-import { ArrowLeft, Cookie } from "lucide-react";
+import { ArrowLeft, Cookie, Menu } from "lucide-react";
 import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
 import SubmittedLists from "@/components/admin-tabs/submitted-lists";
 import CategoriesManagement from "@/components/admin-tabs/categories-management";
@@ -20,7 +21,14 @@ export default function AdminDashboard() {
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState<AdminTabState['activeTab']>('submitted');
 
-
+  const tabs = [
+    { value: 'submitted', label: 'Eingereichte Listen' },
+    { value: 'categories', label: 'Arbeitsbereiche' },
+    { value: 'teig', label: 'Teig-Planung' },
+    { value: 'tickets', label: 'Tickets' },
+    { value: 'employeeNotes', label: 'Mitarbeiter-Nachrichten' },
+    { value: 'devTools', label: 'Dev Tools' },
+  ];
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -72,69 +80,57 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Logo Header */}
-      <div className="flex justify-center py-6">
+      <div className="flex justify-center py-4 sm:py-6 px-4">
         <img 
           src={forzaCheckLogo} 
           alt="ForzaCheck Logo" 
-          className="h-16 object-contain"
+          className="h-12 sm:h-16 object-contain"
         />
       </div>
       
       <div className="flex-1">
-        <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-6">
+          {/* Mobile Navigation Dropdown */}
+          <div className="block sm:hidden mb-4">
+            <Select value={activeTab} onValueChange={(value) => setActiveTab(value as AdminTabState['activeTab'])}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Bereich wählen" />
+              </SelectTrigger>
+              <SelectContent>
+                {tabs.map(tab => (
+                  <SelectItem key={tab.value} value={tab.value}>
+                    {tab.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
+          {/* Desktop Navigation Tabs */}
+          <Card className="shadow-sm border border-gray-200">
+            <div className="border-b hidden sm:block">
+              <nav className="flex flex-wrap gap-1 px-2 sm:px-4 py-2 overflow-x-auto">
+                {tabs.map(tab => (
+                  <button
+                    key={tab.value}
+                    onClick={() => setActiveTab(tab.value as AdminTabState['activeTab'])}
+                    className={`admin-tab text-sm sm:text-base px-3 sm:px-4 py-2 whitespace-nowrap ${
+                      activeTab === tab.value ? 'active' : ''
+                    }`}
+                    data-testid={tab.value === 'devTools' ? 'button-devtools-tab' : undefined}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </nav>
+            </div>
 
-      {/* Navigation Tabs */}
-      <Card className="shadow-sm border border-gray-200 mb-6">
-        <div className="border-b">
-          <nav className="flex space-x-2 px-4 overflow-x-auto">
-            <button
-              onClick={() => setActiveTab('submitted')}
-              className={`admin-tab ${activeTab === 'submitted' ? 'active' : ''}`}
-            >
-              Eingereichte Listen
-            </button>
-            <button
-              onClick={() => setActiveTab('categories')}
-              className={`admin-tab ${activeTab === 'categories' ? 'active' : ''}`}
-            >
-              Arbeitsbereiche
-            </button>
-            <button
-              onClick={() => setActiveTab('teig')}
-              className={`admin-tab ${activeTab === 'teig' ? 'active' : ''}`}
-            >
-              Teig-Planung
-            </button>
-            <button
-              onClick={() => setActiveTab('tickets')}
-              className={`admin-tab ${activeTab === 'tickets' ? 'active' : ''}`}
-            >
-              Tickets
-            </button>
-            <button
-              onClick={() => setActiveTab('employeeNotes')}
-              className={`admin-tab ${activeTab === 'employeeNotes' ? 'active' : ''}`}
-            >
-              Mitarbeiter-Nachrichten
-            </button>
-            <button
-              onClick={() => setActiveTab('devTools')}
-              className={`admin-tab ${activeTab === 'devTools' ? 'active' : ''}`}
-              data-testid="button-devtools-tab"
-            >
-              Dev Tools
-            </button>
-          </nav>
-        </div>
-
-        <CardContent className="p-6">
-          {renderTabContent()}
-        </CardContent>
-      </Card>
+            <CardContent className="p-3 sm:p-6">
+              {renderTabContent()}
+            </CardContent>
+          </Card>
         </div>
       </div>
-      
     </div>
   );
 }

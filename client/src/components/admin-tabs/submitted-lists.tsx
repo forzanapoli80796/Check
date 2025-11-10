@@ -227,22 +227,22 @@ export default function SubmittedLists() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-medium">Eingereichte Checklisten</h3>
-        <div className="flex space-x-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
+        <h3 className="text-base sm:text-lg font-medium">Eingereichte Checklisten</h3>
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <Button
             variant="destructive"
             size="sm"
             onClick={deleteOldChecklists}
             disabled={deleteOldChecklistsMutation.isPending}
-            className="flex items-center gap-2"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto"
             title="Löscht alle Checklisten die älter als 7 Tage sind"
           >
             <AlertTriangle className="h-4 w-4" />
-            Alte Checklisten löschen (&gt;7 Tage)
+            <span className="text-xs sm:text-sm">Alte löschen (&gt;7 Tage)</span>
           </Button>
           <Select value={storeFilter} onValueChange={setStoreFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[150px]">
               <SelectValue placeholder="Store wählen" />
             </SelectTrigger>
             <SelectContent>
@@ -253,7 +253,7 @@ export default function SubmittedLists() {
             </SelectContent>
           </Select>
           <Select value={dateFilter} onValueChange={setDateFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[150px]">
               <SelectValue placeholder="Zeitraum wählen" />
             </SelectTrigger>
             <SelectContent>
@@ -274,7 +274,7 @@ export default function SubmittedLists() {
         </p>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto -mx-3 sm:mx-0">
         <Table>
           <TableHeader>
             <TableRow>
