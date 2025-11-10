@@ -164,7 +164,7 @@ export default function SubmittedLists() {
   };
 
   const deleteOldChecklists = () => {
-    if (confirm("Möchten Sie wirklich alle Checklisten löschen, die älter als 14 Tage sind? Diese Aktion kann nicht rückgängig gemacht werden.")) {
+    if (confirm("Möchten Sie wirklich alle Checklisten löschen, die älter als 7 Tage sind? Diese Aktion kann nicht rückgängig gemacht werden.")) {
       deleteOldChecklistsMutation.mutate();
     }
   };
@@ -236,10 +236,10 @@ export default function SubmittedLists() {
             onClick={deleteOldChecklists}
             disabled={deleteOldChecklistsMutation.isPending}
             className="flex items-center gap-2"
-            title="Löscht alle Checklisten die älter als 14 Tage sind"
+            title="Löscht alle Checklisten die älter als 7 Tage sind"
           >
             <AlertTriangle className="h-4 w-4" />
-            Alte Checklisten löschen (&gt;14 Tage)
+            Alte Checklisten löschen (&gt;7 Tage)
           </Button>
           <Select value={storeFilter} onValueChange={setStoreFilter}>
             <SelectTrigger className="w-[180px]">
