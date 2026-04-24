@@ -14,20 +14,9 @@ export default function StoreSelection({ state, updateState, goBack }: StoreSele
   const { t } = useLanguage();
   
   const selectStore = (store: string) => {
-    // If this is a Betriebsleiter, skip area selection and go directly to employee-info
-    if (state.isBetriebsleiter && state.betriebsleiterCategoryId) {
-      updateState({ 
-        selectedStore: store, 
-        selectedArea: state.betriebsleiterCategoryId,
-        selectedAreaName: 'Betriebsleiter',
-        selectedAreaUseShifts: false,
-        step: 'employee-info' 
-      });
-    } else {
-      // Normal employees: go to employee-info to enter name/shift
-      // This will check whiteboard enforcement before showing categories
-      updateState({ selectedStore: store, step: 'employee-info' });
-    }
+    // Normal employees: go to employee-info to enter name/shift
+    // This will check whiteboard enforcement before showing categories
+    updateState({ selectedStore: store, step: 'employee-info' });
   };
 
   const resetSavedPreferences = () => {

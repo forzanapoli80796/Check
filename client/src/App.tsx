@@ -12,7 +12,7 @@ import AdminLogin from "@/pages/admin-login";
 import EmployeeWorkflow from "@/pages/employee-workflow";
 import EmployeePassword from "@/pages/employee-password";
 import AdminDashboard from "@/pages/admin-dashboard";
-import BetriebsleiterDashboard from "@/pages/betriebsleiter-dashboard";
+
 import TeigDashboard from "@/pages/teig-dashboard";
 import CategoryTasks from "@/pages/category-tasks";
 import LocationSelection from "@/pages/location-selection";
@@ -49,11 +49,7 @@ function Router() {
           <AdminDashboard />
         </AuthWrapper>
       </Route>
-      <Route path="/betriebsleiter">
-        <AuthWrapper>
-          <BetriebsleiterDashboard />
-        </AuthWrapper>
-      </Route>
+
       <Route path="/teig">
         <AuthWrapper>
           <TeigDashboard />

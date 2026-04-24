@@ -1,5 +1,5 @@
 export interface UserSession {
-  role: 'mitarbeiter' | 'betriebsleiter' | 'admin' | null;
+  role: 'mitarbeiter' | 'admin' | null;
 }
 
 export interface EmployeeWorkflowState {
@@ -15,8 +15,7 @@ export interface EmployeeWorkflowState {
   selectedShiftPhase: 'schichtanfang' | 'schichtende' | null;
   completedTasks: string[];
   totalTasks: number;
-  isBetriebsleiter?: boolean; // Whether the user is a Betriebsleiter
-  betriebsleiterCategoryId?: string; // The ID of the Betriebsleiter category
+
   navigationHistory?: EmployeeWorkflowState['step'][]; // History of steps for consistent back navigation
 }
 

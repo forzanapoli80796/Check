@@ -28,8 +28,6 @@ export default function EmployeePassword() {
       // Navigate based on role
       if (role === 'mitarbeiter') {
         navigate("/employee");
-      } else if (role === 'betriebsleiter') {
-        navigate("/employee?role=betriebsleiter");
       } else if (role === 'teig') {
         navigate("/teig");
       }
@@ -49,8 +47,6 @@ export default function EmployeePassword() {
 
   const getRoleTitle = () => {
     switch(role) {
-      case 'betriebsleiter':
-        return t.startPage.roles.manager;
       case 'teig':
         return t.startPage.roles.teig;
       default:

@@ -688,7 +688,6 @@ export class MemStorage implements IStorage {
       { name: "Fahrer", description: "Fahrzeug & Lieferung", icon: "car", useShifts: true, categoryType: "shifts" as const, isSubcategoryParent: false },
       { name: "Inventur", description: "Bestandsaufnahme", icon: "clipboard-list", useShifts: false, categoryType: "inventory" as const, isSubcategoryParent: false },
       { name: "Sonderreinigung", description: "Tiefenreinigung", icon: "broom", useShifts: false, categoryType: "simple" as const, isSubcategoryParent: false },
-      { name: "Betriebsleiter", description: "Management & Organisation", icon: "briefcase", useShifts: false, categoryType: "simple" as const, isSubcategoryParent: false },
       { name: "Kugelfahrer-Hausmeister", description: "Wartung & Reparaturen", icon: "wrench", useShifts: false, categoryType: "simple" as const, isSubcategoryParent: false },
     ];
     
@@ -759,10 +758,6 @@ export class MemStorage implements IStorage {
       // Sonderreinigung tasks
       { categoryName: "Sonderreinigung", title: "Tiefenreinigung durchführen", description: "Gründliche Reinigung aller Bereiche", icon: "broom", priority: "medium" as const },
       { categoryName: "Sonderreinigung", title: "Desinfektionsprotokoll", description: "Vollständige Desinfektion nach Hygieneplan", icon: "spray-can", priority: "high" as const },
-      
-      // Betriebsleiter tasks
-      { categoryName: "Betriebsleiter", title: "Personalplanung prüfen", description: "Schichtpläne kontrollieren und anpassen", icon: "users", priority: "high" as const },
-      { categoryName: "Betriebsleiter", title: "Tagesabrechnung", description: "Kassenabrechnungen und Berichte erstellen", icon: "coins", priority: "high" as const },
       
       // Mengenformular Spätschicht tasks
       { categoryName: "Mengenformular Spätschicht", title: "Kugelmengen erfasst", description: "Anzahl der Teigkugeln für morgen gezählt", icon: "clipboard-list", priority: "high" as const },
@@ -1297,7 +1292,6 @@ async function initializeDefaultData(storage: DatabaseStorage) {
     { name: "Fahrer", description: "Fahrzeug & Lieferung", icon: "car" },
     { name: "Inventur", description: "Bestandsaufnahme", icon: "clipboard-list" },
     { name: "Sonderreinigung", description: "Tiefenreinigung", icon: "broom" },
-    { name: "Betriebsleiter", description: "Management & Organisation", icon: "briefcase" },
     { name: "Kugelfahrer-Hausmeister", description: "Wartung & Reparaturen", icon: "wrench" },
   ];
 
@@ -1331,9 +1325,6 @@ async function initializeDefaultData(storage: DatabaseStorage) {
     { categoryName: "Sonderreinigung", title: "Tiefenreinigung durchführen", description: "Gründliche Reinigung aller Bereiche", icon: "broom", priority: "medium" as const },
     { categoryName: "Sonderreinigung", title: "Desinfektionsprotokoll", description: "Vollständige Desinfektion nach Hygieneplan", icon: "spray-can", priority: "high" as const },
     
-    // Betriebsleiter tasks
-    { categoryName: "Betriebsleiter", title: "Personalplanung prüfen", description: "Schichtpläne kontrollieren und anpassen", icon: "users", priority: "high" as const },
-    { categoryName: "Betriebsleiter", title: "Tagesabrechnung", description: "Kassenabrechnungen und Berichte erstellen", icon: "coins", priority: "high" as const },
   ];
 
   for (const taskData of defaultTasks) {

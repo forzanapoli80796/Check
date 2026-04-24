@@ -11,8 +11,7 @@ export const translations = {
         employeeDesc: 'Checklisten ausfüllen',
         teig: 'Teig',
         teigDesc: 'Teig-Produktion anzeigen',
-        manager: 'Betriebsleiter',
-        managerDesc: 'Management-Aufgaben',
+
         admin: 'Admin',
         adminDesc: 'System verwalten',
         language: 'Sprache',
@@ -32,7 +31,7 @@ export const translations = {
           'Terminal': 'Terminal',
           'Küche': 'Küche',
           'Fahrer': 'Fahrer',
-          'Betriebsleiter': 'Betriebsleiter',
+
           'Sonder/Samstagsreinigung': 'Sonder/Samstagsreinigung',
           'Inventur/Non-Food': 'Inventur/Non-Food',
           'Inventur': 'Inventur',
@@ -219,8 +218,7 @@ export const translations = {
         employeeDesc: 'Complete checklists',
         teig: 'Dough',
         teigDesc: 'View dough production',
-        manager: 'Manager',
-        managerDesc: 'Management tasks',
+
         admin: 'Admin',
         adminDesc: 'Manage system',
         language: 'Language',
@@ -240,7 +238,7 @@ export const translations = {
           'Terminal': 'Terminal',
           'Küche': 'Kitchen',
           'Fahrer': 'Driver',
-          'Betriebsleiter': 'Manager',
+
           'Sonder/Samstagsreinigung': 'Special/Saturday Cleaning',
           'Inventur/Non-Food': 'Inventory/Non-Food',
           'Inventur': 'Inventory',

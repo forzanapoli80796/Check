@@ -32,7 +32,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
   const [newBalls, setNewBalls] = useState<string>("");
   const [lunchShiftDate, setLunchShiftDate] = useState<string>("");
   const [ballsForToday, setBallsForToday] = useState<string>("");
-  const [completionDate, setCompletionDate] = useState<string>(""); // Datum für Betriebsleiter
+
   const { toast } = useToast();
 
   const { data: categories, isLoading: categoriesLoading } = useQuery<Category[]>({
@@ -77,9 +77,6 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
       } else if (currentCategory?.name === 'Mengenformular Mittagsschicht') {
         submissionData.lunchShiftDate = lunchShiftDate || null;
         submissionData.ballsForToday = ballsForToday ? parseInt(ballsForToday) : null;
-      } else if (currentCategory?.name.toLowerCase().includes('betriebsleiter')) {
-        // Betriebsleiter: Füge das Abschlussdatum hinzu
-        submissionData.completionDate = completionDate || null;
       }
       
       const response = await apiRequest("POST", "/api/checklists", submissionData);
@@ -344,33 +341,6 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
                 className="w-full"
                 required={currentCategory?.name === 'Mengenformular Spätschicht'}
               />
-            </div>
-          </div>
-        )}
-
-        {/* Betriebsleiter specific fields */}
-        {currentCategory?.name.toLowerCase().includes('betriebsleiter') && (
-          <div className="space-y-4 mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-            <div>
-              <Label className="text-sm font-medium mb-2 block">
-                <CalendarDays className="inline mr-2" size={16} />
-                {language === 'de' ? 'Wann wurden die Aufgaben erledigt?' : 'When were the tasks completed?'}
-              </Label>
-              <Input
-                type="date"
-                value={completionDate}
-                onChange={(e) => setCompletionDate(e.target.value)}
-                max={new Date().toISOString().split('T')[0]}
-                className="w-full"
-              />
-              {completionDate && (
-                <p className="text-sm text-green-600 mt-2">
-                  ✓ {language === 'de' 
-                    ? `Aufgaben wurden am ${new Date(completionDate).toLocaleDateString('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} erledigt`
-                    : `Tasks were completed on ${new Date(completionDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`
-                  }
-                </p>
-              )}
             </div>
           </div>
         )}
