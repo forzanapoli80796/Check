@@ -551,14 +551,17 @@ export default function LightspeedUpload() {
                             </div>
                           ))}
                         </div>
-                        {/* Per-day delivery prognosis */}
+                        {/* Per-day weather notes */}
                         <div className="mt-2 space-y-1">
-                          {info.weather.map(w => (
-                            <div key={w.date} className="flex items-start gap-1.5 text-[11px] text-gray-700">
+                          {info.weather.filter(w => w.prognosis !== "Normales Wetter").map(w => (
+                            <div key={w.date} className="flex items-start gap-1.5 text-[11px] text-gray-600">
                               <span className="font-semibold text-gray-500 min-w-[58px]">{fmtDate(w.date)}:</span>
                               <span>{w.prognosis}</span>
                             </div>
                           ))}
+                          {info.weather.every(w => w.prognosis === "Normales Wetter") && (
+                            <p className="text-[11px] text-gray-500 italic">Normales Wetter die ganze Woche – keine besonderen Hinweise.</p>
+                          )}
                         </div>
                       </div>
                     )}

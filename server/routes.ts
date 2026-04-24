@@ -536,18 +536,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return                             { icon: "⛈️",  label: "Gewitter" };
       }
 
-      // Delivery prognosis for a pizza restaurant based on weather
+      // General weather note for admin info
       function deliveryPrognosis(code: number, tempMax: number, precipMm: number): string {
-        const isRainy   = precipMm > 1 || (code >= 51 && code <= 99);
-        const isSunny   = code <= 2;
-        const isHot     = tempMax >= 23;
-        const isCold    = tempMax <= 10;
+        const isRainy = precipMm > 1 || (code >= 51 && code <= 99);
+        const isHot   = tempMax >= 24;
+        const isCold  = tempMax <= 8;
+        const isSnow  = code >= 71 && code <= 77;
 
-        if (isRainy)                     return "🟢 Schlechtwetter → Liefermengen erhöht erwartet";
-        if (isSunny && isHot)            return "🔴 Heiß & sonnig → Lieferrückgang möglich (Biergärten, Parks)";
-        if (isSunny && !isCold)          return "🟡 Schönes Wetter → leichter Lieferrückgang möglich";
-        if (isCold)                      return "🟢 Kalt → normale bis erhöhte Liefermengen";
-        return                                  "⚪ Normales Wetter → Standardmengen";
+        if (isSnow)   return "Schnee erwartet – Straßenverhältnisse beachten";
+        if (isRainy)  return "Regen erwartet – " + precipMm + " mm Niederschlag";
+        if (isHot)    return "Sehr warm – Höchsttemperatur " + tempMax + "°C";
+        if (isCold)   return "Kalt – Höchsttemperatur nur " + tempMax + "°C";
+        return                "Normales Wetter";
       }
 
       let weatherDays: WeatherDay[] = [];
