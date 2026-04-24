@@ -27,7 +27,8 @@ interface DayResult {
   prodLabel: string;      // short label of production day
   weeklyValues: (number | null)[];
   median: number;
-  produktion: number;
+  produktion: number;     // median + 12%, rounded
+  machine: MachinePlan;   // optimal machine combination
 }
 
 interface AnalysisResult {
@@ -122,9 +123,49 @@ function calcMedian(values: number[]): number {
   return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
 }
 
-function roundProduktion(value: number): number {
-  if (value <= 0) return 0;
-  return Math.round(value / 5) * 5;
+// Machine capacities in descending order
+const MACHINES = [125, 115, 62] as const;
+
+interface MachinePlan {
+  counts: [number, number, number]; // 125er, 115er, 62er
+  total: number;
+  label: string; // e.g. "2×115 + 1×62 = 292"
+}
+
+// Find the combination of machine runs that produces at least `needed` balls
+// with the minimum total output (least waste), then fewest runs
+function calcMachinePlan(needed: number): MachinePlan {
+  if (needed <= 0) return { counts: [0, 0, 0], total: 0, label: "–" };
+
+  let best: MachinePlan | null = null;
+
+  for (let a = 0; a <= 5; a++) {       // 125er batches
+    for (let b = 0; b <= 5; b++) {     // 115er batches
+      for (let c = 0; c <= 8; c++) {   // 62er batches
+        const total = a * 125 + b * 115 + c * 62;
+        if (total < needed) continue;
+
+        const runs = a + b + c;
+        const isBetter = !best ||
+          total < best.total ||
+          (total === best.total && runs < (best.counts[0] + best.counts[1] + best.counts[2]));
+
+        if (isBetter) {
+          const parts: string[] = [];
+          if (a) parts.push(`${a}×125`);
+          if (b) parts.push(`${b}×115`);
+          if (c) parts.push(`${c}×62`);
+          best = {
+            counts: [a, b, c],
+            total,
+            label: `${parts.join(" + ")} = ${total}`,
+          };
+        }
+      }
+    }
+  }
+
+  return best!;
 }
 
 // ── Core analysis ─────────────────────────────────────────────────────────
@@ -224,6 +265,8 @@ function analyzeCSV(text: string, selectedStore: Store): AnalysisResult | string
     const med = calcMedian(presentValues);
     const sw = idx + 1; // sales weekday 1-7
     const pw = productionWeekday(sw);
+    const baseProduktion = Math.ceil(med * 1.12); // median + 12%, ceiling
+    const machine = calcMachinePlan(baseProduktion);
     return {
       salesWeekday: sw,
       prodWeekday: pw,
@@ -231,7 +274,8 @@ function analyzeCSV(text: string, selectedStore: Store): AnalysisResult | string
       prodLabel: WEEKDAY_NAMES[pw - 1],
       weeklyValues,
       median: Math.round(med),
-      produktion: roundProduktion(med * 1.12),
+      produktion: baseProduktion,
+      machine,
     };
   });
 
@@ -300,8 +344,8 @@ export default function LightspeedUpload() {
     for (const day of result.days) {
       if (day.produktion > 0) {
         try {
-          // Save using PRODUCTION weekday (2 days before the sales day)
-          await saveMutation.mutateAsync({ weekday: day.prodWeekday, store: result.store, kugelMenge: day.produktion });
+          // Save machine total on PRODUCTION weekday (2 days before sales day)
+          await saveMutation.mutateAsync({ weekday: day.prodWeekday, store: result.store, kugelMenge: day.machine.total });
           successCount++;
         } catch { /* continue */ }
       }
@@ -415,7 +459,9 @@ export default function LightspeedUpload() {
                   <div key={d.label} className="flex items-center gap-1 text-xs bg-white border border-amber-200 rounded px-2 py-1">
                     <span className="font-bold text-amber-700">{d.prodLabel}</span>
                     <span className="text-gray-400">→</span>
-                    <span className="text-gray-600">{d.produktion} Kugeln für {WEEKDAY_FULL[d.salesWeekday - 1]}</span>
+                    <span className="font-semibold text-orange-700">{d.machine.total}</span>
+                    <span className="text-gray-500">({d.machine.label.split("=")[0].trim()})</span>
+                    <span className="text-gray-400">für {WEEKDAY_FULL[d.salesWeekday - 1]}</span>
                   </div>
                 ))}
               </div>
@@ -461,10 +507,26 @@ export default function LightspeedUpload() {
                     ))}
                   </tr>
                   <tr className="bg-green-50 font-bold">
-                    <td className="border border-gray-200 p-2 text-green-800">PRODUKTION</td>
+                    <td className="border border-gray-200 p-2 text-green-800">Mindestbedarf</td>
                     {result.days.map(d => (
                       <td key={d.label} className="border border-gray-200 p-2 text-right text-green-800 tabular-nums">
                         {d.produktion}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="bg-orange-50 font-bold border-t-2 border-orange-300">
+                    <td className="border border-gray-200 p-2 text-orange-900">Maschinen</td>
+                    {result.days.map(d => (
+                      <td key={d.label} className="border border-gray-200 p-2 text-right text-orange-800 text-xs font-semibold tabular-nums">
+                        {d.machine.label}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="bg-orange-100 font-extrabold">
+                    <td className="border border-gray-200 p-2 text-orange-900">TOTAL KUGELN</td>
+                    {result.days.map(d => (
+                      <td key={d.label} className="border border-gray-200 p-2 text-right text-orange-900 text-base tabular-nums">
+                        {d.machine.total}
                       </td>
                     ))}
                   </tr>
@@ -472,7 +534,7 @@ export default function LightspeedUpload() {
               </table>
             </div>
             <p className="text-xs text-gray-400 mt-3">
-              PRODUKTION = Median +12 % · auf 5er gerundet · wird im Produktionstag gespeichert (−2 Tage){result.store === "TS17" ? " · ohne Montag" : ""}
+              Mindestbedarf = Median +12 % · Maschinen: 125er / 115er / 62er · TOTAL KUGELN = tatsächliche Produktionsmenge · gespeichert auf Produktionstag (−2 Tage){result.store === "TS17" ? " · ohne Montag" : ""}
             </p>
           </CardContent>
         </Card>
