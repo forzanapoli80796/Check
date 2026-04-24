@@ -469,113 +469,6 @@ export default function LightspeedUpload() {
               </div>
             </div>
 
-            {/* ── Upcoming-week info box ─────────────────────────── */}
-            <div className="mt-3">
-              {weekInfoQuery.isLoading && (
-                <div className="flex items-center gap-2 text-sm text-gray-500 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <Loader2 className="animate-spin" size={15} />
-                  <span>KI analysiert kommende Woche auf Feiertage &amp; Bayern-Heimspiele …</span>
-                </div>
-              )}
-              {weekInfoQuery.isError && (
-                <div className="flex items-center gap-2 text-sm text-gray-500 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <Info size={15} />
-                  <span>Wocheninfos konnten nicht geladen werden.</span>
-                </div>
-              )}
-              {weekInfoQuery.data && (() => {
-                const info = weekInfoQuery.data;
-                const hasAlerts = info.holidays.length > 0 || info.bayernHomeGames.length > 0;
-                return (
-                  <div className={`p-3 rounded-lg border text-sm ${
-                    hasAlerts
-                      ? "bg-red-50 border-red-300"
-                      : "bg-green-50 border-green-200"
-                  }`}>
-                    <p className="font-semibold mb-1.5 flex items-center gap-1.5">
-                      {hasAlerts
-                        ? <ShieldAlert size={15} className="text-red-600" />
-                        : <CheckCircle2 size={15} className="text-green-600" />}
-                      <span className={hasAlerts ? "text-red-800" : "text-green-800"}>
-                        Kommende Woche ({fmtDate(info.weekRange.from)} – {fmtDate(info.weekRange.to)})
-                      </span>
-                    </p>
-                    {!hasAlerts && (
-                      <p className="text-green-700 text-xs">Keine Feiertage und keine FC-Bayern-Heimspiele gefunden – Planung kann 1:1 übernommen werden.</p>
-                    )}
-                    {info.holidays.length > 0 && (
-                      <div className="mb-1.5">
-                        <p className="text-red-700 font-medium text-xs mb-1">Feiertage in Bayern:</p>
-                        <ul className="space-y-0.5">
-                          {info.holidays.map(h => (
-                            <li key={h.datum} className="flex items-center gap-1.5 text-xs text-red-800">
-                              <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
-                              <span className="font-semibold">{fmtDate(h.datum)}</span> – {h.name}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {info.bayernHomeGames.length > 0 && (
-                      <div>
-                        <p className="text-red-700 font-medium text-xs mb-1">FC Bayern Heimspiele (Allianz Arena):</p>
-                        <ul className="space-y-0.5">
-                          {info.bayernHomeGames.map(g => (
-                            <li key={g.date + g.opponent} className="flex items-center gap-1.5 text-xs text-red-800">
-                              <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
-                              <span className="font-semibold">{fmtDate(g.date)}</span> – FC Bayern vs {g.opponent}
-                              <span className="text-red-500 text-[10px]">({g.competition})</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {/* ── Weather forecast table ──────────────────── */}
-                    {info.weather && info.weather.length > 0 && (
-                      <div className={`mt-3 pt-3 border-t ${hasAlerts ? "border-red-200" : "border-green-200"}`}>
-                        <p className="text-xs font-semibold mb-2 text-gray-700">🌤️ Wetterprognose München (Open-Meteo)</p>
-                        <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${info.weather.length}, minmax(0, 1fr))` }}>
-                          {info.weather.map(w => (
-                            <div key={w.date} className="bg-white rounded-lg border border-gray-200 p-2 text-center shadow-sm">
-                              <p className="text-[10px] font-semibold text-gray-500 mb-0.5">{fmtDate(w.date)}</p>
-                              <p className="text-2xl leading-none mb-1">{w.icon}</p>
-                              <p className="text-[10px] text-gray-600 leading-tight mb-1">{w.label}</p>
-                              <p className="text-xs font-bold text-red-600">{w.tempMax}°</p>
-                              <p className="text-[10px] text-blue-500">{w.tempMin}°</p>
-                              {w.precipMm > 0 && (
-                                <p className="text-[9px] text-blue-600 mt-0.5">💧 {w.precipMm} mm</p>
-                              )}
-                              {w.windKmh > 20 && (
-                                <p className="text-[9px] text-gray-500">💨 {w.windKmh} km/h</p>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                        {/* Per-day weather notes */}
-                        <div className="mt-2 space-y-1">
-                          {info.weather.filter(w => w.prognosis !== "Normales Wetter").map(w => (
-                            <div key={w.date} className="flex items-start gap-1.5 text-[11px] text-gray-600">
-                              <span className="font-semibold text-gray-500 min-w-[58px]">{fmtDate(w.date)}:</span>
-                              <span>{w.prognosis}</span>
-                            </div>
-                          ))}
-                          {info.weather.every(w => w.prognosis === "Normales Wetter") && (
-                            <p className="text-[11px] text-gray-500 italic">Normales Wetter die ganze Woche – keine besonderen Hinweise.</p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {hasAlerts && (
-                      <p className="mt-2 text-xs text-red-700 font-medium">
-                        ⚠️ Bitte Produktionsmengen vor dem Übernehmen manuell prüfen und ggf. anpassen!
-                      </p>
-                    )}
-                  </div>
-                );
-              })()}
-            </div>
-
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -676,6 +569,102 @@ export default function LightspeedUpload() {
                   : <ArrowRight className="mr-2" size={14} />}
                 In Teig-Planung übernehmen
               </Button>
+            </div>
+
+            {/* ── Upcoming-week info box ─────────────────────────── */}
+            <div className="mt-4">
+              {weekInfoQuery.isLoading && (
+                <div className="flex items-center gap-2 text-sm text-gray-500 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <Loader2 className="animate-spin" size={15} />
+                  <span>KI analysiert kommende Woche auf Feiertage &amp; Bayern-Heimspiele …</span>
+                </div>
+              )}
+              {weekInfoQuery.isError && (
+                <div className="flex items-center gap-2 text-sm text-gray-500 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <Info size={15} />
+                  <span>Wocheninfos konnten nicht geladen werden.</span>
+                </div>
+              )}
+              {weekInfoQuery.data && (() => {
+                const info = weekInfoQuery.data;
+                const hasAlerts = info.holidays.length > 0 || info.bayernHomeGames.length > 0;
+                return (
+                  <div className={`p-3 rounded-lg border text-sm ${hasAlerts ? "bg-red-50 border-red-300" : "bg-green-50 border-green-200"}`}>
+                    <p className="font-semibold mb-1.5 flex items-center gap-1.5">
+                      {hasAlerts
+                        ? <ShieldAlert size={15} className="text-red-600" />
+                        : <CheckCircle2 size={15} className="text-green-600" />}
+                      <span className={hasAlerts ? "text-red-800" : "text-green-800"}>
+                        Kommende Woche ({fmtDate(info.weekRange.from)} – {fmtDate(info.weekRange.to)})
+                      </span>
+                    </p>
+                    {!hasAlerts && (
+                      <p className="text-green-700 text-xs">Keine Feiertage und keine FC-Bayern-Heimspiele gefunden – Planung kann 1:1 übernommen werden.</p>
+                    )}
+                    {info.holidays.length > 0 && (
+                      <div className="mb-1.5">
+                        <p className="text-red-700 font-medium text-xs mb-1">Feiertage in Bayern:</p>
+                        <ul className="space-y-0.5">
+                          {info.holidays.map(h => (
+                            <li key={h.datum} className="flex items-center gap-1.5 text-xs text-red-800">
+                              <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
+                              <span className="font-semibold">{fmtDate(h.datum)}</span> – {h.name}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {info.bayernHomeGames.length > 0 && (
+                      <div>
+                        <p className="text-red-700 font-medium text-xs mb-1">FC Bayern Heimspiele (Allianz Arena):</p>
+                        <ul className="space-y-0.5">
+                          {info.bayernHomeGames.map(g => (
+                            <li key={g.date + g.opponent} className="flex items-center gap-1.5 text-xs text-red-800">
+                              <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
+                              <span className="font-semibold">{fmtDate(g.date)}</span> – FC Bayern vs {g.opponent}
+                              <span className="text-red-500 text-[10px]">({g.competition})</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {info.weather && info.weather.length > 0 && (
+                      <div className={`mt-3 pt-3 border-t ${hasAlerts ? "border-red-200" : "border-green-200"}`}>
+                        <p className="text-xs font-semibold mb-2 text-gray-700">🌤️ Wetterprognose München (Open-Meteo)</p>
+                        <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${info.weather.length}, minmax(0, 1fr))` }}>
+                          {info.weather.map(w => (
+                            <div key={w.date} className="bg-white rounded-lg border border-gray-200 p-2 text-center shadow-sm">
+                              <p className="text-[10px] font-semibold text-gray-500 mb-0.5">{fmtDate(w.date)}</p>
+                              <p className="text-2xl leading-none mb-1">{w.icon}</p>
+                              <p className="text-[10px] text-gray-600 leading-tight mb-1">{w.label}</p>
+                              <p className="text-xs font-bold text-red-600">{w.tempMax}°</p>
+                              <p className="text-[10px] text-blue-500">{w.tempMin}°</p>
+                              {w.precipMm > 0 && <p className="text-[9px] text-blue-600 mt-0.5">💧 {w.precipMm} mm</p>}
+                              {w.windKmh > 20 && <p className="text-[9px] text-gray-500">💨 {w.windKmh} km/h</p>}
+                            </div>
+                          ))}
+                        </div>
+                        <div className="mt-2 space-y-1">
+                          {info.weather.filter(w => w.prognosis !== "Normales Wetter").map(w => (
+                            <div key={w.date} className="flex items-start gap-1.5 text-[11px] text-gray-600">
+                              <span className="font-semibold text-gray-500 min-w-[58px]">{fmtDate(w.date)}:</span>
+                              <span>{w.prognosis}</span>
+                            </div>
+                          ))}
+                          {info.weather.every(w => w.prognosis === "Normales Wetter") && (
+                            <p className="text-[11px] text-gray-500 italic">Normales Wetter die ganze Woche – keine besonderen Hinweise.</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {hasAlerts && (
+                      <p className="mt-2 text-xs text-red-700 font-medium">
+                        ⚠️ Bitte Produktionsmengen vor dem Übernehmen manuell prüfen und ggf. anpassen!
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </CardContent>
         </Card>
