@@ -1,0 +1,201 @@
+Analysiere die hochgeladene Transaktionsdatei und erstelle mir exakt die folgende Tabelle.
+
+
+
+Zusätzliche Regel:
+Schreibe oberhalb der Tabelle den zum Datensatz passenden **Storename** als einzelne Zeile.
+Beispiel:
+**Haidhausen**
+
+
+
+---
+
+
+
+## REGELN
+
+
+
+1. Berücksichtige ausschließlich Einträge, deren **Gruppe** genau einer der folgenden Werte ist:
+
+
+
+   * Pizza
+   * Panuozzo
+   * Rollini
+   * Pizza Team
+   * Ausschuss
+
+
+
+2. Die Menge entnimmst du der Spalte **„Mng“**.
+
+
+
+3. Die Produktzuordnung erfolgt **ausschließlich über die Spalte „Gruppe“**.
+
+
+
+4. Die Spalte **„Artikel“ darf nicht zur Zuordnung verwendet werden**.
+
+
+
+5. Summiere alle relevanten Gruppen zu einer **Gesamtmenge pro Tag**.
+   Es gibt **keine Trennung nach Gruppe oder Produkt** in der Ausgabetabelle.
+
+
+
+---
+
+
+
+## MONTAG-LOGIK
+
+
+
+* Geräte_Name **„TS17“**:
+  → Montag komplett ignorieren (weder Berechnung noch Tabelle)
+
+
+
+* Geräte_Name **„KP5“** und **„JP23“**:
+  → Montag berücksichtigen **und in der Tabelle darstellen**
+
+
+
+---
+
+
+
+## FEIERTAGE
+
+
+
+* Werden ignoriert
+
+
+
+---
+
+
+
+## WOCHENFILTER
+
+
+
+Verwende nur die letzten **5 gültigen Wochen**:
+
+
+
+* **TS17**: Woche gültig bei **Di–So**
+* **KP5 / JP23**: Woche gültig bei **Mo–So**
+
+
+
+---
+
+
+
+## AUSGABEFORMAT (VERBINDLICH)
+
+
+
+Zuerst den **Storename** ausgeben.
+
+
+
+Dann:
+
+
+
+### Für TS17:
+
+
+
+| Woche | Di | Mi | Do | Fr | Sa | So |
+| ----- | -: | -: | -: | -: | -: | -: |
+
+
+
+### Für KP5 / JP23:
+
+
+
+| Woche | Mo | Di | Mi | Do | Fr | Sa | So |
+| ----- | -: | -: | -: | -: | -: | -: | -: |
+
+
+
+| KW xx | ... |
+
+
+
+* Genau **5 Kalenderwochen** anzeigen
+* Danach eine **Median**-Zeile
+* Danach eine **PRODUKTION**-Zeile
+
+
+
+---
+
+
+
+## BERECHNUNG
+
+
+
+1. Summiere Mengen pro Wochentag.
+
+
+
+2. Berechne den **Median je Wochentag** über die 5 Wochen.
+
+
+
+3. **PRODUKTION**:
+
+
+
+   * Median + 10–15%
+   * sinnvoll runden
+   * keine krummen Zahlen
+
+
+
+---
+
+
+
+## FORMATIERUNG
+
+
+
+* Storename oberhalb der Tabelle
+* **„Median“ kursiv schreiben** (inkl. Werte)
+* **„PRODUKTION“ fett schreiben** (inkl. Werte)
+* Zahlen rechtsbündig (wie im Tabellenformat oben)
+
+
+
+---
+
+
+
+## WICHTIG
+
+
+
+* Keine Erklärung
+* Kein Text vor oder nach der Ausgabe
+* Nur Storename + Tabelle
+* Keine alternative Darstellung
+
+
+
+Wenn Gruppenbezeichnungen abweichen:
+
+
+
+* nur zuordnen, wenn **eindeutig exakt passend**
+* sonst ignorieren (0)
