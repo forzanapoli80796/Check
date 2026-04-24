@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,11 +42,13 @@ export default function AdminLogin() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Logo Header - Mobile optimized */}
       <div className="flex justify-center py-4 sm:py-6">
-        <img 
-          src={forzaCheckLogo} 
-          alt="ForzaCheck Logo" 
-          className="h-14 sm:h-16 object-contain"
-        />
+        <Link href="/">
+          <img 
+            src={forzaCheckLogo} 
+            alt="ForzaCheck Logo" 
+            className="h-14 sm:h-16 object-contain cursor-pointer hover:opacity-80 transition-opacity"
+          />
+        </Link>
       </div>
       
       <div className="flex-1 flex items-center justify-center px-3 sm:px-4">

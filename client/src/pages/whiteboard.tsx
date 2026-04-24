@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -128,11 +128,13 @@ export default function Whiteboard() {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <div className="flex justify-center py-6">
-          <img 
-            src={forzaCheckLogo} 
-            alt="ForzaCheck Logo" 
-            className="h-16 object-contain"
-          />
+          <Link href="/">
+            <img 
+              src={forzaCheckLogo} 
+              alt="ForzaCheck Logo" 
+              className="h-16 object-contain cursor-pointer hover:opacity-80 transition-opacity"
+            />
+          </Link>
         </div>
         
         <div className="flex-1 flex items-center justify-center px-4">
@@ -180,11 +182,13 @@ export default function Whiteboard() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <div className="flex justify-center py-6">
-        <img 
-          src={forzaCheckLogo} 
-          alt="ForzaCheck Logo" 
-          className="h-16 object-contain"
-        />
+        <Link href="/">
+          <img 
+            src={forzaCheckLogo} 
+            alt="ForzaCheck Logo" 
+            className="h-16 object-contain cursor-pointer hover:opacity-80 transition-opacity"
+          />
+        </Link>
       </div>
       
       <div className="flex-1 px-4 pb-4">

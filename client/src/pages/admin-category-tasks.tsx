@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Plus, Edit, Trash2 } from "lucide-react";
-import { useLocation, useRoute } from "wouter";
+import { useLocation, useRoute, Link } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 import { Category, Task } from "@shared/schema";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -286,7 +286,7 @@ export default function AdminCategoryTasks() {
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <img src={forzaCheckLogo} alt="ForzaCheck" className="h-10" />
+            <Link href="/"><img src={forzaCheckLogo} alt="ForzaCheck" className="h-10 cursor-pointer hover:opacity-80 transition-opacity" /></Link>
             <Button
               variant="ghost"
               onClick={() => navigate('/admin')}

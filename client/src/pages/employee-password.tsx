@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -58,11 +58,13 @@ export default function EmployeePassword() {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
       {/* Logo */}
       <div className="mb-8">
-        <img 
-          src={logoPath} 
-          alt="ForzaCheck Logo" 
-          className="h-32 object-contain"
-        />
+        <Link href="/">
+          <img 
+            src={logoPath} 
+            alt="ForzaCheck Logo" 
+            className="h-32 object-contain cursor-pointer hover:opacity-80 transition-opacity"
+          />
+        </Link>
       </div>
 
       <Card className="w-full max-w-md">

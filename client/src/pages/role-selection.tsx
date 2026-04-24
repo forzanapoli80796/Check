@@ -1,4 +1,4 @@
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { User, Settings, Cookie } from "lucide-react";
 import logoPath from "@assets/FORZACHECK1_black_1753816621910.png";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -23,11 +23,13 @@ export default function RoleSelection() {
       {/* Logo Section - Top */}
       <div className="pt-12 pb-8">
         <div className="text-center">
-          <img 
-            src={logoPath} 
-            alt="ForzaCheck Logo" 
-            className="max-h-48 max-w-full mx-auto object-contain drop-shadow-2xl"
-          />
+          <Link href="/">
+            <img 
+              src={logoPath} 
+              alt="ForzaCheck Logo" 
+              className="max-h-48 max-w-full mx-auto object-contain drop-shadow-2xl cursor-pointer hover:opacity-80 transition-opacity"
+            />
+          </Link>
         </div>
       </div>
 

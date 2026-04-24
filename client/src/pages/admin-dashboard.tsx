@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -81,11 +81,13 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Logo Header */}
       <div className="flex justify-center py-4 sm:py-6 px-4">
-        <img 
-          src={forzaCheckLogo} 
-          alt="ForzaCheck Logo" 
-          className="h-12 sm:h-16 object-contain"
-        />
+        <Link href="/">
+          <img 
+            src={forzaCheckLogo} 
+            alt="ForzaCheck Logo" 
+            className="h-12 sm:h-16 object-contain cursor-pointer hover:opacity-80 transition-opacity"
+          />
+        </Link>
       </div>
       
       <div className="flex-1">
