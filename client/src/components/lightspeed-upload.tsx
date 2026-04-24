@@ -12,9 +12,19 @@ type Store = typeof STORES[number];
 // Match group name extracted BEFORE any parenthesis, e.g. "Pizza(123)" → "Pizza"
 const VALID_GROUPS = new Set(["Pizza", "Panuozzo", "Rollini", "Pizza Team", "Ausschuss"]);
 
+// Sales weekday (1-7) → Production weekday (1-7), always 2 days before
+// Mo(1)→Sa(6), Di(2)→So(7), Mi(3)→Mo(1), Do(4)→Di(2), Fr(5)→Mi(3), Sa(6)→Do(4), So(7)→Fr(5)
+function productionWeekday(salesWeekday: number): number {
+  return ((salesWeekday - 3 + 7) % 7) + 1;
+}
+
+const WEEKDAY_FULL = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
+
 interface DayResult {
-  weekday: number; // 1=Mo … 7=So
-  label: string;
+  salesWeekday: number;   // 1=Mo … 7=So (sales day)
+  prodWeekday: number;    // 1=Mo … 7=So (production day = 2 days before)
+  label: string;          // short label of sales day
+  prodLabel: string;      // short label of production day
   weeklyValues: (number | null)[];
   median: number;
   produktion: number;
@@ -212,9 +222,13 @@ function analyzeCSV(text: string, selectedStore: Store): AnalysisResult | string
     });
     const presentValues = weeklyValues.filter(v => v !== null) as number[];
     const med = calcMedian(presentValues);
+    const sw = idx + 1; // sales weekday 1-7
+    const pw = productionWeekday(sw);
     return {
-      weekday: idx + 1,
+      salesWeekday: sw,
+      prodWeekday: pw,
       label: WEEKDAY_NAMES[idx],
+      prodLabel: WEEKDAY_NAMES[pw - 1],
       weeklyValues,
       median: Math.round(med),
       produktion: roundProduktion(med * 1.12),
@@ -286,7 +300,8 @@ export default function LightspeedUpload() {
     for (const day of result.days) {
       if (day.produktion > 0) {
         try {
-          await saveMutation.mutateAsync({ weekday: day.weekday, store: result.store, kugelMenge: day.produktion });
+          // Save using PRODUCTION weekday (2 days before the sales day)
+          await saveMutation.mutateAsync({ weekday: day.prodWeekday, store: result.store, kugelMenge: day.produktion });
           successCount++;
         } catch { /* continue */ }
       }
@@ -294,7 +309,7 @@ export default function LightspeedUpload() {
     queryClient.invalidateQueries({ queryKey: ["/api/teig-production"] });
     toast({
       title: "Teig-Planung übernommen",
-      description: `${successCount} Werte für ${result.store} wurden in die Teig-Planung übertragen.`,
+      description: `${successCount} Produktionstage für ${result.store} wurden übertragen.`,
     });
   };
 
@@ -392,15 +407,37 @@ export default function LightspeedUpload() {
             </div>
           </CardHeader>
           <CardContent>
+            {/* Production schedule summary */}
+            <div className="mb-4 p-3 rounded-lg bg-amber-50 border border-amber-200">
+              <p className="text-xs font-semibold text-amber-800 mb-1.5">Produktionsplan – Kugeln werden 2 Tage vor Verkauf produziert:</p>
+              <div className="flex flex-wrap gap-2">
+                {result.days.map(d => (
+                  <div key={d.label} className="flex items-center gap-1 text-xs bg-white border border-amber-200 rounded px-2 py-1">
+                    <span className="font-bold text-amber-700">{d.prodLabel}</span>
+                    <span className="text-gray-400">→</span>
+                    <span className="text-gray-600">{d.produktion} Kugeln für {WEEKDAY_FULL[d.salesWeekday - 1]}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <div className="overflow-x-auto">
               <table className="w-full text-sm border-collapse">
                 <thead>
                   <tr className="bg-gray-50">
-                    <th className="border border-gray-200 p-2 text-left font-semibold">Woche</th>
+                    <th className="border border-gray-200 p-2 text-left font-semibold">Verkaufstag</th>
                     {result.days.map(d => (
                       <th key={d.label} className="border border-gray-200 p-2 text-right font-semibold min-w-[52px]">
                         {d.label}
                       </th>
+                    ))}
+                  </tr>
+                  <tr className="bg-amber-50">
+                    <td className="border border-gray-200 p-2 text-xs text-amber-700 font-medium">Produzieren am</td>
+                    {result.days.map(d => (
+                      <td key={d.label} className="border border-gray-200 p-2 text-right text-xs text-amber-700 font-semibold">
+                        {d.prodLabel}
+                      </td>
                     ))}
                   </tr>
                 </thead>
@@ -435,7 +472,7 @@ export default function LightspeedUpload() {
               </table>
             </div>
             <p className="text-xs text-gray-400 mt-3">
-              PRODUKTION = Median +12 % · auf 5er gerundet{result.store === "TS17" ? " · ohne Montag" : ""}
+              PRODUKTION = Median +12 % · auf 5er gerundet · wird im Produktionstag gespeichert (−2 Tage){result.store === "TS17" ? " · ohne Montag" : ""}
             </p>
           </CardContent>
         </Card>
