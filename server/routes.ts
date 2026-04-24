@@ -192,6 +192,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(checklists);
   });
 
+  // Missing checklists overview: which expected checklists were NOT submitted on a given day
+  app.get("/api/missing-checklists", async (req, res) => {
+    try {
+      const storage = await getStorage();
+      const { date } = req.query;
+
+      // Determine target date (default: yesterday)
+      let targetDate: Date;
+      if (date && typeof date === 'string') {
+        targetDate = new Date(date);
+      } else {
+        targetDate = new Date();
+        targetDate.setDate(targetDate.getDate() - 1);
+      }
+
+      const dayStart = new Date(targetDate);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(targetDate);
+      dayEnd.setHours(23, 59, 59, 999);
+
+      // Load data
+      const allCategories = await storage.getCategories();
+      const allTasks = await storage.getTasks();
+      const allChecklists = await storage.getChecklists();
+
+      // Filter checklists submitted on the target day
+      const dayChecklists = allChecklists.filter(c => {
+        if (!c.submittedAt) return false;
+        const d = new Date(c.submittedAt);
+        return d >= dayStart && d <= dayEnd;
+      });
+
+      // Only consider categories that are checklist-relevant (not tickets, whiteboard, not parent containers)
+      const relevantCategories = allCategories.filter(cat =>
+        cat.categoryType !== 'tickets' &&
+        cat.categoryType !== 'whiteboard' &&
+        !cat.isSubcategoryParent
+      );
+
+      const STORES = ['JP23', 'KP5', 'TS17'];
+      const SHIFT_COMBOS = [
+        'frühschicht_schichtanfang',
+        'frühschicht_schichtende',
+        'spätschicht_schichtanfang',
+        'spätschicht_schichtende',
+      ];
+
+      const missing: Array<{
+        categoryId: string;
+        categoryName: string;
+        store: string;
+        shiftType: string;
+      }> = [];
+
+      for (const cat of relevantCategories) {
+        const catTasks = allTasks.filter(t => t.categoryId === cat.id);
+
+        for (const store of STORES) {
+          const storeTasks = catTasks.filter(t =>
+            !t.stores || t.stores.length === 0 || t.stores.includes(store)
+          );
+
+          if (storeTasks.length === 0) continue; // No tasks for this store → skip
+
+          if (cat.useShifts) {
+            // Determine which shift combos are expected based on tasks
+            const expectedCombos = SHIFT_COMBOS.filter(combo => {
+              const [shift, phase] = combo.split('_') as [string, string];
+              return storeTasks.some(t =>
+                (t.shift === shift || t.shift === 'both') &&
+                (t.shiftPhase === phase || t.shiftPhase === 'both')
+              );
+            });
+
+            for (const shiftType of expectedCombos) {
+              const submitted = dayChecklists.some(
+                c => c.categoryId === cat.id && c.store === store && c.shiftType === shiftType
+              );
+              if (!submitted) {
+                missing.push({ categoryId: cat.id, categoryName: cat.name, store, shiftType });
+              }
+            }
+          } else {
+            // Simple/inventory: expect one submission per store
+            const submitted = dayChecklists.some(
+              c => c.categoryId === cat.id && c.store === store
+            );
+            if (!submitted) {
+              missing.push({ categoryId: cat.id, categoryName: cat.name, store, shiftType: 'keine_schicht' });
+            }
+          }
+        }
+      }
+
+      res.json({
+        date: targetDate.toISOString().split('T')[0],
+        totalMissing: missing.length,
+        missing,
+        submittedCount: dayChecklists.length,
+      });
+    } catch (error) {
+      console.error("Error computing missing checklists:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   app.post("/api/checklists", async (req, res) => {
     try {
       const storage = await getStorage();
