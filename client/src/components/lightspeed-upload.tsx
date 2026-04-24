@@ -225,14 +225,49 @@ export default function LightspeedUpload() {
 
     try {
       const text = await file.text();
+      if (!text.trim()) {
+        setError("Die Datei ist leer. Bitte lade eine gültige Lightspeed CSV-Datei hoch.");
+        setIsProcessing(false);
+        return;
+      }
+
+      // Show detected columns for debugging
+      const rows = parseCSV(text);
+      if (!rows.length) {
+        setError("Die CSV-Datei konnte nicht gelesen werden. Prüfe ob die Datei korrekt exportiert wurde.");
+        setIsProcessing(false);
+        return;
+      }
+
+      const headers = Object.keys(rows[0]);
+      const datumCol = findCol(headers, ["Datum", "Date", "Datum/Uhrzeit", "Transaktionsdatum"]);
+      const gruppeCol = findCol(headers, ["Gruppe", "Group", "Warengruppe"]);
+      const mngCol = findCol(headers, ["Mng", "Menge", "Quantity", "Anzahl"]);
+
+      const missing: string[] = [];
+      if (!datumCol) missing.push("Datum");
+      if (!gruppeCol) missing.push("Gruppe");
+      if (!mngCol) missing.push("Mng");
+
+      if (missing.length > 0) {
+        setError(
+          `Spalten nicht gefunden: ${missing.join(", ")}.\n` +
+          `Gefundene Spalten: ${headers.slice(0, 10).join(", ")}${headers.length > 10 ? " ..." : ""}`
+        );
+        setIsProcessing(false);
+        return;
+      }
+
       const analysis = analyzeCSV(text, selectedStore);
       if (!analysis) {
-        setError("Die CSV-Datei konnte nicht analysiert werden. Bitte prüfe das Format (Spalten: Datum, Gruppe, Mng, Geräte_Name).");
+        setError(
+          `Keine passenden Transaktionsdaten gefunden. Prüfe ob die Gruppen (Pizza, Panuozzo, Rollini, Pizza Team, Ausschuss) vorhanden sind und ob die letzten 5 Wochen Daten enthalten.`
+        );
       } else {
         setResult(analysis);
       }
     } catch (e) {
-      setError("Fehler beim Lesen der Datei.");
+      setError("Fehler beim Lesen der Datei. Bitte stelle sicher, dass es sich um eine CSV-Datei handelt.");
     } finally {
       setIsProcessing(false);
     }
@@ -345,7 +380,7 @@ export default function LightspeedUpload() {
           {error && (
             <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200">
               <AlertTriangle className="text-red-500 shrink-0 mt-0.5" size={16} />
-              <p className="text-sm text-red-700">{error}</p>
+              <p className="text-sm text-red-700 whitespace-pre-wrap">{error}</p>
             </div>
           )}
         </CardContent>
