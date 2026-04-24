@@ -8,11 +8,17 @@ import { useToast } from "@/hooks/use-toast";
 
 // ── Types for the upcoming-week-info endpoint ──────────────────────────────
 interface HolidayEntry { name: string; datum: string; }
-interface BayernGame { competition: string; date: string; opponent: string; }
+interface BayernGame  { competition: string; date: string; opponent: string; }
+interface WeatherDay  {
+  date: string; tempMax: number; tempMin: number;
+  precipMm: number; windKmh: number;
+  icon: string; label: string; prognosis: string;
+}
 interface UpcomingWeekInfo {
   weekRange: { from: string; to: string };
   holidays: HolidayEntry[];
   bayernHomeGames: BayernGame[];
+  weather: WeatherDay[];
 }
 
 // Format ISO date "2026-04-28" → "Di, 28.04."
@@ -524,6 +530,39 @@ export default function LightspeedUpload() {
                         </ul>
                       </div>
                     )}
+                    {/* ── Weather forecast table ──────────────────── */}
+                    {info.weather && info.weather.length > 0 && (
+                      <div className={`mt-3 pt-3 border-t ${hasAlerts ? "border-red-200" : "border-green-200"}`}>
+                        <p className="text-xs font-semibold mb-2 text-gray-700">🌤️ Wetterprognose München (Open-Meteo)</p>
+                        <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${info.weather.length}, minmax(0, 1fr))` }}>
+                          {info.weather.map(w => (
+                            <div key={w.date} className="bg-white rounded-lg border border-gray-200 p-2 text-center shadow-sm">
+                              <p className="text-[10px] font-semibold text-gray-500 mb-0.5">{fmtDate(w.date)}</p>
+                              <p className="text-2xl leading-none mb-1">{w.icon}</p>
+                              <p className="text-[10px] text-gray-600 leading-tight mb-1">{w.label}</p>
+                              <p className="text-xs font-bold text-red-600">{w.tempMax}°</p>
+                              <p className="text-[10px] text-blue-500">{w.tempMin}°</p>
+                              {w.precipMm > 0 && (
+                                <p className="text-[9px] text-blue-600 mt-0.5">💧 {w.precipMm} mm</p>
+                              )}
+                              {w.windKmh > 20 && (
+                                <p className="text-[9px] text-gray-500">💨 {w.windKmh} km/h</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        {/* Per-day delivery prognosis */}
+                        <div className="mt-2 space-y-1">
+                          {info.weather.map(w => (
+                            <div key={w.date} className="flex items-start gap-1.5 text-[11px] text-gray-700">
+                              <span className="font-semibold text-gray-500 min-w-[58px]">{fmtDate(w.date)}:</span>
+                              <span>{w.prognosis}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {hasAlerts && (
                       <p className="mt-2 text-xs text-red-700 font-medium">
                         ⚠️ Bitte Produktionsmengen vor dem Übernehmen manuell prüfen und ggf. anpassen!

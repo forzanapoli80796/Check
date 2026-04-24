@@ -509,10 +509,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch { /* ignore */ }
 
+      // -- 4. Weather forecast for Munich (Open-Meteo, no API key needed) --
+      interface WeatherDay {
+        date: string;
+        tempMax: number;
+        tempMin: number;
+        precipMm: number;
+        wmoCode: number;
+        windKmh: number;
+        icon: string;
+        label: string;
+        prognosis: string; // delivery impact
+      }
+
+      // WMO code → short German label + emoji icon
+      function wmoLabel(code: number): { icon: string; label: string } {
+        if (code === 0)             return { icon: "☀️",  label: "Klarer Himmel" };
+        if (code <= 2)              return { icon: "🌤️", label: "Leicht bewölkt" };
+        if (code === 3)             return { icon: "☁️",  label: "Bedeckt" };
+        if (code <= 48)             return { icon: "🌫️", label: "Nebel" };
+        if (code <= 57)             return { icon: "🌦️", label: "Nieselregen" };
+        if (code <= 67)             return { icon: "🌧️", label: "Regen" };
+        if (code <= 77)             return { icon: "🌨️", label: "Schnee" };
+        if (code <= 82)             return { icon: "🌦️", label: "Regenschauer" };
+        if (code <= 86)             return { icon: "🌨️", label: "Schneeschauer" };
+        return                             { icon: "⛈️",  label: "Gewitter" };
+      }
+
+      // Delivery prognosis for a pizza restaurant based on weather
+      function deliveryPrognosis(code: number, tempMax: number, precipMm: number): string {
+        const isRainy   = precipMm > 1 || (code >= 51 && code <= 99);
+        const isSunny   = code <= 2;
+        const isHot     = tempMax >= 23;
+        const isCold    = tempMax <= 10;
+
+        if (isRainy)                     return "🟢 Schlechtwetter → Liefermengen erhöht erwartet";
+        if (isSunny && isHot)            return "🔴 Heiß & sonnig → Lieferrückgang möglich (Biergärten, Parks)";
+        if (isSunny && !isCold)          return "🟡 Schönes Wetter → leichter Lieferrückgang möglich";
+        if (isCold)                      return "🟢 Kalt → normale bis erhöhte Liefermengen";
+        return                                  "⚪ Normales Wetter → Standardmengen";
+      }
+
+      let weatherDays: WeatherDay[] = [];
+      try {
+        const wRes = await fetch(
+          "https://api.open-meteo.com/v1/forecast" +
+          "?latitude=48.1351&longitude=11.5820" +
+          "&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,windspeed_10m_max" +
+          "&timezone=Europe%2FBerlin&forecast_days=14"
+        );
+        const wData = (await wRes.json()) as {
+          daily: {
+            time: string[];
+            temperature_2m_max: number[];
+            temperature_2m_min: number[];
+            precipitation_sum: number[];
+            weathercode: number[];
+            windspeed_10m_max: number[];
+          };
+        };
+
+        const times = wData.daily.time;
+        for (let i = 0; i < times.length; i++) {
+          const date = times[i];
+          if (date < rangeStart || date > rangeEnd) continue;
+          const code    = wData.daily.weathercode[i];
+          const tempMax = Math.round(wData.daily.temperature_2m_max[i]);
+          const tempMin = Math.round(wData.daily.temperature_2m_min[i]);
+          const precip  = Math.round(wData.daily.precipitation_sum[i] * 10) / 10;
+          const wind    = Math.round(wData.daily.windspeed_10m_max[i]);
+          const { icon, label } = wmoLabel(code);
+          weatherDays.push({
+            date,
+            tempMax,
+            tempMin,
+            precipMm: precip,
+            wmoCode: code,
+            windKmh: wind,
+            icon,
+            label,
+            prognosis: deliveryPrognosis(code, tempMax, precip),
+          });
+        }
+      } catch (err) {
+        console.warn("Open-Meteo fetch failed:", err);
+      }
+
       res.json({
         weekRange: { from: rangeStart, to: rangeEnd },
         holidays: holidaysInWeek,
         bayernHomeGames,
+        weather: weatherDays,
       });
     } catch (error) {
       console.error("Error fetching upcoming week info:", error);
