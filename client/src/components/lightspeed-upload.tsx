@@ -576,37 +576,8 @@ export default function LightspeedUpload() {
               })()}
             </div>
 
-            {/* ── Import button ──────────────────────────────────── */}
-            <div className="flex justify-end mt-3">
-              <Button
-                onClick={handleImport}
-                disabled={saveMutation.isPending || weekInfoQuery.isLoading}
-                className="bg-black hover:bg-gray-800 text-white text-sm"
-              >
-                {saveMutation.isPending
-                  ? <Loader2 className="animate-spin mr-2" size={14} />
-                  : <ArrowRight className="mr-2" size={14} />}
-                In Teig-Planung übernehmen
-              </Button>
-            </div>
           </CardHeader>
           <CardContent>
-            {/* Production schedule summary */}
-            <div className="mb-4 p-3 rounded-lg bg-amber-50 border border-amber-200">
-              <p className="text-xs font-semibold text-amber-800 mb-1.5">Produktionsplan – Kugeln werden 2 Tage vor Verkauf produziert:</p>
-              <div className="flex flex-wrap gap-2">
-                {result.days.map(d => (
-                  <div key={d.label} className="flex items-center gap-1 text-xs bg-white border border-amber-200 rounded px-2 py-1">
-                    <span className="font-bold text-amber-700">{d.prodLabel}</span>
-                    <span className="text-gray-400">→</span>
-                    <span className="font-semibold text-orange-700">{d.machine.total}</span>
-                    <span className="text-gray-500">({d.machine.label.split("=")[0].trim()})</span>
-                    <span className="text-gray-400">für {WEEKDAY_FULL[d.salesWeekday - 1]}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             <div className="overflow-x-auto">
               <table className="w-full text-sm border-collapse">
                 <thead>
@@ -676,6 +647,36 @@ export default function LightspeedUpload() {
             <p className="text-xs text-gray-400 mt-3">
               Mindestbedarf = Median +12 % · Maschinen: 125er / 115er / 62er · TOTAL KUGELN = tatsächliche Produktionsmenge · gespeichert auf Produktionstag (−2 Tage){result.store === "TS17" ? " · ohne Montag" : ""}
             </p>
+
+            {/* Production schedule summary */}
+            <div className="mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200">
+              <p className="text-xs font-semibold text-amber-800 mb-1.5">Produktionsplan – Kugeln werden 2 Tage vor Verkauf produziert:</p>
+              <div className="flex flex-wrap gap-2">
+                {result.days.map(d => (
+                  <div key={d.label} className="flex items-center gap-1 text-xs bg-white border border-amber-200 rounded px-2 py-1">
+                    <span className="font-bold text-amber-700">{d.prodLabel}</span>
+                    <span className="text-gray-400">→</span>
+                    <span className="font-semibold text-orange-700">{d.machine.total}</span>
+                    <span className="text-gray-500">({d.machine.label.split("=")[0].trim()})</span>
+                    <span className="text-gray-400">für {WEEKDAY_FULL[d.salesWeekday - 1]}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Import button */}
+            <div className="flex justify-end mt-4">
+              <Button
+                onClick={handleImport}
+                disabled={saveMutation.isPending || weekInfoQuery.isLoading}
+                className="bg-black hover:bg-gray-800 text-white text-sm"
+              >
+                {saveMutation.isPending
+                  ? <Loader2 className="animate-spin mr-2" size={14} />
+                  : <ArrowRight className="mr-2" size={14} />}
+                In Teig-Planung übernehmen
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
