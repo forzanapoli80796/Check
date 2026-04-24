@@ -417,6 +417,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Upcoming week info: Bavarian holidays + FC Bayern home games
+  app.get("/api/upcoming-week-info", async (_req, res) => {
+    try {
+      // Determine next week date range (next Mon–Sun from today)
+      const today = new Date();
+      const dayOfWeek = today.getDay(); // 0=Sun,1=Mon,...,6=Sat
+      const daysUntilNextMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
+      const nextMonday = new Date(today);
+      nextMonday.setDate(today.getDate() + daysUntilNextMonday);
+      nextMonday.setHours(0, 0, 0, 0);
+      const nextSunday = new Date(nextMonday);
+      nextSunday.setDate(nextMonday.getDate() + 6);
+      nextSunday.setHours(23, 59, 59, 999);
+
+      const isoDate = (d: Date) => d.toISOString().slice(0, 10);
+      const rangeStart = isoDate(nextMonday);
+      const rangeEnd = isoDate(nextSunday);
+      const year = nextMonday.getFullYear();
+
+      // -- 1. Bavarian public holidays --
+      type HolidayAPIResponse = Record<string, { datum: string; hinweis: string }>;
+      const holidayRes = await fetch(
+        `https://feiertage-api.de/api/?jahr=${year}&nur_land=BY`
+      );
+      const holidayData = (await holidayRes.json()) as HolidayAPIResponse;
+
+      const holidaysInWeek = Object.entries(holidayData)
+        .filter(([, v]) => v.datum >= rangeStart && v.datum <= rangeEnd)
+        .map(([name, v]) => ({ name, datum: v.datum }));
+
+      // -- 2. FC Bayern home games from OpenLigaDB (Bundesliga = "bl1") --
+      interface OpenLigaMatch {
+        matchDateTimeUTC: string;
+        team1: { teamName: string };
+        team2: { teamName: string };
+        group: { groupOrderID: number };
+      }
+
+      let bayernHomeGames: { competition: string; date: string; opponent: string }[] = [];
+
+      try {
+        // Get current matchday first
+        const groupRes = await fetch("https://api.openligadb.de/getcurrentgroup/bl1");
+        const group = (await groupRes.json()) as { groupOrderID: number };
+        const currentMD = group.groupOrderID;
+
+        // Fetch current + next 2 matchdays to cover the full next week
+        const matchdayFetches = await Promise.all(
+          [currentMD, currentMD + 1, currentMD + 2].map(md =>
+            fetch(`https://api.openligadb.de/getmatchdata/bl1/${year - 1}/${md}`)
+              .then(r => r.json() as Promise<OpenLigaMatch[]>)
+              .catch(() => [] as OpenLigaMatch[])
+          )
+        );
+
+        const allMatches = matchdayFetches.flat();
+        for (const match of allMatches) {
+          const matchDate = match.matchDateTimeUTC?.slice(0, 10);
+          if (!matchDate || matchDate < rangeStart || matchDate > rangeEnd) continue;
+          const isHome = match.team1?.teamName?.includes("Bayern");
+          if (!isHome) continue;
+          bayernHomeGames.push({
+            competition: "Bundesliga",
+            date: matchDate,
+            opponent: match.team2?.teamName ?? "?",
+          });
+        }
+      } catch (err) {
+        console.warn("OpenLigaDB fetch failed:", err);
+      }
+
+      // -- 3. DFB-Pokal from OpenLigaDB (league "dfb") --
+      try {
+        const dfbRes = await fetch(
+          `https://api.openligadb.de/getmatchdata/dfb/${year}`
+        );
+        if (dfbRes.ok) {
+          const dfbMatches = (await dfbRes.json()) as OpenLigaMatch[];
+          for (const match of dfbMatches) {
+            const matchDate = match.matchDateTimeUTC?.slice(0, 10);
+            if (!matchDate || matchDate < rangeStart || matchDate > rangeEnd) continue;
+            const isHome = match.team1?.teamName?.includes("Bayern");
+            if (!isHome) continue;
+            bayernHomeGames.push({
+              competition: "DFB-Pokal",
+              date: matchDate,
+              opponent: match.team2?.teamName ?? "?",
+            });
+          }
+        }
+      } catch { /* ignore */ }
+
+      res.json({
+        weekRange: { from: rangeStart, to: rangeEnd },
+        holidays: holidaysInWeek,
+        bayernHomeGames,
+      });
+    } catch (error) {
+      console.error("Error fetching upcoming week info:", error);
+      res.status(500).json({ message: "Fehler beim Abrufen der Wocheninfos" });
+    }
+  });
+
   // Inventory Items routes
   app.get("/api/inventory-items", async (req, res) => {
     const storage = await getStorage();

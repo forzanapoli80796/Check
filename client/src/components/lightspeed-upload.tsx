@@ -1,10 +1,26 @@
 import { useState, useRef, useCallback } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Upload, FileText, CheckCircle2, AlertTriangle, ArrowRight, Loader2 } from "lucide-react";
+import { Upload, FileText, CheckCircle2, AlertTriangle, ArrowRight, Loader2, Info, ShieldAlert } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+
+// ── Types for the upcoming-week-info endpoint ──────────────────────────────
+interface HolidayEntry { name: string; datum: string; }
+interface BayernGame { competition: string; date: string; opponent: string; }
+interface UpcomingWeekInfo {
+  weekRange: { from: string; to: string };
+  holidays: HolidayEntry[];
+  bayernHomeGames: BayernGame[];
+}
+
+// Format ISO date "2026-04-28" → "Di, 28.04."
+function fmtDate(iso: string): string {
+  const [y, m, d] = iso.split("-");
+  const wd = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"][new Date(`${y}-${m}-${d}T12:00:00`).getDay()];
+  return `${wd}, ${d}.${m}.`;
+}
 
 const STORES = ["JP23", "KP5", "TS17"] as const;
 type Store = typeof STORES[number];
@@ -293,6 +309,13 @@ export default function LightspeedUpload() {
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Fetch upcoming week info (holidays + Bayern games) as soon as a result is available
+  const weekInfoQuery = useQuery<UpcomingWeekInfo>({
+    queryKey: ["/api/upcoming-week-info"],
+    enabled: !!result,
+    staleTime: 5 * 60 * 1000, // cache 5 min
+  });
+
   const saveMutation = useMutation({
     mutationFn: async ({ weekday, store, kugelMenge }: { weekday: number; store: string; kugelMenge: number }) => {
       const response = await apiRequest("PUT", "/api/teig-production", { weekday, store, kugelMenge });
@@ -438,9 +461,84 @@ export default function LightspeedUpload() {
                 <CheckCircle2 className="text-green-500" size={20} />
                 <CardTitle className="text-base">Auswertung – {result.store}</CardTitle>
               </div>
+            </div>
+
+            {/* ── Upcoming-week info box ─────────────────────────── */}
+            <div className="mt-3">
+              {weekInfoQuery.isLoading && (
+                <div className="flex items-center gap-2 text-sm text-gray-500 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <Loader2 className="animate-spin" size={15} />
+                  <span>KI analysiert kommende Woche auf Feiertage &amp; Bayern-Heimspiele …</span>
+                </div>
+              )}
+              {weekInfoQuery.isError && (
+                <div className="flex items-center gap-2 text-sm text-gray-500 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <Info size={15} />
+                  <span>Wocheninfos konnten nicht geladen werden.</span>
+                </div>
+              )}
+              {weekInfoQuery.data && (() => {
+                const info = weekInfoQuery.data;
+                const hasAlerts = info.holidays.length > 0 || info.bayernHomeGames.length > 0;
+                return (
+                  <div className={`p-3 rounded-lg border text-sm ${
+                    hasAlerts
+                      ? "bg-red-50 border-red-300"
+                      : "bg-green-50 border-green-200"
+                  }`}>
+                    <p className="font-semibold mb-1.5 flex items-center gap-1.5">
+                      {hasAlerts
+                        ? <ShieldAlert size={15} className="text-red-600" />
+                        : <CheckCircle2 size={15} className="text-green-600" />}
+                      <span className={hasAlerts ? "text-red-800" : "text-green-800"}>
+                        Kommende Woche ({fmtDate(info.weekRange.from)} – {fmtDate(info.weekRange.to)})
+                      </span>
+                    </p>
+                    {!hasAlerts && (
+                      <p className="text-green-700 text-xs">Keine Feiertage und keine FC-Bayern-Heimspiele gefunden – Planung kann 1:1 übernommen werden.</p>
+                    )}
+                    {info.holidays.length > 0 && (
+                      <div className="mb-1.5">
+                        <p className="text-red-700 font-medium text-xs mb-1">Feiertage in Bayern:</p>
+                        <ul className="space-y-0.5">
+                          {info.holidays.map(h => (
+                            <li key={h.datum} className="flex items-center gap-1.5 text-xs text-red-800">
+                              <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
+                              <span className="font-semibold">{fmtDate(h.datum)}</span> – {h.name}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {info.bayernHomeGames.length > 0 && (
+                      <div>
+                        <p className="text-red-700 font-medium text-xs mb-1">FC Bayern Heimspiele (Allianz Arena):</p>
+                        <ul className="space-y-0.5">
+                          {info.bayernHomeGames.map(g => (
+                            <li key={g.date + g.opponent} className="flex items-center gap-1.5 text-xs text-red-800">
+                              <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
+                              <span className="font-semibold">{fmtDate(g.date)}</span> – FC Bayern vs {g.opponent}
+                              <span className="text-red-500 text-[10px]">({g.competition})</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {hasAlerts && (
+                      <p className="mt-2 text-xs text-red-700 font-medium">
+                        ⚠️ Bitte Produktionsmengen vor dem Übernehmen manuell prüfen und ggf. anpassen!
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* ── Import button ──────────────────────────────────── */}
+            <div className="flex justify-end mt-3">
               <Button
                 onClick={handleImport}
-                disabled={saveMutation.isPending}
+                disabled={saveMutation.isPending || weekInfoQuery.isLoading}
                 className="bg-black hover:bg-gray-800 text-white text-sm"
               >
                 {saveMutation.isPending
