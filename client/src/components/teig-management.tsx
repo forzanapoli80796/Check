@@ -30,9 +30,10 @@ function calcMachinePlan(needed: number): MachinePlan {
         const total = a * 125 + b * 115 + c * 62;
         if (total < needed) continue;
         const runs = a + b + c;
+        const bestRuns = best ? best.counts[0] + best.counts[1] + best.counts[2] : Infinity;
         const isBetter = !best ||
-          total < best.total ||
-          (total === best.total && runs < best.counts[0] + best.counts[1] + best.counts[2]);
+          runs < bestRuns ||
+          (runs === bestRuns && total < best.total);
         if (isBetter) {
           const parts: string[] = [];
           if (a) parts.push(`${a}×125`);
