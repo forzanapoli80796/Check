@@ -521,7 +521,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch { /* ignore */ }
 
-      // -- 4. Weather forecast for Munich (Open-Meteo, no API key needed) --
+      // -- 4. UEFA Champions League -- ALL Bayern games
+      try {
+        const uclYear = uploadMonday.getFullYear() - 1; // e.g. 2025 for 2025/26 season
+        // Try to get current UCL matchday, then fetch surrounding rounds
+        const clGroupRes = await fetch("https://api.openligadb.de/getcurrentgroup/cl");
+        if (clGroupRes.ok) {
+          const clGroup = (await clGroupRes.json()) as { groupOrderID: number };
+          const currentCLMD = clGroup.groupOrderID;
+          const clFetches = await Promise.all(
+            [currentCLMD - 1, currentCLMD, currentCLMD + 1, currentCLMD + 2]
+              .filter(md => md > 0)
+              .map(md =>
+                fetch(`https://api.openligadb.de/getmatchdata/cl/${uclYear}/${md}`)
+                  .then(r => r.json() as Promise<OpenLigaMatch[]>)
+                  .catch(() => [] as OpenLigaMatch[])
+              )
+          );
+          const clMatches = clFetches.flat();
+          for (const match of clMatches) {
+            const matchDate = match.matchDateTimeUTC?.slice(0, 10);
+            if (!matchDate || matchDate < rangeStart || matchDate > rangeEnd) continue;
+            const isHome = match.team1?.teamName?.includes("Bayern") ?? false;
+            const isAway = match.team2?.teamName?.includes("Bayern") ?? false;
+            if (!isHome && !isAway) continue;
+            bayernGames.push({
+              competition: "Champions League",
+              date: matchDate,
+              opponent: isHome ? (match.team2?.teamName ?? "?") : (match.team1?.teamName ?? "?"),
+              isHome,
+            });
+          }
+        }
+      } catch { /* ignore */ }
+
+      // -- 5. Weather forecast for Munich (Open-Meteo, no API key needed) --
       interface WeatherDay {
         date: string;
         tempMax: number;
