@@ -552,21 +552,6 @@ export default function LightspeedUpload() {
               KW-Zeilen = kombinierte Verkaufsmenge aller Stores · Mindestbedarf = Median +10 %, gerundet auf ±5 · Produktionstag = −2 Tage · Maschinenoptimierung erfolgt in der Planung{result.detectedStores.includes("TS17") && result.detectedStores.length === 1 ? " · ohne Montag" : ""}
             </p>
 
-            {/* Mindestbedarf production summary */}
-            <div className="mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200">
-              <p className="text-xs font-semibold text-amber-800 mb-1.5">Mindestbedarf (alle Stores) – Teig wird 2 Tage vor Verkauf produziert:</p>
-              <div className="flex flex-wrap gap-2">
-                {result.days.map(d => (
-                  <div key={d.label} className="flex items-center gap-1 text-xs bg-white border border-amber-200 rounded px-2 py-1">
-                    <span className="font-bold text-amber-700">{d.prodLabel}</span>
-                    <span className="text-gray-400">→</span>
-                    <span className="font-semibold text-green-700">{d.totalProduktion} Kugeln</span>
-                    <span className="text-gray-400">für {WEEKDAY_FULL[d.salesWeekday - 1]}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {/* Import button */}
             <div className="flex justify-end mt-4">
               <Button
