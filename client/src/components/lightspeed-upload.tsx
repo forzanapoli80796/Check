@@ -42,19 +42,26 @@ function productionWeekday(salesWeekday: number): number {
 
 const WEEKDAY_FULL = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
 
+interface StoreDay {
+  store: Store;
+  weeklyValues: (number | null)[];  // per-KW sales for this store+weekday
+  median: number;
+  produktion: number; // median + 12%, ceiling → saved to this store's teig-entry
+}
+
 interface DayResult {
   salesWeekday: number;   // 1=Mo … 7=So (sales day)
   prodWeekday: number;    // 1=Mo … 7=So (production day = 2 days before)
   label: string;          // short label of sales day
   prodLabel: string;      // short label of production day
-  weeklyValues: (number | null)[];
-  median: number;
-  produktion: number;     // median + 12%, rounded
-  machine: MachinePlan;   // optimal machine combination
+  combinedWeeklyValues: (number | null)[]; // sum across all stores per KW
+  storeData: StoreDay[];                   // per-store breakdown
+  totalProduktion: number;                 // sum of all stores' produktion
+  machine: MachinePlan;                    // optimal machine plan on totalProduktion
 }
 
 interface AnalysisResult {
-  store: Store;
+  detectedStores: Store[];
   kwLabels: string[];
   days: DayResult[];
 }
@@ -191,21 +198,22 @@ function calcMachinePlan(needed: number): MachinePlan {
 }
 
 // ── Core analysis ─────────────────────────────────────────────────────────
-function analyzeCSV(text: string, selectedStore: Store): AnalysisResult | string {
+// Analyses ALL stores present in the CSV simultaneously.
+// Machine plan is calculated on the COMBINED total across all stores.
+function analyzeCSV(text: string): AnalysisResult | string {
   const rows = parseCSV(text);
   if (!rows.length) return "CSV konnte nicht gelesen werden.";
 
   const headers = Object.keys(rows[0]);
-  const datumCol  = findCol(headers, ["Datum", "Date", "Datum/Uhrzeit", "Transaktionsdatum"]);
-  const gruppeCol = findCol(headers, ["Gruppe", "Group", "Warengruppe"]);
-  const mngCol    = findCol(headers, ["Mng", "Menge", "Quantity", "Anzahl"]);
+  const datumCol   = findCol(headers, ["Datum", "Date", "Datum/Uhrzeit", "Transaktionsdatum"]);
+  const gruppeCol  = findCol(headers, ["Gruppe", "Group", "Warengruppe"]);
+  const mngCol     = findCol(headers, ["Mng", "Menge", "Quantity", "Anzahl"]);
   const geraeteCol = findCol(headers, ["Geräte_Name", "Geraete_Name", "Gerät", "Device", "Store", "Geräte Name"]);
 
   const missing: string[] = [];
   if (!datumCol)  missing.push("Datum");
   if (!gruppeCol) missing.push("Gruppe");
   if (!mngCol)    missing.push("Mng");
-
   if (missing.length) {
     return (
       `Spalten nicht gefunden: ${missing.join(", ")}.\n` +
@@ -213,16 +221,26 @@ function analyzeCSV(text: string, selectedStore: Store): AnalysisResult | string
     );
   }
 
-  // weekKey → weekdayIndex → total
-  const weekMap = new Map<string, Map<number, number>>();
+  // Determine current ISO week key – to EXCLUDE the incomplete current week
+  const { kw: todayKw, year: todayYear } = getISOWeek(new Date());
+  const currentWeekKey = `${todayYear}-W${String(todayKw).padStart(2, "0")}`;
+
+  // store → weekKey → weekdayIndex → total
+  const storeWeekMap = new Map<Store, Map<string, Map<number, number>>>();
 
   for (const row of rows) {
-    // Filter by store if device column exists
+    // Detect store from device column
+    let rowStore: Store | null = null;
     if (geraeteCol && row[geraeteCol]) {
-      if (!row[geraeteCol].includes(selectedStore)) continue;
+      const dev = row[geraeteCol];
+      for (const s of STORES) {
+        if (dev.includes(s)) { rowStore = s; break; }
+      }
     }
+    // If no device column found, cannot split by store → skip
+    if (!rowStore) continue;
 
-    // Extract group name before any parenthesis: "Pizza(123)" → "Pizza"
+    // Extract group name before parenthesis: "Pizza(123)" → "Pizza"
     const gruppeRaw  = (row[gruppeCol!] ?? "").trim();
     const gruppeName = gruppeRaw.split("(")[0].trim();
     if (!VALID_GROUPS.has(gruppeName)) continue;
@@ -232,8 +250,8 @@ function analyzeCSV(text: string, selectedStore: Store): AnalysisResult | string
 
     const weekdayIdx = getWeekdayIndex(date); // 0=Mo … 6=So
 
-    // TS17: ignore Monday
-    if (selectedStore === "TS17" && weekdayIdx === 0) continue;
+    // TS17: no Monday sales
+    if (rowStore === "TS17" && weekdayIdx === 0) continue;
 
     const mngStr = (row[mngCol!] ?? "0").replace(",", ".").trim();
     const mng = parseFloat(mngStr);
@@ -241,31 +259,42 @@ function analyzeCSV(text: string, selectedStore: Store): AnalysisResult | string
 
     const { kw, year } = getISOWeek(date);
     const weekKey = `${year}-W${String(kw).padStart(2, "0")}`;
+
+    // Skip the current (incomplete) week
+    if (weekKey === currentWeekKey) continue;
+
+    if (!storeWeekMap.has(rowStore)) storeWeekMap.set(rowStore, new Map());
+    const weekMap = storeWeekMap.get(rowStore)!;
     if (!weekMap.has(weekKey)) weekMap.set(weekKey, new Map());
     const dayMap = weekMap.get(weekKey)!;
     dayMap.set(weekdayIdx, (dayMap.get(weekdayIdx) ?? 0) + mng);
   }
 
-  if (!weekMap.size) {
+  const detectedStores = STORES.filter(s => storeWeekMap.has(s));
+  if (!detectedStores.length) {
     return (
-      `Keine passenden Transaktionsdaten gefunden für Store "${selectedStore}".\n` +
-      `Prüfe ob der Store korrekt ausgewählt wurde und ob Gruppen (Pizza, Panuozzo, Rollini, Pizza Team, Ausschuss) vorhanden sind.`
+      `Keine passenden Transaktionsdaten gefunden.\n` +
+      `Prüfe ob Gruppen (Pizza, Panuozzo, Rollini, Pizza Team, Ausschuss) und Store-Namen (${STORES.join(", ")}) in der CSV vorhanden sind.`
     );
   }
 
-  // Last 5 valid weeks
-  const isValidWeek = (key: string): boolean => {
-    const dayMap = weekMap.get(key)!;
-    const checkDays = selectedStore === "TS17" ? [1, 2, 3, 4, 5, 6] : [0, 1, 2, 3, 4, 5, 6];
-    return checkDays.some(d => dayMap.has(d));
-  };
+  // Per store: find its last 5 complete past weeks (at least some days have data)
+  const storeValidWeeks = new Map<Store, string[]>();
+  for (const store of detectedStores) {
+    const weekMap = storeWeekMap.get(store)!;
+    const weeks = Array.from(weekMap.keys())
+      .sort()
+      .reverse()
+      .filter(k => weekMap.get(k)!.size > 0)
+      .slice(0, 5)
+      .reverse();
+    storeValidWeeks.set(store, weeks);
+  }
 
-  const validWeeks = Array.from(weekMap.keys())
-    .sort()
-    .reverse()
-    .filter(isValidWeek)
-    .slice(0, 5)
-    .reverse();
+  // Use the union of all stores' week sets as the global KW list (last 5 of all available)
+  const allWeekKeys = new Set<string>();
+  storeValidWeeks.forEach(weeks => weeks.forEach(w => allWeekKeys.add(w)));
+  const validWeeks = Array.from(allWeekKeys).sort().slice(-5);
 
   if (!validWeeks.length) return "Keine vollständigen Wochen gefunden.";
 
@@ -274,41 +303,67 @@ function analyzeCSV(text: string, selectedStore: Store): AnalysisResult | string
     return m ? `KW ${parseInt(m[2])}` : k;
   });
 
-  const dayIndices = selectedStore === "TS17"
-    ? [1, 2, 3, 4, 5, 6]    // Di–So
-    : [0, 1, 2, 3, 4, 5, 6]; // Mo–So
+  // Weekday indices to show: Mo–So (0–6) for all stores combined
+  // (TS17 has no Monday data, that column just shows "–" for TS17)
+  const dayIndices = [0, 1, 2, 3, 4, 5, 6];
 
-  const days: DayResult[] = dayIndices.map(idx => {
-    const weeklyValues: (number | null)[] = validWeeks.map(weekKey => {
-      const v = weekMap.get(weekKey)?.get(idx);
-      return v != null ? Math.round(v) : null;
+  const days: DayResult[] = dayIndices
+    .filter(idx => {
+      // Only include a weekday if at least one store has data for it
+      return detectedStores.some(store => {
+        const weekMap = storeWeekMap.get(store)!;
+        return validWeeks.some(wk => weekMap.get(wk)?.has(idx));
+      });
+    })
+    .map(idx => {
+      const sw = idx + 1;
+      const pw = productionWeekday(sw);
+
+      // Per-store breakdown
+      const storeData: StoreDay[] = detectedStores.map(store => {
+        const weekMap = storeWeekMap.get(store)!;
+        const weeklyValues: (number | null)[] = validWeeks.map(weekKey => {
+          const v = weekMap.get(weekKey)?.get(idx);
+          return v != null ? Math.round(v) : null;
+        });
+        const presentValues = weeklyValues.filter(v => v !== null) as number[];
+        const med = calcMedian(presentValues);
+        return {
+          store,
+          weeklyValues,
+          median: Math.round(med),
+          produktion: Math.ceil(med * 1.12),
+        };
+      });
+
+      // Combined weekly values (sum across stores)
+      const combinedWeeklyValues: (number | null)[] = validWeeks.map((_, wIdx) => {
+        const vals = storeData.map(sd => sd.weeklyValues[wIdx]).filter(v => v !== null) as number[];
+        return vals.length > 0 ? vals.reduce((a, b) => a + b, 0) : null;
+      });
+
+      const totalProduktion = storeData.reduce((s, sd) => s + sd.produktion, 0);
+      const machine = calcMachinePlan(totalProduktion);
+
+      return {
+        salesWeekday: sw,
+        prodWeekday: pw,
+        label: WEEKDAY_NAMES[idx],
+        prodLabel: WEEKDAY_NAMES[pw - 1],
+        combinedWeeklyValues,
+        storeData,
+        totalProduktion,
+        machine,
+      };
     });
-    const presentValues = weeklyValues.filter(v => v !== null) as number[];
-    const med = calcMedian(presentValues);
-    const sw = idx + 1; // sales weekday 1-7
-    const pw = productionWeekday(sw);
-    const baseProduktion = Math.ceil(med * 1.12); // median + 12%, ceiling
-    const machine = calcMachinePlan(baseProduktion);
-    return {
-      salesWeekday: sw,
-      prodWeekday: pw,
-      label: WEEKDAY_NAMES[idx],
-      prodLabel: WEEKDAY_NAMES[pw - 1],
-      weeklyValues,
-      median: Math.round(med),
-      produktion: baseProduktion,
-      machine,
-    };
-  });
 
-  return { store: selectedStore, kwLabels, days };
+  return { detectedStores, kwLabels, days };
 }
 
 // ── Component ─────────────────────────────────────────────────────────────
 export default function LightspeedUpload() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [selectedStore, setSelectedStore] = useState<Store>("JP23");
   const [isDragOver, setIsDragOver] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
@@ -341,7 +396,7 @@ export default function LightspeedUpload() {
         setIsProcessing(false);
         return;
       }
-      const analysis = analyzeCSV(text, selectedStore);
+      const analysis = analyzeCSV(text);
       if (typeof analysis === "string") {
         setError(analysis);
       } else {
@@ -352,7 +407,7 @@ export default function LightspeedUpload() {
     } finally {
       setIsProcessing(false);
     }
-  }, [selectedStore]);
+  }, []);
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -371,18 +426,20 @@ export default function LightspeedUpload() {
     if (!result) return;
     let successCount = 0;
     for (const day of result.days) {
-      if (day.produktion > 0) {
-        try {
-          // Save machine total on PRODUCTION weekday (2 days before sales day)
-          await saveMutation.mutateAsync({ weekday: day.prodWeekday, store: result.store, kugelMenge: day.machine.total });
-          successCount++;
-        } catch { /* continue */ }
+      // Save each store's individual Mindestbedarf on the production weekday
+      for (const sd of day.storeData) {
+        if (sd.produktion > 0) {
+          try {
+            await saveMutation.mutateAsync({ weekday: day.prodWeekday, store: sd.store, kugelMenge: sd.produktion });
+            successCount++;
+          } catch { /* continue */ }
+        }
       }
     }
     queryClient.invalidateQueries({ queryKey: ["/api/teig-production"] });
     toast({
       title: "Teig-Planung übernommen",
-      description: `${successCount} Produktionstage für ${result.store} wurden übertragen.`,
+      description: `${successCount} Einträge für ${result.detectedStores.join(", ")} wurden übertragen.`,
     });
   };
 
@@ -399,26 +456,6 @@ export default function LightspeedUpload() {
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Store picker */}
-          <div>
-            <p className="text-sm font-medium mb-2">Store auswählen</p>
-            <div className="flex gap-2">
-              {STORES.map(s => (
-                <button
-                  key={s}
-                  onClick={() => { setSelectedStore(s); setResult(null); setError(null); setFileName(null); }}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-colors ${
-                    selectedStore === s
-                      ? "bg-black text-white border-black"
-                      : "bg-white text-gray-700 border-gray-200 hover:border-gray-400"
-                  }`}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Drop zone */}
           <div
             className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
@@ -465,7 +502,7 @@ export default function LightspeedUpload() {
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="text-green-500" size={20} />
-                <CardTitle className="text-base">Auswertung – {result.store}</CardTitle>
+                <CardTitle className="text-base">Auswertung – {result.detectedStores.join(" + ")} (kombiniert)</CardTitle>
               </div>
             </div>
 
@@ -492,29 +529,51 @@ export default function LightspeedUpload() {
                   </tr>
                 </thead>
                 <tbody>
+                  {/* Combined weekly history rows */}
                   {result.kwLabels.map((kw, wIdx) => (
                     <tr key={kw} className="hover:bg-gray-50">
                       <td className="border border-gray-200 p-2 font-medium text-gray-600">{kw}</td>
                       {result.days.map(d => (
                         <td key={d.label} className="border border-gray-200 p-2 text-right tabular-nums">
-                          {d.weeklyValues[wIdx] !== null ? d.weeklyValues[wIdx] : "–"}
+                          {d.combinedWeeklyValues[wIdx] !== null ? d.combinedWeeklyValues[wIdx] : "–"}
                         </td>
                       ))}
                     </tr>
                   ))}
-                  <tr className="bg-blue-50 italic">
-                    <td className="border border-gray-200 p-2 text-blue-700 font-medium">Median</td>
+                  {/* Per-store Median rows */}
+                  {result.detectedStores.map(store => (
+                    <tr key={`median-${store}`} className="bg-blue-50 italic">
+                      <td className="border border-gray-200 p-2 text-blue-700 font-medium">Median {store}</td>
+                      {result.days.map(d => {
+                        const sd = d.storeData.find(s => s.store === store);
+                        return (
+                          <td key={d.label} className="border border-gray-200 p-2 text-right text-blue-700 tabular-nums">
+                            {sd ? sd.median : "–"}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                  {/* Per-store Mindestbedarf rows */}
+                  {result.detectedStores.map(store => (
+                    <tr key={`prod-${store}`} className="bg-green-50">
+                      <td className="border border-gray-200 p-2 text-green-700 font-medium text-xs">Mindestbedarf {store}</td>
+                      {result.days.map(d => {
+                        const sd = d.storeData.find(s => s.store === store);
+                        return (
+                          <td key={d.label} className="border border-gray-200 p-2 text-right text-green-700 text-xs tabular-nums">
+                            {sd ? sd.produktion : "–"}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                  {/* Combined total Mindestbedarf */}
+                  <tr className="bg-green-100 font-bold border-t-2 border-green-300">
+                    <td className="border border-gray-200 p-2 text-green-900">Mindestbedarf GESAMT</td>
                     {result.days.map(d => (
-                      <td key={d.label} className="border border-gray-200 p-2 text-right text-blue-700 tabular-nums">
-                        {d.median}
-                      </td>
-                    ))}
-                  </tr>
-                  <tr className="bg-green-50 font-bold">
-                    <td className="border border-gray-200 p-2 text-green-800">Mindestbedarf</td>
-                    {result.days.map(d => (
-                      <td key={d.label} className="border border-gray-200 p-2 text-right text-green-800 tabular-nums">
-                        {d.produktion}
+                      <td key={d.label} className="border border-gray-200 p-2 text-right text-green-900 tabular-nums">
+                        {d.totalProduktion}
                       </td>
                     ))}
                   </tr>
@@ -538,19 +597,19 @@ export default function LightspeedUpload() {
               </table>
             </div>
             <p className="text-xs text-gray-400 mt-3">
-              Mindestbedarf = Median +12 % · Maschinen: 125er / 115er / 62er · TOTAL KUGELN = tatsächliche Produktionsmenge · gespeichert auf Produktionstag (−2 Tage){result.store === "TS17" ? " · ohne Montag" : ""}
+              KW-Zeilen = kombinierte Verkaufsmenge aller Stores · Mindestbedarf = Median +12 % · Maschinen: 125er / 115er / 62er · TOTAL KUGELN basiert auf GESAMT aller Stores · Produktionstag = −2 Tage{result.detectedStores.includes("TS17") && result.detectedStores.length === 1 ? " · ohne Montag" : ""}
             </p>
 
             {/* Production schedule summary */}
             <div className="mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200">
-              <p className="text-xs font-semibold text-amber-800 mb-1.5">Produktionsplan – Kugeln werden 2 Tage vor Verkauf produziert:</p>
+              <p className="text-xs font-semibold text-amber-800 mb-1.5">Produktionsplan (alle Stores kombiniert) – Kugeln 2 Tage vor Verkauf produzieren:</p>
               <div className="flex flex-wrap gap-2">
                 {result.days.map(d => (
                   <div key={d.label} className="flex items-center gap-1 text-xs bg-white border border-amber-200 rounded px-2 py-1">
                     <span className="font-bold text-amber-700">{d.prodLabel}</span>
                     <span className="text-gray-400">→</span>
                     <span className="font-semibold text-orange-700">{d.machine.total}</span>
-                    <span className="text-gray-500">({d.machine.label.split("=")[0].trim()})</span>
+                    <span className="text-gray-500 text-[10px]">({d.machine.label.split("=")[0].trim()})</span>
                     <span className="text-gray-400">für {WEEKDAY_FULL[d.salesWeekday - 1]}</span>
                   </div>
                 ))}
