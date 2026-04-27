@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 
 // ── Types for the upcoming-week-info endpoint ──────────────────────────────
 interface HolidayEntry { name: string; datum: string; }
-interface BayernGame  { competition: string; date: string; opponent: string; }
+interface BayernGame  { competition: string; date: string; opponent: string; isHome: boolean; }
 interface WeatherDay  {
   date: string; tempMax: number; tempMin: number;
   precipMm: number; windKmh: number;
@@ -17,7 +17,7 @@ interface WeatherDay  {
 interface UpcomingWeekInfo {
   weekRange: { from: string; to: string };
   holidays: HolidayEntry[];
-  bayernHomeGames: BayernGame[];
+  bayernGames: BayernGame[];
   weather: WeatherDay[];
 }
 
@@ -582,7 +582,7 @@ export default function LightspeedUpload() {
               )}
               {weekInfoQuery.data && (() => {
                 const info = weekInfoQuery.data;
-                const hasAlerts = info.holidays.length > 0 || info.bayernHomeGames.length > 0;
+                const hasAlerts = info.holidays.length > 0 || info.bayernGames.length > 0;
                 return (
                   <div className={`p-3 rounded-lg border text-sm ${hasAlerts ? "bg-red-50 border-red-300" : "bg-green-50 border-green-200"}`}>
                     <p className="font-semibold mb-1.5 flex items-center gap-1.5">
@@ -590,11 +590,11 @@ export default function LightspeedUpload() {
                         ? <ShieldAlert size={15} className="text-red-600" />
                         : <CheckCircle2 size={15} className="text-green-600" />}
                       <span className={hasAlerts ? "text-red-800" : "text-green-800"}>
-                        Kommende Woche ({fmtDate(info.weekRange.from)} – {fmtDate(info.weekRange.to)})
+                        Nächste 10 Tage ({fmtDate(info.weekRange.from)} – {fmtDate(info.weekRange.to)})
                       </span>
                     </p>
                     {!hasAlerts && (
-                      <p className="text-green-700 text-xs">Keine Feiertage und keine FC-Bayern-Heimspiele gefunden – Planung kann 1:1 übernommen werden.</p>
+                      <p className="text-green-700 text-xs">Keine Feiertage und keine FC-Bayern-Spiele gefunden – Planung kann 1:1 übernommen werden.</p>
                     )}
                     {info.holidays.length > 0 && (
                       <div className="mb-1.5">
@@ -609,14 +609,18 @@ export default function LightspeedUpload() {
                         </ul>
                       </div>
                     )}
-                    {info.bayernHomeGames.length > 0 && (
+                    {info.bayernGames.length > 0 && (
                       <div>
-                        <p className="text-red-700 font-medium text-xs mb-1">FC Bayern Heimspiele (Allianz Arena):</p>
+                        <p className="text-red-700 font-medium text-xs mb-1">FC Bayern Spiele:</p>
                         <ul className="space-y-0.5">
-                          {info.bayernHomeGames.map(g => (
+                          {info.bayernGames.map(g => (
                             <li key={g.date + g.opponent} className="flex items-center gap-1.5 text-xs text-red-800">
                               <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
-                              <span className="font-semibold">{fmtDate(g.date)}</span> – FC Bayern vs {g.opponent}
+                              <span className="font-semibold">{fmtDate(g.date)}</span>
+                              {g.isHome
+                                ? <> – FC Bayern vs {g.opponent} <span className="text-[10px] bg-red-100 text-red-600 rounded px-1">HEIM</span></>
+                                : <> – {g.opponent} vs FC Bayern <span className="text-[10px] bg-gray-100 text-gray-600 rounded px-1">AUSWÄRTS</span></>
+                              }
                               <span className="text-red-500 text-[10px]">({g.competition})</span>
                             </li>
                           ))}

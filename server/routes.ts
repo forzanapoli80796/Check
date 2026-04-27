@@ -420,34 +420,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Upcoming week info: Bavarian holidays + FC Bayern home games
   app.get("/api/upcoming-week-info", async (_req, res) => {
     try {
-      // Determine next week date range (next Mon–Sun from today)
+      // Upload day is always Monday. Start from today if it's Monday, else next Monday.
       const today = new Date();
       const dayOfWeek = today.getDay(); // 0=Sun,1=Mon,...,6=Sat
-      const daysUntilNextMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
-      const nextMonday = new Date(today);
-      nextMonday.setDate(today.getDate() + daysUntilNextMonday);
-      nextMonday.setHours(0, 0, 0, 0);
-      const nextSunday = new Date(nextMonday);
-      nextSunday.setDate(nextMonday.getDate() + 6);
-      nextSunday.setHours(23, 59, 59, 999);
+      const daysUntilMonday = dayOfWeek === 1 ? 0 : (dayOfWeek === 0 ? 1 : 8 - dayOfWeek);
+      const uploadMonday = new Date(today);
+      uploadMonday.setDate(today.getDate() + daysUntilMonday);
+      uploadMonday.setHours(0, 0, 0, 0);
+      // Show the next 10 days: Mon to Mon+9
+      const rangeEndDate = new Date(uploadMonday);
+      rangeEndDate.setDate(uploadMonday.getDate() + 9);
+      rangeEndDate.setHours(23, 59, 59, 999);
 
       const isoDate = (d: Date) => d.toISOString().slice(0, 10);
-      const rangeStart = isoDate(nextMonday);
-      const rangeEnd = isoDate(nextSunday);
-      const year = nextMonday.getFullYear();
+      const rangeStart = isoDate(uploadMonday);
+      const rangeEnd = isoDate(rangeEndDate);
+      // Collect unique years covered by the range (handles year-end crossover)
+      const years = [...new Set([uploadMonday.getFullYear(), rangeEndDate.getFullYear()])];
 
-      // -- 1. Bavarian public holidays --
+      // -- 1. Bavarian public holidays (fetch all years covered by the range) --
       type HolidayAPIResponse = Record<string, { datum: string; hinweis: string }>;
-      const holidayRes = await fetch(
-        `https://feiertage-api.de/api/?jahr=${year}&nur_land=BY`
+      const holidayDataArr = await Promise.all(
+        years.map(y =>
+          fetch(`https://feiertage-api.de/api/?jahr=${y}&nur_land=BY`)
+            .then(r => r.json() as Promise<HolidayAPIResponse>)
+            .catch(() => ({} as HolidayAPIResponse))
+        )
       );
-      const holidayData = (await holidayRes.json()) as HolidayAPIResponse;
+      const holidayData = Object.assign({}, ...holidayDataArr) as HolidayAPIResponse;
 
       const holidaysInWeek = Object.entries(holidayData)
         .filter(([, v]) => v.datum >= rangeStart && v.datum <= rangeEnd)
         .map(([name, v]) => ({ name, datum: v.datum }));
 
-      // -- 2. FC Bayern home games from OpenLigaDB (Bundesliga = "bl1") --
+      // -- 2. FC Bayern ALL games from OpenLigaDB (Bundesliga + DFB-Pokal) --
       interface OpenLigaMatch {
         matchDateTimeUTC: string;
         team1: { teamName: string };
@@ -455,18 +461,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         group: { groupOrderID: number };
       }
 
-      let bayernHomeGames: { competition: string; date: string; opponent: string }[] = [];
+      let bayernGames: { competition: string; date: string; opponent: string; isHome: boolean }[] = [];
 
       try {
         // Get current matchday first
         const groupRes = await fetch("https://api.openligadb.de/getcurrentgroup/bl1");
         const group = (await groupRes.json()) as { groupOrderID: number };
         const currentMD = group.groupOrderID;
+        const blYear = uploadMonday.getFullYear();
 
-        // Fetch current + next 2 matchdays to cover the full next week
+        // Fetch current + next 4 matchdays to cover the full 10-day window
         const matchdayFetches = await Promise.all(
-          [currentMD, currentMD + 1, currentMD + 2].map(md =>
-            fetch(`https://api.openligadb.de/getmatchdata/bl1/${year - 1}/${md}`)
+          [currentMD, currentMD + 1, currentMD + 2, currentMD + 3, currentMD + 4].map(md =>
+            fetch(`https://api.openligadb.de/getmatchdata/bl1/${blYear - 1}/${md}`)
               .then(r => r.json() as Promise<OpenLigaMatch[]>)
               .catch(() => [] as OpenLigaMatch[])
           )
@@ -476,34 +483,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         for (const match of allMatches) {
           const matchDate = match.matchDateTimeUTC?.slice(0, 10);
           if (!matchDate || matchDate < rangeStart || matchDate > rangeEnd) continue;
-          const isHome = match.team1?.teamName?.includes("Bayern");
-          if (!isHome) continue;
-          bayernHomeGames.push({
+          const isHome = match.team1?.teamName?.includes("Bayern") ?? false;
+          const isAway = match.team2?.teamName?.includes("Bayern") ?? false;
+          if (!isHome && !isAway) continue;
+          bayernGames.push({
             competition: "Bundesliga",
             date: matchDate,
-            opponent: match.team2?.teamName ?? "?",
+            opponent: isHome ? (match.team2?.teamName ?? "?") : (match.team1?.teamName ?? "?"),
+            isHome,
           });
         }
       } catch (err) {
-        console.warn("OpenLigaDB fetch failed:", err);
+        console.warn("OpenLigaDB BL1 fetch failed:", err);
       }
 
-      // -- 3. DFB-Pokal from OpenLigaDB (league "dfb") --
+      // -- 3. DFB-Pokal from OpenLigaDB (league "dfb") -- ALL Bayern games
       try {
+        const dfbYear = uploadMonday.getFullYear();
         const dfbRes = await fetch(
-          `https://api.openligadb.de/getmatchdata/dfb/${year}`
+          `https://api.openligadb.de/getmatchdata/dfb/${dfbYear}`
         );
         if (dfbRes.ok) {
           const dfbMatches = (await dfbRes.json()) as OpenLigaMatch[];
           for (const match of dfbMatches) {
             const matchDate = match.matchDateTimeUTC?.slice(0, 10);
             if (!matchDate || matchDate < rangeStart || matchDate > rangeEnd) continue;
-            const isHome = match.team1?.teamName?.includes("Bayern");
-            if (!isHome) continue;
-            bayernHomeGames.push({
+            const isHome = match.team1?.teamName?.includes("Bayern") ?? false;
+            const isAway = match.team2?.teamName?.includes("Bayern") ?? false;
+            if (!isHome && !isAway) continue;
+            bayernGames.push({
               competition: "DFB-Pokal",
               date: matchDate,
-              opponent: match.team2?.teamName ?? "?",
+              opponent: isHome ? (match.team2?.teamName ?? "?") : (match.team1?.teamName ?? "?"),
+              isHome,
             });
           }
         }
@@ -598,7 +610,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         weekRange: { from: rangeStart, to: rangeEnd },
         holidays: holidaysInWeek,
-        bayernHomeGames,
+        bayernGames,
         weather: weatherDays,
       });
     } catch (error) {
