@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Save, Upload } from "lucide-react";
+import { Calendar, Save, Upload, Cog } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { TeigProduction } from "@shared/schema";
@@ -13,6 +13,43 @@ import IdealeZubereitung from "@/components/ideale-zubereitung";
 import LightspeedUpload from "@/components/lightspeed-upload";
 
 const STORES = ['JP23', 'KP5', 'TS17'] as const;
+
+// ── Machine plan (same logic as in lightspeed-upload, but lives here for Planung) ──
+interface MachinePlan {
+  counts: [number, number, number]; // 125er, 115er, 62er
+  total: number;
+  label: string;
+}
+
+function calcMachinePlan(needed: number): MachinePlan {
+  if (needed <= 0) return { counts: [0, 0, 0], total: 0, label: "–" };
+  let best: MachinePlan | null = null;
+  for (let a = 0; a <= 6; a++) {
+    for (let b = 0; b <= 6; b++) {
+      for (let c = 0; c <= 10; c++) {
+        const total = a * 125 + b * 115 + c * 62;
+        if (total < needed) continue;
+        const runs = a + b + c;
+        const isBetter = !best ||
+          total < best.total ||
+          (total === best.total && runs < best.counts[0] + best.counts[1] + best.counts[2]);
+        if (isBetter) {
+          const parts: string[] = [];
+          if (a) parts.push(`${a}×125`);
+          if (b) parts.push(`${b}×115`);
+          if (c) parts.push(`${c}×62`);
+          best = { counts: [a, b, c], total, label: parts.join(" + ") };
+        }
+      }
+    }
+  }
+  return best!;
+}
+
+// Production weekday → Sales weekday (+2 days, wrapping)
+function salesWeekdayOf(prod: number): number {
+  return ((prod + 1) % 7) + 1;
+}
 const WEEKDAYS = [
   { id: 1, name: 'Montag', nameEn: 'Monday' },
   { id: 2, name: 'Dienstag', nameEn: 'Tuesday' },
@@ -92,6 +129,18 @@ export default function TeigManagement() {
   const weekdayProductions = productions?.filter(p => p.weekday === selectedWeekday) || [];
   const weekdayTotal = weekdayProductions.reduce((sum, prod) => sum + prod.kugelMenge, 0);
 
+  // Machine plan for every production weekday (based on combined store total)
+  const machinePlanRows = WEEKDAYS.map(wd => {
+    const total = (productions || [])
+      .filter(p => p.weekday === wd.id)
+      .reduce((s, p) => s + p.kugelMenge, 0);
+    const salesWd = salesWeekdayOf(wd.id);
+    const salesName = WEEKDAYS.find(w => w.id === salesWd)?.name ?? "–";
+    const plan = calcMachinePlan(total);
+    const waste = plan.total - total;
+    return { prodName: wd.name, salesName, total, plan, waste };
+  });
+
   const subTabs: { id: SubTab; label: string; icon: React.ReactNode }[] = [
     { id: 'planung', label: 'Planung', icon: <Calendar size={14} /> },
     { id: 'lightspeed', label: 'Lightspeed', icon: <Upload size={14} /> },
@@ -123,6 +172,67 @@ export default function TeigManagement() {
       {/* Planung tab */}
       {activeSubTab === 'planung' && (
         <div className="space-y-6">
+
+          {/* ── Maschinenbelegungsplan ─────────────────────────────────────── */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Cog size={18} />
+                Maschinenbelegungsplan
+              </CardTitle>
+              <p className="text-sm text-gray-500 mt-1">
+                Optimierte Maschinenkombination pro Produktionstag auf Basis des kombinierten Mindestbedarfs aller Stores · Maschinen: 125er / 115er / 62er
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="border border-gray-200 p-2 text-left font-semibold">Produktionstag</th>
+                      <th className="border border-gray-200 p-2 text-left font-semibold">→ Verkaufstag</th>
+                      <th className="border border-gray-200 p-2 text-right font-semibold">Mindestbedarf</th>
+                      <th className="border border-gray-200 p-2 text-left font-semibold">Maschinenkombination</th>
+                      <th className="border border-gray-200 p-2 text-right font-semibold">Total Kugeln</th>
+                      <th className="border border-gray-200 p-2 text-right font-semibold">Differenz</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {machinePlanRows.map(row => {
+                      const hasData = row.total > 0;
+                      const wasteColor = !hasData
+                        ? "text-gray-400"
+                        : row.waste <= 10 ? "text-green-700" : row.waste <= 30 ? "text-amber-700" : "text-orange-700";
+                      return (
+                        <tr key={row.prodName} className={hasData ? "hover:bg-gray-50" : "bg-gray-50 opacity-50"}>
+                          <td className="border border-gray-200 p-2 font-semibold text-gray-800">{row.prodName}</td>
+                          <td className="border border-gray-200 p-2 text-gray-500 text-xs">{row.salesName}</td>
+                          <td className="border border-gray-200 p-2 text-right tabular-nums font-semibold">
+                            {hasData ? row.total : "–"}
+                          </td>
+                          <td className="border border-gray-200 p-2">
+                            {hasData ? (
+                              <span className="text-orange-800 font-semibold">{row.plan.label}</span>
+                            ) : <span className="text-gray-300">–</span>}
+                          </td>
+                          <td className="border border-gray-200 p-2 text-right tabular-nums font-bold text-orange-900">
+                            {hasData ? row.plan.total : "–"}
+                          </td>
+                          <td className={`border border-gray-200 p-2 text-right tabular-nums text-xs font-medium ${wasteColor}`}>
+                            {hasData ? `+${row.waste}` : "–"}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-xs text-gray-400 mt-2">
+                Differenz = tatsächliche Produktion − Mindestbedarf · grün ≤10, gelb ≤30, orange &gt;30 extra Kugeln
+              </p>
+            </CardContent>
+          </Card>
+
           {/* Ideale Zubereitung Preview */}
           <Card>
             <CardHeader>
