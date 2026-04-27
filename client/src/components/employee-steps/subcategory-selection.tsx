@@ -170,6 +170,19 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
     return translations[subcategoryName] || subcategoryName;
   };
 
+  // Day-restricted checklists: only shown on their designated weekday
+  // JS: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+  const DAY_RESTRICTED: Record<string, number> = {
+    'Montagliste':              1, // Monday
+    'Mittwochsliste':           3, // Wednesday
+    'Sonder/Samstagsreinigung': 6, // Saturday
+  };
+  const todayJS = new Date().getDay();
+  const visibleSubcategories = subcategories.filter(sub => {
+    const restrictedDay = DAY_RESTRICTED[sub.name];
+    return restrictedDay === undefined || restrictedDay === todayJS;
+  });
+
   return (
     <Card className="shadow-sm border border-gray-200">
       <CardContent className="pt-6">
@@ -178,7 +191,7 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
           <h2 className="text-xl font-medium">{t.employee.subcategorySelection?.title || 'Kategorie auswählen'}</h2>
         </div>
         <div className="grid grid-cols-1 gap-3">
-          {subcategories.map((subcategory) => (
+          {visibleSubcategories.map((subcategory) => (
             <Button
               key={subcategory.id}
               variant="outline"
