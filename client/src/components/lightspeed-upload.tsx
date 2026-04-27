@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,8 @@ const STORES = ["JP23", "KP5", "TS17"] as const;
 type Store = typeof STORES[number];
 
 // Match group name extracted BEFORE any parenthesis, e.g. "Pizza(123)" → "Pizza"
-const VALID_GROUPS = new Set(["Pizza", "Panuozzo", "Rollini", "Pizza Team", "Ausschuss"]);
+// "Ausschuss" is intentionally excluded – it represents waste and must not count toward production
+const VALID_GROUPS = new Set(["Pizza", "Panuozzo", "Rollini", "Pizza Team"]);
 
 // Sales weekday (1-7) → Production weekday (1-7), always 2 days before
 // Mo(1)→Sa(6), Di(2)→So(7), Mi(3)→Mo(1), Do(4)→Di(2), Fr(5)→Mi(3), Sa(6)→Do(4), So(7)→Fr(5)
@@ -46,7 +47,7 @@ interface StoreDay {
   store: Store;
   weeklyValues: (number | null)[];  // per-KW sales for this store+weekday
   median: number;
-  produktion: number; // median + 12%, ceiling → saved to this store's teig-entry
+  produktion: number; // median + 10%, rounded to nearest 5 → saved to this store's teig-entry
 }
 
 interface DayResult {
@@ -56,8 +57,7 @@ interface DayResult {
   prodLabel: string;      // short label of production day
   combinedWeeklyValues: (number | null)[]; // sum across all stores per KW
   storeData: StoreDay[];                   // per-store breakdown
-  totalProduktion: number;                 // sum of all stores' produktion
-  machine: MachinePlan;                    // optimal machine plan on totalProduktion
+  totalProduktion: number;                 // sum of all stores' produktion (Mindestbedarf GESAMT)
 }
 
 interface AnalysisResult {
@@ -152,54 +152,10 @@ function calcMedian(values: number[]): number {
   return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
 }
 
-// Machine capacities in descending order
-const MACHINES = [125, 115, 62] as const;
-
-interface MachinePlan {
-  counts: [number, number, number]; // 125er, 115er, 62er
-  total: number;
-  label: string; // e.g. "2×115 + 1×62 = 292"
-}
-
-// Find the combination of machine runs that produces at least `needed` balls
-// with the minimum total output (least waste), then fewest runs
-function calcMachinePlan(needed: number): MachinePlan {
-  if (needed <= 0) return { counts: [0, 0, 0], total: 0, label: "–" };
-
-  let best: MachinePlan | null = null;
-
-  for (let a = 0; a <= 5; a++) {       // 125er batches
-    for (let b = 0; b <= 5; b++) {     // 115er batches
-      for (let c = 0; c <= 8; c++) {   // 62er batches
-        const total = a * 125 + b * 115 + c * 62;
-        if (total < needed) continue;
-
-        const runs = a + b + c;
-        const isBetter = !best ||
-          total < best.total ||
-          (total === best.total && runs < (best.counts[0] + best.counts[1] + best.counts[2]));
-
-        if (isBetter) {
-          const parts: string[] = [];
-          if (a) parts.push(`${a}×125`);
-          if (b) parts.push(`${b}×115`);
-          if (c) parts.push(`${c}×62`);
-          best = {
-            counts: [a, b, c],
-            total,
-            label: `${parts.join(" + ")} = ${total}`,
-          };
-        }
-      }
-    }
-  }
-
-  return best!;
-}
-
 // ── Core analysis ─────────────────────────────────────────────────────────
 // Analyses ALL stores present in the CSV simultaneously.
-// Machine plan is calculated on the COMBINED total across all stores.
+// Mindestbedarf = Median + 10 %, rounded to the nearest 5 (economical rounding).
+// Machine plan optimisation is intentionally NOT done here – it belongs in Planung.
 function analyzeCSV(text: string): AnalysisResult | string {
   const rows = parseCSV(text);
   if (!rows.length) return "CSV konnte nicht gelesen werden.";
@@ -328,11 +284,13 @@ function analyzeCSV(text: string): AnalysisResult | string {
         });
         const presentValues = weeklyValues.filter(v => v !== null) as number[];
         const med = calcMedian(presentValues);
+        // Mindestbedarf: Median + 10 %, then round to nearest 5 (economical)
+        const produktion = Math.round(Math.ceil(med * 1.10) / 5) * 5;
         return {
           store,
           weeklyValues,
           median: Math.round(med),
-          produktion: Math.ceil(med * 1.12),
+          produktion,
         };
       });
 
@@ -343,7 +301,6 @@ function analyzeCSV(text: string): AnalysisResult | string {
       });
 
       const totalProduktion = storeData.reduce((s, sd) => s + sd.produktion, 0);
-      const machine = calcMachinePlan(totalProduktion);
 
       return {
         salesWeekday: sw,
@@ -353,7 +310,6 @@ function analyzeCSV(text: string): AnalysisResult | string {
         combinedWeeklyValues,
         storeData,
         totalProduktion,
-        machine,
       };
     });
 
@@ -366,9 +322,21 @@ export default function LightspeedUpload() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
-  const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [result, setResult] = useState<AnalysisResult | null>(() => {
+    try {
+      const saved = localStorage.getItem("lightspeed_last_result");
+      return saved ? JSON.parse(saved) as AnalysisResult : null;
+    } catch { return null; }
+  });
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Persist the last successful result to localStorage so it survives page reloads
+  useEffect(() => {
+    if (result) {
+      try { localStorage.setItem("lightspeed_last_result", JSON.stringify(result)); } catch {}
+    }
+  }, [result]);
 
   // Fetch upcoming week info (holidays + Bayern games) as soon as a result is available
   const weekInfoQuery = useQuery<UpcomingWeekInfo>({
@@ -577,39 +545,22 @@ export default function LightspeedUpload() {
                       </td>
                     ))}
                   </tr>
-                  <tr className="bg-orange-50 font-bold border-t-2 border-orange-300">
-                    <td className="border border-gray-200 p-2 text-orange-900">Maschinen</td>
-                    {result.days.map(d => (
-                      <td key={d.label} className="border border-gray-200 p-2 text-right text-orange-800 text-xs font-semibold tabular-nums">
-                        {d.machine.label}
-                      </td>
-                    ))}
-                  </tr>
-                  <tr className="bg-orange-100 font-extrabold">
-                    <td className="border border-gray-200 p-2 text-orange-900">TOTAL KUGELN</td>
-                    {result.days.map(d => (
-                      <td key={d.label} className="border border-gray-200 p-2 text-right text-orange-900 text-base tabular-nums">
-                        {d.machine.total}
-                      </td>
-                    ))}
-                  </tr>
                 </tbody>
               </table>
             </div>
             <p className="text-xs text-gray-400 mt-3">
-              KW-Zeilen = kombinierte Verkaufsmenge aller Stores · Mindestbedarf = Median +12 % · Maschinen: 125er / 115er / 62er · TOTAL KUGELN basiert auf GESAMT aller Stores · Produktionstag = −2 Tage{result.detectedStores.includes("TS17") && result.detectedStores.length === 1 ? " · ohne Montag" : ""}
+              KW-Zeilen = kombinierte Verkaufsmenge aller Stores · Mindestbedarf = Median +10 %, gerundet auf ±5 · Produktionstag = −2 Tage · Maschinenoptimierung erfolgt in der Planung{result.detectedStores.includes("TS17") && result.detectedStores.length === 1 ? " · ohne Montag" : ""}
             </p>
 
-            {/* Production schedule summary */}
+            {/* Mindestbedarf production summary */}
             <div className="mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200">
-              <p className="text-xs font-semibold text-amber-800 mb-1.5">Produktionsplan (alle Stores kombiniert) – Kugeln 2 Tage vor Verkauf produzieren:</p>
+              <p className="text-xs font-semibold text-amber-800 mb-1.5">Mindestbedarf (alle Stores) – Teig wird 2 Tage vor Verkauf produziert:</p>
               <div className="flex flex-wrap gap-2">
                 {result.days.map(d => (
                   <div key={d.label} className="flex items-center gap-1 text-xs bg-white border border-amber-200 rounded px-2 py-1">
                     <span className="font-bold text-amber-700">{d.prodLabel}</span>
                     <span className="text-gray-400">→</span>
-                    <span className="font-semibold text-orange-700">{d.machine.total}</span>
-                    <span className="text-gray-500 text-[10px]">({d.machine.label.split("=")[0].trim()})</span>
+                    <span className="font-semibold text-green-700">{d.totalProduktion} Kugeln</span>
                     <span className="text-gray-400">für {WEEKDAY_FULL[d.salesWeekday - 1]}</span>
                   </div>
                 ))}
