@@ -73,4 +73,12 @@ app.use((req, res, next) => {
   }, () => {
     log(`serving on port ${port}`);
   });
+
+  // Graceful shutdown so the port is released before a restart starts a new process
+  const shutdown = () => {
+    server.close(() => process.exit(0));
+    setTimeout(() => process.exit(0), 3000); // force-exit after 3 s if still hanging
+  };
+  process.on("SIGTERM", shutdown);
+  process.on("SIGINT",  shutdown);
 })();
