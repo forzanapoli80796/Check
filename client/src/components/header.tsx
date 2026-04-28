@@ -1,7 +1,7 @@
 import { ArrowLeft, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import logoPath from "@assets/FORZACHECK1_black_1753816621910.png";
+import AppLogo from "@/components/app-logo";
 
 interface HeaderProps {
   showBackButton?: boolean;
@@ -45,11 +45,7 @@ export default function Header({
             </Button>
           )}
           <Link href="/" data-testid="link-home-logo">
-            <img 
-              src={logoPath} 
-              alt="ForzaCheck Logo" 
-              className="max-h-64 max-w-full object-contain cursor-pointer hover:opacity-80 transition-opacity"
-            />
+            <AppLogo imgClassName="max-h-64 max-w-full object-contain" />
           </Link>
         </div>
 

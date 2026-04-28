@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
+import AppLogo from "@/components/app-logo";
 import { EmployeeWorkflowState } from "@/lib/types";
 import StoreSelection from "@/components/employee-steps/store-selection";
 import EmployeeInfo from "@/components/employee-steps/employee-info";
@@ -145,11 +145,7 @@ export default function EmployeeWorkflow() {
       {/* Logo Header */}
       <div className="flex justify-center py-8">
         <Link href="/" data-testid="link-home-logo">
-          <img 
-            src={forzaCheckLogo} 
-            alt="ForzaCheck Logo" 
-            className="h-48 object-contain cursor-pointer hover:opacity-80 transition-opacity"
-          />
+          <AppLogo imgClassName="h-48 object-contain" />
         </Link>
       </div>
       

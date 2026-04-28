@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { ArrowLeft, Cookie, Menu } from "lucide-react";
-import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
+import AppLogo from "@/components/app-logo";
 import SubmittedLists from "@/components/admin-tabs/submitted-lists";
 import CategoriesManagement from "@/components/admin-tabs/categories-management";
 import { TicketsManagement } from "@/components/admin-tabs/tickets";
@@ -82,13 +82,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Logo Header */}
       <div className="flex justify-center py-4 sm:py-6 px-4">
-        <Link href="/">
-          <img 
-            src={forzaCheckLogo} 
-            alt="ForzaCheck Logo" 
-            className="h-12 sm:h-16 object-contain cursor-pointer hover:opacity-80 transition-opacity"
-          />
-        </Link>
+        <AppLogo asLink imgClassName="h-12 sm:h-16 object-contain" />
       </div>
       
       <div className="flex-1">

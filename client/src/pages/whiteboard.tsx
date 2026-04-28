@@ -10,7 +10,7 @@ import { ArrowLeft, StickyNote, Trash2, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { StoreWhiteboard, InsertStoreWhiteboard } from "@shared/schema";
-import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
+import AppLogo from "@/components/app-logo";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const STORES = ["JP23", "KP5", "TS17"];
@@ -128,13 +128,7 @@ export default function Whiteboard() {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <div className="flex justify-center py-6">
-          <Link href="/">
-            <img 
-              src={forzaCheckLogo} 
-              alt="ForzaCheck Logo" 
-              className="h-16 object-contain cursor-pointer hover:opacity-80 transition-opacity"
-            />
-          </Link>
+          <AppLogo asLink imgClassName="h-16 object-contain" />
         </div>
         
         <div className="flex-1 flex items-center justify-center px-4">
@@ -182,13 +176,7 @@ export default function Whiteboard() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <div className="flex justify-center py-6">
-        <Link href="/">
-          <img 
-            src={forzaCheckLogo} 
-            alt="ForzaCheck Logo" 
-            className="h-16 object-contain cursor-pointer hover:opacity-80 transition-opacity"
-          />
-        </Link>
+        <AppLogo asLink imgClassName="h-16 object-contain" />
       </div>
       
       <div className="flex-1 px-4 pb-4">

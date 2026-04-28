@@ -15,7 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
+import AppLogo from "@/components/app-logo";
 
 // Dynamic schema based on category's useShifts setting
 const createTaskFormSchema = (useShifts: boolean) => {
@@ -286,7 +286,7 @@ export default function AdminCategoryTasks() {
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href="/"><img src={forzaCheckLogo} alt="ForzaCheck" className="h-10 cursor-pointer hover:opacity-80 transition-opacity" /></Link>
+            <Link href="/"><AppLogo imgClassName="h-8 object-contain" /></Link>
             <Button
               variant="ghost"
               onClick={() => navigate('/admin')}

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Lock, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
+import AppLogo from "@/components/app-logo";
 
 const CORRECT_PASSWORD = "0101";
 const AUTH_STORAGE_KEY = "forzacheck_auth";
@@ -64,11 +64,7 @@ export function PasswordProtection({ children }: PasswordProtectionProps) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
       <div className="mb-8">
-        <img 
-          src={forzaCheckLogo} 
-          alt="ForzaCheck Logo" 
-          className="h-20 object-contain"
-        />
+        <AppLogo imgClassName="h-20 object-contain" />
       </div>
       
       <Card className="w-full max-w-md">

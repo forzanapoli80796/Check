@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lock, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
-import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
+import AppLogo from "@/components/app-logo";
 
 export default function AppPassword() {
   const [password, setPassword] = useState("");
@@ -57,13 +57,8 @@ export default function AppPassword() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col items-center justify-center p-4">
       {/* Logo */}
-      <div className="mb-8 flex flex-col items-center">
-        <img 
-          src={forzaCheckLogo} 
-          alt="ForzaCheck Logo" 
-          className="h-32 sm:h-48 object-contain"
-        />
-        <p className="mt-2 text-sm font-medium text-gray-500 tracking-wide">Version 2.0</p>
+      <div className="mb-8">
+        <AppLogo imgClassName="h-32 sm:h-48 object-contain" />
       </div>
 
       <Card className="w-full max-w-md shadow-xl">

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeft } from "lucide-react";
-import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
+import AppLogo from "@/components/app-logo";
 import { apiRequest } from "@/lib/queryClient";
 
 
@@ -42,13 +42,7 @@ export default function AdminLogin() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Logo Header - Mobile optimized */}
       <div className="flex justify-center py-4 sm:py-6">
-        <Link href="/">
-          <img 
-            src={forzaCheckLogo} 
-            alt="ForzaCheck Logo" 
-            className="h-14 sm:h-16 object-contain cursor-pointer hover:opacity-80 transition-opacity"
-          />
-        </Link>
+        <AppLogo asLink imgClassName="h-14 sm:h-16 object-contain" />
       </div>
       
       <div className="flex-1 flex items-center justify-center px-3 sm:px-4">

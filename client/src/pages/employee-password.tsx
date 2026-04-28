@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import logoPath from "@assets/FORZACHECK1_black_1753816621910.png";
+import AppLogo from "@/components/app-logo";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const CORRECT_PASSWORD = "0101";
@@ -58,13 +58,7 @@ export default function EmployeePassword() {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
       {/* Logo */}
       <div className="mb-8">
-        <Link href="/">
-          <img 
-            src={logoPath} 
-            alt="ForzaCheck Logo" 
-            className="h-32 object-contain cursor-pointer hover:opacity-80 transition-opacity"
-          />
-        </Link>
+        <AppLogo asLink imgClassName="h-32 object-contain" />
       </div>
 
       <Card className="w-full max-w-md">

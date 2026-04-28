@@ -2,7 +2,7 @@ import { useLocation, Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, MapPin } from "lucide-react";
-import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
+import AppLogo from "@/components/app-logo";
 
 const locations = [
   { id: "kp5", name: "KP5", description: "Standort KP5" },
@@ -41,13 +41,7 @@ export default function LocationSelection() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Logo Header */}
       <div className="flex justify-center py-6">
-        <Link href="/">
-          <img 
-            src={forzaCheckLogo} 
-            alt="ForzaCheck Logo" 
-            className="h-16 object-contain cursor-pointer hover:opacity-80 transition-opacity"
-          />
-        </Link>
+        <AppLogo asLink imgClassName="h-16 object-contain" />
       </div>
       
       {/* Main Content */}

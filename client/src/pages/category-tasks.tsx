@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Plus, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import forzaCheckLogo from "@assets/FORZACHECK1_black_1753816621910.png";
+import AppLogo from "@/components/app-logo";
 
 import type { Task } from "@shared/schema";
 
@@ -265,13 +265,7 @@ export default function CategoryTasks() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Logo Header */}
       <div className="flex justify-center py-6">
-        <Link href="/">
-          <img 
-            src={forzaCheckLogo} 
-            alt="ForzaCheck Logo" 
-            className="h-16 object-contain cursor-pointer hover:opacity-80 transition-opacity"
-          />
-        </Link>
+        <AppLogo asLink imgClassName="h-16 object-contain" />
       </div>
       
       {/* Main Content */}
