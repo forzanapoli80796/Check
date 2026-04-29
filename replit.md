@@ -26,6 +26,13 @@ Logo usage: Only use the official ForzaCheck logo (FORZACHECK1_black_17538166219
 - **API Design**: RESTful endpoints with JSON responses
 - **Development**: Vite for development server and hot module replacement
 
+### PWA Support
+- **Manifest**: `client/public/manifest.json` – Name, Icons, Farben, Display-Modus
+- **Service Worker**: `client/public/sw.js` – Caching-Strategie (Cache-first für statische Assets, Network-first für API-Aufrufe)
+- **Icons**: `client/public/icons/` – icon-192.png, icon-512.png, apple-touch-icon.png (generiert aus ForzaCheck-Logo)
+- **Registrierung**: In `client/src/main.tsx` beim `load`-Event
+- App kann auf iOS und Android als "App" installiert werden (Homescreen-Icon)
+
 ### Build System
 - **Bundler**: Vite for frontend, esbuild for backend
 - **TypeScript**: Strict mode with path mapping for clean imports
