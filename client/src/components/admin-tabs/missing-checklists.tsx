@@ -53,27 +53,9 @@ export default function MissingChecklists() {
     },
   });
 
-  // Day-restricted categories – only count as missing on their designated weekday.
-  // 0 = Sun, 1 = Mon, 2 = Tue, 3 = Wed, 4 = Thu, 5 = Fri, 6 = Sat
-  const DAY_RESTRICTED: Record<string, number> = {
-    "Montagliste": 1,
-    "Mittwochsliste": 3,
-    "Sonder/Samstagsreinigung": 6,
-  };
-
-  // Categories that should never appear as missing
-  const NEVER_MISSING = new Set(["INVENTUR/NON-FOOD"]);
-
-  const selectedDayOfWeek = new Date(selectedDate + "T12:00:00").getDay();
-
-  const filteredMissing = data
-    ? data.missing.filter((entry) => {
-        if (NEVER_MISSING.has(entry.categoryName)) return false;
-        const restrictedDay = DAY_RESTRICTED[entry.categoryName];
-        if (restrictedDay !== undefined && restrictedDay !== selectedDayOfWeek) return false;
-        return true;
-      })
-    : [];
+  // The backend already filters day-restricted and INVENTUR/NON-FOOD entries.
+  // Use the API data directly; totalMissing is also pre-filtered.
+  const filteredMissing = data?.missing ?? [];
 
   const grouped = filteredMissing.reduce<Record<string, MissingEntry[]>>((acc, entry) => {
     const key = entry.categoryName;
@@ -82,7 +64,7 @@ export default function MissingChecklists() {
     return acc;
   }, {});
 
-  const hasMissing = filteredMissing.length > 0;
+  const hasMissing = (data?.totalMissing ?? 0) > 0;
 
   return (
     <Card className={`mb-4 border-2 ${hasMissing ? "border-red-200 bg-red-50" : "border-green-200 bg-green-50"}`}>

@@ -286,10 +286,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Day-restricted categories: only treat as missing on their designated weekday
+      // 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat
+      const DAY_RESTRICTED: Record<string, number> = {
+        'Montagliste': 1,
+        'Mittwochsliste': 3,
+        'Sonder/Samstagsreinigung': 6,
+      };
+
+      // Derive local day-of-week from the date query param (or targetDate) to avoid UTC shift
+      const dateStr = typeof date === 'string' ? date : targetDate.toISOString().split('T')[0];
+      const [yr, mo, dy] = dateStr.split('-').map(Number);
+      const targetDayOfWeek = new Date(yr, mo - 1, dy).getDay();
+
+      const filteredMissing = missing.filter(entry => {
+        const nameLower = entry.categoryName.toLowerCase();
+        // INVENTUR/NON-FOOD: never show as missing
+        if (nameLower.includes('inventur') || nameLower.includes('non-food')) return false;
+        // Day-restricted: only show on the correct weekday
+        const restricted = DAY_RESTRICTED[entry.categoryName];
+        if (restricted !== undefined && restricted !== targetDayOfWeek) return false;
+        return true;
+      });
+
       res.json({
-        date: targetDate.toISOString().split('T')[0],
-        totalMissing: missing.length,
-        missing,
+        date: dateStr,
+        totalMissing: filteredMissing.length,
+        missing: filteredMissing,
         submittedCount: dayChecklists.length,
       });
     } catch (error) {
