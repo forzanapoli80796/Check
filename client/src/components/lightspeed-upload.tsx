@@ -616,14 +616,16 @@ export default function LightspeedUpload() {
                         <div className="space-y-1.5">
                           {bayernOnly.length > 0 && (
                             <div>
-                              <p className="text-red-700 font-medium text-xs mb-1">🔴 FC Bayern München – Heimspiele:</p>
+                              <p className="text-red-700 font-medium text-xs mb-1">🔴 FC Bayern München:</p>
                               <ul className="space-y-0.5">
                                 {bayernOnly.map(g => (
                                   <li key={g.date + g.opponent} className="flex items-center gap-1.5 text-xs text-red-800">
                                     <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
                                     <span className="font-semibold">{fmtDate(g.date)}</span>
-                                    {" – FC Bayern vs "}{g.opponent}
-                                    <span className="text-[10px] bg-red-100 text-red-600 rounded px-1">HEIM</span>
+                                    {g.isHome
+                                      ? <>{" – FC Bayern vs "}{g.opponent} <span className="text-[10px] bg-red-100 text-red-600 rounded px-1">HEIM</span></>
+                                      : <>{" – "}{g.opponent}{" vs FC Bayern"} <span className="text-[10px] bg-gray-100 text-gray-600 rounded px-1">AUSWÄRTS</span></>
+                                    }
                                     <span className="text-red-500 text-[10px]">({g.competition})</span>
                                   </li>
                                 ))}

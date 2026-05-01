@@ -544,7 +544,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch { /* ignore */ }
 
-      // -- 4. UEFA Champions League -- Bayern HOME games only
+      // -- 4. UEFA Champions League -- ALL Bayern games (home + away)
       try {
         const uclYear = uploadMonday.getFullYear() - 1; // e.g. 2025 for 2025/26 season
         const clGroupRes = await fetch("https://api.openligadb.de/getcurrentgroup/cl");
@@ -565,12 +565,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const matchDate = match.matchDateTimeUTC?.slice(0, 10);
             if (!matchDate || matchDate < rangeStart || matchDate > rangeEnd) continue;
             const isHome = match.team1?.teamName?.includes("Bayern") ?? false;
-            if (!isHome) continue; // only home games
+            const isAway = match.team2?.teamName?.includes("Bayern") ?? false;
+            if (!isHome && !isAway) continue;
             bayernGames.push({
               competition: "Champions League",
               date: matchDate,
-              opponent: match.team2?.teamName ?? "?",
-              isHome: true,
+              opponent: isHome ? (match.team2?.teamName ?? "?") : (match.team1?.teamName ?? "?"),
+              isHome,
             });
           }
         }
