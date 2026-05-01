@@ -53,16 +53,36 @@ export default function MissingChecklists() {
     },
   });
 
-  const grouped = data
-    ? data.missing.reduce<Record<string, MissingEntry[]>>((acc, entry) => {
-        const key = entry.categoryName;
-        if (!acc[key]) acc[key] = [];
-        acc[key].push(entry);
-        return acc;
-      }, {})
-    : {};
+  // Day-restricted categories – only count as missing on their designated weekday.
+  // 0 = Sun, 1 = Mon, 2 = Tue, 3 = Wed, 4 = Thu, 5 = Fri, 6 = Sat
+  const DAY_RESTRICTED: Record<string, number> = {
+    "Montagliste": 1,
+    "Mittwochsliste": 3,
+    "Sonder/Samstagsreinigung": 6,
+  };
 
-  const hasMissing = data && data.totalMissing > 0;
+  // Categories that should never appear as missing
+  const NEVER_MISSING = new Set(["INVENTUR/NON-FOOD"]);
+
+  const selectedDayOfWeek = new Date(selectedDate + "T12:00:00").getDay();
+
+  const filteredMissing = data
+    ? data.missing.filter((entry) => {
+        if (NEVER_MISSING.has(entry.categoryName)) return false;
+        const restrictedDay = DAY_RESTRICTED[entry.categoryName];
+        if (restrictedDay !== undefined && restrictedDay !== selectedDayOfWeek) return false;
+        return true;
+      })
+    : [];
+
+  const grouped = filteredMissing.reduce<Record<string, MissingEntry[]>>((acc, entry) => {
+    const key = entry.categoryName;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(entry);
+    return acc;
+  }, {});
+
+  const hasMissing = filteredMissing.length > 0;
 
   return (
     <Card className={`mb-4 border-2 ${hasMissing ? "border-red-200 bg-red-50" : "border-green-200 bg-green-50"}`}>
@@ -79,7 +99,7 @@ export default function MissingChecklists() {
               {data && (
                 <span className={`ml-2 text-sm font-normal ${hasMissing ? "text-red-600" : "text-green-600"}`}>
                   {hasMissing
-                    ? `${data.totalMissing} fehlend`
+                    ? `${filteredMissing.length} fehlend`
                     : "Alle vollständig"}
                 </span>
               )}
@@ -119,7 +139,7 @@ export default function MissingChecklists() {
           ) : data && hasMissing ? (
             <>
               <p className="text-xs text-gray-500 mb-3">
-                {formatDate(selectedDate)} – {data.submittedCount} eingereicht, {data.totalMissing} fehlend
+                {formatDate(selectedDate)} – {data.submittedCount} eingereicht, {filteredMissing.length} fehlend
               </p>
               <div className="space-y-3">
                 {Object.entries(grouped).map(([categoryName, entries]) => (
