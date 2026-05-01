@@ -594,7 +594,7 @@ export default function LightspeedUpload() {
                       </span>
                     </p>
                     {!hasAlerts && (
-                      <p className="text-green-700 text-xs">Keine Feiertage und keine FC-Bayern-Spiele gefunden – Planung kann 1:1 übernommen werden.</p>
+                      <p className="text-green-700 text-xs">Keine Feiertage und keine relevanten Spiele gefunden – Planung kann 1:1 übernommen werden.</p>
                     )}
                     {info.holidays.length > 0 && (
                       <div className="mb-1.5">
@@ -609,24 +609,47 @@ export default function LightspeedUpload() {
                         </ul>
                       </div>
                     )}
-                    {info.bayernGames.length > 0 && (
-                      <div>
-                        <p className="text-red-700 font-medium text-xs mb-1">FC Bayern Spiele:</p>
-                        <ul className="space-y-0.5">
-                          {info.bayernGames.map(g => (
-                            <li key={g.date + g.opponent} className="flex items-center gap-1.5 text-xs text-red-800">
-                              <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
-                              <span className="font-semibold">{fmtDate(g.date)}</span>
-                              {g.isHome
-                                ? <> – FC Bayern vs {g.opponent} <span className="text-[10px] bg-red-100 text-red-600 rounded px-1">HEIM</span></>
-                                : <> – {g.opponent} vs FC Bayern <span className="text-[10px] bg-gray-100 text-gray-600 rounded px-1">AUSWÄRTS</span></>
-                              }
-                              <span className="text-red-500 text-[10px]">({g.competition})</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                    {info.bayernGames.length > 0 && (() => {
+                      const bayernOnly = info.bayernGames.filter(g => g.competition !== "Deutschland Herren");
+                      const deOnly = info.bayernGames.filter(g => g.competition === "Deutschland Herren");
+                      return (
+                        <div className="space-y-1.5">
+                          {bayernOnly.length > 0 && (
+                            <div>
+                              <p className="text-red-700 font-medium text-xs mb-1">🔴 FC Bayern München – Heimspiele:</p>
+                              <ul className="space-y-0.5">
+                                {bayernOnly.map(g => (
+                                  <li key={g.date + g.opponent} className="flex items-center gap-1.5 text-xs text-red-800">
+                                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
+                                    <span className="font-semibold">{fmtDate(g.date)}</span>
+                                    {" – FC Bayern vs "}{g.opponent}
+                                    <span className="text-[10px] bg-red-100 text-red-600 rounded px-1">HEIM</span>
+                                    <span className="text-red-500 text-[10px]">({g.competition})</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {deOnly.length > 0 && (
+                            <div>
+                              <p className="text-red-700 font-medium text-xs mb-1">🦅 Deutschland Herren:</p>
+                              <ul className="space-y-0.5">
+                                {deOnly.map(g => (
+                                  <li key={g.date + g.opponent} className="flex items-center gap-1.5 text-xs text-red-800">
+                                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
+                                    <span className="font-semibold">{fmtDate(g.date)}</span>
+                                    {g.isHome
+                                      ? <> {" – Deutschland vs "}{g.opponent} <span className="text-[10px] bg-red-100 text-red-600 rounded px-1">HEIM</span></>
+                                      : <> {" – "}{g.opponent}{" vs Deutschland"} <span className="text-[10px] bg-gray-100 text-gray-600 rounded px-1">AUSWÄRTS</span></>
+                                    }
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                     {info.weather && info.weather.length > 0 && (
                       <div className={`mt-3 pt-3 border-t ${hasAlerts ? "border-red-200" : "border-green-200"}`}>
                         <p className="text-xs font-semibold mb-2 text-gray-700">🌤️ Wetterprognose München</p>

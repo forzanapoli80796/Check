@@ -509,20 +509,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const matchDate = match.matchDateTimeUTC?.slice(0, 10);
           if (!matchDate || matchDate < rangeStart || matchDate > rangeEnd) continue;
           const isHome = match.team1?.teamName?.includes("Bayern") ?? false;
-          const isAway = match.team2?.teamName?.includes("Bayern") ?? false;
-          if (!isHome && !isAway) continue;
+          if (!isHome) continue; // only home games
           bayernGames.push({
             competition: "Bundesliga",
             date: matchDate,
-            opponent: isHome ? (match.team2?.teamName ?? "?") : (match.team1?.teamName ?? "?"),
-            isHome,
+            opponent: match.team2?.teamName ?? "?",
+            isHome: true,
           });
         }
       } catch (err) {
         console.warn("OpenLigaDB BL1 fetch failed:", err);
       }
 
-      // -- 3. DFB-Pokal from OpenLigaDB (league "dfb") -- ALL Bayern games
+      // -- 3. DFB-Pokal from OpenLigaDB (league "dfb") -- Bayern HOME games only
       try {
         const dfbYear = uploadMonday.getFullYear();
         const dfbRes = await fetch(
@@ -534,22 +533,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const matchDate = match.matchDateTimeUTC?.slice(0, 10);
             if (!matchDate || matchDate < rangeStart || matchDate > rangeEnd) continue;
             const isHome = match.team1?.teamName?.includes("Bayern") ?? false;
-            const isAway = match.team2?.teamName?.includes("Bayern") ?? false;
-            if (!isHome && !isAway) continue;
+            if (!isHome) continue; // only home games
             bayernGames.push({
               competition: "DFB-Pokal",
               date: matchDate,
-              opponent: isHome ? (match.team2?.teamName ?? "?") : (match.team1?.teamName ?? "?"),
-              isHome,
+              opponent: match.team2?.teamName ?? "?",
+              isHome: true,
             });
           }
         }
       } catch { /* ignore */ }
 
-      // -- 4. UEFA Champions League -- ALL Bayern games
+      // -- 4. UEFA Champions League -- Bayern HOME games only
       try {
         const uclYear = uploadMonday.getFullYear() - 1; // e.g. 2025 for 2025/26 season
-        // Try to get current UCL matchday, then fetch surrounding rounds
         const clGroupRes = await fetch("https://api.openligadb.de/getcurrentgroup/cl");
         if (clGroupRes.ok) {
           const clGroup = (await clGroupRes.json()) as { groupOrderID: number };
@@ -568,19 +565,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const matchDate = match.matchDateTimeUTC?.slice(0, 10);
             if (!matchDate || matchDate < rangeStart || matchDate > rangeEnd) continue;
             const isHome = match.team1?.teamName?.includes("Bayern") ?? false;
-            const isAway = match.team2?.teamName?.includes("Bayern") ?? false;
-            if (!isHome && !isAway) continue;
+            if (!isHome) continue; // only home games
             bayernGames.push({
               competition: "Champions League",
               date: matchDate,
-              opponent: isHome ? (match.team2?.teamName ?? "?") : (match.team1?.teamName ?? "?"),
-              isHome,
+              opponent: match.team2?.teamName ?? "?",
+              isHome: true,
             });
           }
         }
       } catch { /* ignore */ }
 
-      // -- 5. Weather forecast for Munich (Open-Meteo, no API key needed) --
+      // -- 5. Deutschland Nationalmannschaft Herren -- ALL games
+      try {
+        const deYear = uploadMonday.getFullYear();
+        const isGermany = (name: string) =>
+          name.toLowerCase().includes("deutschland") || name.toLowerCase().includes("germany");
+
+        // Try WM 2026 qualifiers and Nations League league codes
+        const deLeagueCodes = [
+          `wm26qual/${deYear}`,
+          `wm26qual/${deYear - 1}`,
+          `nl24/${deYear - 1}`,
+          `nl24/${deYear}`,
+          `nationsleague/${deYear}`,
+          `nationsleague/${deYear - 1}`,
+        ];
+        const deSeenDates = new Set<string>();
+        for (const code of deLeagueCodes) {
+          try {
+            const deRes = await fetch(`https://api.openligadb.de/getmatchdata/${code}`);
+            if (!deRes.ok) continue;
+            const deMatches = (await deRes.json()) as OpenLigaMatch[];
+            if (!Array.isArray(deMatches)) continue;
+            for (const match of deMatches) {
+              const matchDate = match.matchDateTimeUTC?.slice(0, 10);
+              if (!matchDate || matchDate < rangeStart || matchDate > rangeEnd) continue;
+              const t1 = match.team1?.teamName ?? "";
+              const t2 = match.team2?.teamName ?? "";
+              const deIsHome = isGermany(t1);
+              const deIsAway = isGermany(t2);
+              if (!deIsHome && !deIsAway) continue;
+              const key = matchDate + (deIsHome ? t2 : t1);
+              if (deSeenDates.has(key)) continue;
+              deSeenDates.add(key);
+              bayernGames.push({
+                competition: "Deutschland Herren",
+                date: matchDate,
+                opponent: deIsHome ? t2 : t1,
+                isHome: deIsHome,
+              });
+            }
+          } catch { /* ignore league code */ }
+        }
+      } catch { /* ignore */ }
+
+      // -- 6. Weather forecast for Munich (Open-Meteo, no API key needed) --
       interface WeatherDay {
         date: string;
         tempMax: number;
