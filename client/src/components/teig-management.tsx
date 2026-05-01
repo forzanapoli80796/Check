@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Save, Upload, Cog } from "lucide-react";
+import { Calendar, Save, Upload, Cog, Clock } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { TeigProduction } from "@shared/schema";
@@ -230,6 +230,65 @@ export default function TeigManagement() {
               </div>
               <p className="text-xs text-gray-400 mt-2">
                 Differenz = tatsächliche Produktion − Mindestbedarf · grün ≤10, gelb ≤30, orange &gt;30 extra Kugeln
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* ── Empfohlene Schichtplandauer ───────────────────────────────── */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Clock size={18} />
+                Empfohlene Schichtplandauer
+              </CardTitle>
+              <p className="text-sm text-gray-500 mt-1">
+                Richtwert: 45 Minuten Arbeitszeit pro 250 Kugeln (aufgerundet auf volle Einheiten)
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="border border-gray-200 p-2 text-left font-semibold">Produktionstag</th>
+                      <th className="border border-gray-200 p-2 text-left font-semibold">→ Verkaufstag</th>
+                      <th className="border border-gray-200 p-2 text-right font-semibold">Kugeln produziert</th>
+                      <th className="border border-gray-200 p-2 text-right font-semibold">Einheiten à 250</th>
+                      <th className="border border-gray-200 p-2 text-right font-semibold">Empfohlene Dauer</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {machinePlanRows.map(row => {
+                      const kugeln = row.plan.total;
+                      const hasData = kugeln > 0;
+                      const units = hasData ? Math.ceil(kugeln / 250) : 0;
+                      const totalMin = units * 45;
+                      const hours = Math.floor(totalMin / 60);
+                      const mins = totalMin % 60;
+                      const dauer = hours > 0
+                        ? mins > 0 ? `${hours} Std. ${mins} Min.` : `${hours} Std.`
+                        : `${mins} Min.`;
+                      return (
+                        <tr key={row.prodName} className={hasData ? "hover:bg-gray-50" : "bg-gray-50 opacity-50"}>
+                          <td className="border border-gray-200 p-2 font-semibold text-gray-800">{row.prodName}</td>
+                          <td className="border border-gray-200 p-2 text-gray-500 text-xs">{row.salesName}</td>
+                          <td className="border border-gray-200 p-2 text-right tabular-nums font-semibold">
+                            {hasData ? kugeln : "–"}
+                          </td>
+                          <td className="border border-gray-200 p-2 text-right tabular-nums text-gray-600">
+                            {hasData ? `${units} × 45 Min.` : "–"}
+                          </td>
+                          <td className="border border-gray-200 p-2 text-right tabular-nums font-bold text-blue-700">
+                            {hasData ? dauer : "–"}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-xs text-gray-400 mt-2">
+                Kugeln produziert = tatsächliche Produktion laut Maschinenbelegungsplan · Formel: ⌈Kugeln ÷ 250⌉ × 45 Min.
               </p>
             </CardContent>
           </Card>
