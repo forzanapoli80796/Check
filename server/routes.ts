@@ -309,6 +309,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return true;
       });
 
+      res.setHeader('Cache-Control', 'no-store');
       res.json({
         date: dateStr,
         totalMissing: filteredMissing.length,
