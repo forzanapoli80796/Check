@@ -547,7 +547,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // -- 4. UEFA Champions League -- ALL Bayern games (home + away)
       try {
         const uclYear = uploadMonday.getFullYear() - 1; // e.g. 2025 for 2025/26 season
-        const clGroupRes = await fetch("https://api.openligadb.de/getcurrentgroup/cl");
+        const clGroupRes = await fetch("https://api.openligadb.de/getcurrentgroup/ucl");
         if (clGroupRes.ok) {
           const clGroup = (await clGroupRes.json()) as { groupOrderID: number };
           const currentCLMD = clGroup.groupOrderID;
@@ -555,7 +555,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             [currentCLMD - 1, currentCLMD, currentCLMD + 1, currentCLMD + 2]
               .filter(md => md > 0)
               .map(md =>
-                fetch(`https://api.openligadb.de/getmatchdata/cl/${uclYear}/${md}`)
+                fetch(`https://api.openligadb.de/getmatchdata/ucl/${uclYear}/${md}`)
                   .then(r => r.json() as Promise<OpenLigaMatch[]>)
                   .catch(() => [] as OpenLigaMatch[])
               )
