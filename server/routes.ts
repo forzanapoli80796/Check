@@ -292,6 +292,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'Montagliste': 1,
         'Mittwochsliste': 3,
         'Sonder/Samstagsreinigung': 6,
+        'MHD-Check': 6, // Saturday (checklist is done Friday, missing check runs Saturday)
       };
 
       // Derive local day-of-week from the date query param (or targetDate) to avoid UTC shift

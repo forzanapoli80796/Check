@@ -176,6 +176,7 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
     'Montagliste':              1, // Monday
     'Mittwochsliste':           3, // Wednesday
     'Sonder/Samstagsreinigung': 6, // Saturday
+    'MHD-Check':                5, // Friday
   };
   const todayJS = new Date().getDay();
   const visibleSubcategories = subcategories.filter(sub => {
