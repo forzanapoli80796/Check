@@ -56,14 +56,9 @@ export default function RoleSelection() {
                 <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl flex items-center justify-center shadow-xl group-hover:shadow-blue-500/50 group-hover:scale-110 transition-all duration-300">
                   <User className="text-white" size={48} />
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-bold text-gray-900">
-                    {t.startPage.roles.employee}
-                  </h3>
-                  <p className="text-base text-gray-600 leading-relaxed">
-                    {t.startPage.roles.employeeDesc}
-                  </p>
-                </div>
+                <h3 className="text-2xl font-bold text-gray-900">
+                  {t.startPage.roles.employee}
+                </h3>
               </div>
             </button>
 
@@ -77,14 +72,9 @@ export default function RoleSelection() {
                 <div className="w-24 h-24 bg-gradient-to-br from-orange-500 to-orange-600 rounded-3xl flex items-center justify-center shadow-xl group-hover:shadow-orange-500/50 group-hover:scale-110 transition-all duration-300">
                   <Cookie className="text-white" size={48} />
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-bold text-gray-900">
-                    {t.startPage.roles.teig}
-                  </h3>
-                  <p className="text-base text-gray-600 leading-relaxed">
-                    {t.startPage.roles.teigDesc}
-                  </p>
-                </div>
+                <h3 className="text-2xl font-bold text-gray-900">
+                  {t.startPage.roles.teig}
+                </h3>
               </div>
             </button>
 
@@ -99,14 +89,9 @@ export default function RoleSelection() {
                 <div className="w-24 h-24 bg-gradient-to-br from-green-500 to-green-600 rounded-3xl flex items-center justify-center shadow-xl group-hover:shadow-green-500/50 group-hover:scale-110 transition-all duration-300">
                   <CalendarCheck className="text-white" size={48} />
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-bold text-gray-900">
-                    Aufgabenplaner
-                  </h3>
-                  <p className="text-base text-gray-600 leading-relaxed">
-                    {aufgabenplanerUrl ? "Aufgabenplanung öffnen" : "Kein Link konfiguriert"}
-                  </p>
-                </div>
+                <h3 className="text-2xl font-bold text-gray-900">
+                  Aufgabenplaner
+                </h3>
               </div>
             </button>
 
@@ -120,14 +105,9 @@ export default function RoleSelection() {
                 <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-600 rounded-3xl flex items-center justify-center shadow-xl group-hover:shadow-purple-500/50 group-hover:scale-110 transition-all duration-300">
                   <Settings className="text-white" size={48} />
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-bold text-gray-900">
-                    {t.startPage.roles.admin}
-                  </h3>
-                  <p className="text-base text-gray-600 leading-relaxed">
-                    {t.startPage.roles.adminDesc}
-                  </p>
-                </div>
+                <h3 className="text-2xl font-bold text-gray-900">
+                  {t.startPage.roles.admin}
+                </h3>
               </div>
             </button>
           </div>
