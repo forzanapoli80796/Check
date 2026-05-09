@@ -78,7 +78,7 @@ export function PasswordProtection({ children }: PasswordProtectionProps) {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium">
-                Bitte geben Sie das Passwort ein
+                Bitte gib das Passwort ein
               </label>
               <div className="relative">
                 <Input

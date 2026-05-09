@@ -44,7 +44,7 @@ export default function SendMessage({ state, updateState, goBack }: SendMessageP
       }
       toast({
         title: "Nachricht gesendet",
-        description: "Ihre Nachricht wurde erfolgreich an den Admin gesendet.",
+        description: "Deine Nachricht wurde erfolgreich an den Admin gesendet.",
       });
       // Nach erfolgreichem Senden zurück zur Bereichsauswahl
       updateState({ step: 'area' });
@@ -98,7 +98,7 @@ export default function SendMessage({ state, updateState, goBack }: SendMessageP
     if (!employeeName.trim()) {
       toast({
         title: "Fehler",
-        description: "Bitte geben Sie Ihren Namen ein.",
+        description: "Bitte gib deinen Namen ein.",
         variant: "destructive",
       });
       return;
@@ -107,7 +107,7 @@ export default function SendMessage({ state, updateState, goBack }: SendMessageP
     if (!message.trim() && !selectedImage) {
       toast({
         title: "Fehler",
-        description: "Bitte geben Sie eine Nachricht ein.",
+        description: "Bitte gib eine Nachricht ein.",
         variant: "destructive",
       });
       return;
@@ -165,24 +165,24 @@ export default function SendMessage({ state, updateState, goBack }: SendMessageP
 
           <div className="space-y-2">
             <label className="text-sm font-medium">
-              Ihr Name *
+              Dein Name *
             </label>
             <Input
               value={employeeName}
               onChange={(e) => setEmployeeName(e.target.value)}
-              placeholder="Geben Sie Ihren Namen ein"
+              placeholder="Gib deinen Namen ein"
               data-testid="input-employee-name"
             />
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium">
-              Ihre Nachricht
+              Deine Nachricht
             </label>
             <Textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Schreiben Sie hier Ihre Nachricht an den Admin..."
+              placeholder="Schreib hier deine Nachricht an den Admin..."
               rows={5}
               className="resize-none"
               data-testid="textarea-message"

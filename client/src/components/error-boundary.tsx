@@ -49,7 +49,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             </CardHeader>
             <CardContent className="text-center space-y-4">
               <p className="text-gray-600">
-                Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.
+                Es ist ein Fehler aufgetreten. Bitte versuche es erneut.
               </p>
               {this.state.error && (
                 <details className="text-left">

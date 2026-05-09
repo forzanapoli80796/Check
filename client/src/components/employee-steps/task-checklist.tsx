@@ -147,7 +147,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
       console.error('No category found - checking if we need to create one');
       toast({
         title: "Arbeitsbereich nicht gefunden",
-        description: `Keine Aufgaben für den ausgewählten Arbeitsbereich gefunden. Bitte wenden Sie sich an den Administrator.`,
+        description: `Keine Aufgaben für den ausgewählten Arbeitsbereich gefunden. Bitte wende dich an den Administrator.`,
         variant: "destructive",
       });
       return;
@@ -227,7 +227,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
               {state.selectedShiftPhase === 'schichtanfang' ? ` ${t.employee.shiftPhase.start}` : ` ${t.employee.shiftPhase.end}`}
             </p>
             <p className="text-sm text-gray-400 mt-1">
-              {t.employee.taskCompletion.contactAdmin || 'Bitte wenden Sie sich an Ihren Administrator.'}
+              {t.employee.taskCompletion.contactAdmin || 'Bitte wende dich an deinen Administrator.'}
             </p>
           </div>
         ) : (
@@ -288,7 +288,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
                 id="product-details"
                 value={productDetails}
                 onChange={(e) => setProductDetails(e.target.value)}
-                placeholder={language === 'de' ? 'Geben Sie hier das Produkt ein...' : 'Enter the product here...'}
+                placeholder={language === 'de' ? 'Gib hier das Produkt ein...' : 'Enter the product here...'}
                 className="w-full min-h-[80px]"
                 required={currentCategory?.name === 'MHD-Check'}
               />

@@ -201,7 +201,7 @@ export function TicketsManagement() {
     if (!createFormData.title.trim()) {
       toast({
         title: "Fehler",
-        description: "Bitte geben Sie einen Titel ein.",
+        description: "Bitte gib einen Titel ein.",
         variant: "destructive",
       });
       return;
@@ -245,7 +245,7 @@ export function TicketsManagement() {
   };
 
   const handleDeleteTicket = (id: string) => {
-    if (confirm("Möchten Sie dieses Ticket wirklich löschen?")) {
+    if (confirm("Möchtest du dieses Ticket wirklich löschen?")) {
       deleteMutation.mutate(id);
     }
   };

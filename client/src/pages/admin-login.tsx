@@ -24,7 +24,7 @@ export default function AdminLogin() {
       navigate("/admin");
     },
     onError: () => {
-      setError("Ungültiger Code. Bitte versuchen Sie es erneut.");
+      setError("Ungültiger Code. Bitte versuche es erneut.");
     },
   });
 

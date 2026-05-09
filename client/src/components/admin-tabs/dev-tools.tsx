@@ -118,7 +118,7 @@ export function DevTools() {
   });
 
   const handleResetWhiteboard = () => {
-    if (confirm("Möchten Sie wirklich alle Whiteboard-Bestätigungen zurücksetzen? Alle Mitarbeiter müssen das Whiteboard heute erneut lesen.")) {
+    if (confirm("Möchtest du wirklich alle Whiteboard-Bestätigungen zurücksetzen? Alle Mitarbeiter müssen das Whiteboard heute erneut lesen.")) {
       resetWhiteboardMutation.mutate();
     }
   };

@@ -135,7 +135,7 @@ export default function CategoriesManagement() {
       <div className="p-6 text-center">
         <h3 className="text-lg font-medium text-red-600 mb-2">Verbindungsfehler</h3>
         <p className="text-gray-600 mb-4">
-          Fehler beim Laden der Daten. Bitte versuchen Sie es erneut.
+          Fehler beim Laden der Daten. Bitte versuche es erneut.
         </p>
         <Button onClick={() => window.location.reload()}>
           Seite neu laden
@@ -265,13 +265,13 @@ export default function CategoriesManagement() {
     if (hasSubcategories) {
       toast({
         title: "Löschen nicht möglich",
-        description: "Diese Kategorie hat Unterkategorien. Bitte löschen Sie zuerst die Unterkategorien.",
+        description: "Diese Kategorie hat Unterkategorien. Bitte lösche zuerst die Unterkategorien.",
         variant: "destructive",
       });
       return;
     }
     
-    if (confirm("Sind Sie sicher, dass Sie diesen Arbeitsbereich löschen möchten?")) {
+    if (confirm("Bist du sicher, dass du diesen Arbeitsbereich löschen möchtest?")) {
       deleteMutation.mutate(id);
     }
   };
@@ -450,7 +450,7 @@ export default function CategoriesManagement() {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-gray-500 mt-1">
-                  Wählen Sie eine übergeordnete Kategorie, um diese als Unterkategorie zu erstellen.
+                  Wähle eine übergeordnete Kategorie, um diese als Unterkategorie zu erstellen.
                 </p>
               </div>
 

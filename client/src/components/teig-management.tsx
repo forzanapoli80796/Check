@@ -301,7 +301,7 @@ export default function TeigManagement() {
               </CardTitle>
               <p className="text-sm text-gray-600 mt-2">
                 {language === 'de'
-                  ? 'Wählen Sie einen Wochentag aus, um die optimale Maschinenbeladung zu sehen.'
+                  ? 'Wähle einen Wochentag aus, um die optimale Maschinenbeladung zu sehen.'
                   : 'Select a weekday to see the optimal machine loading.'}
               </p>
             </CardHeader>
@@ -410,7 +410,7 @@ export default function TeigManagement() {
                   ? 'Es gibt keine automatische Zurücksetzung oder Vorlagen.'
                   : 'There is no automatic reset or templates.'}</li>
                 <li>• {language === 'de'
-                  ? 'Ändern Sie die Werte nur wenn nötig und speichern Sie jede Änderung einzeln.'
+                  ? 'Ändere die Werte nur wenn nötig und speichere jede Änderung einzeln.'
                   : 'Only change values when necessary and save each change individually.'}</li>
               </ul>
             </CardContent>

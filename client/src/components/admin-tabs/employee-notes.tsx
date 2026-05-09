@@ -178,7 +178,7 @@ export function EmployeeNotes() {
                           size="sm"
                           variant="destructive"
                           onClick={() => {
-                            if (confirm("Möchten Sie diese Nachricht wirklich löschen?")) {
+                            if (confirm("Möchtest du diese Nachricht wirklich löschen?")) {
                               deleteMessageMutation.mutate(msg.id);
                             }
                           }}
@@ -267,7 +267,7 @@ export function EmployeeNotes() {
                           size="sm"
                           variant="destructive"
                           onClick={() => {
-                            if (confirm("Möchten Sie diese Nachricht wirklich löschen?")) {
+                            if (confirm("Möchtest du diese Nachricht wirklich löschen?")) {
                               deleteNoteMutation.mutate(note.id);
                             }
                           }}
@@ -339,7 +339,7 @@ export function EmployeeNotes() {
               <Button
                 variant="destructive"
                 onClick={() => {
-                  if (confirm("Möchten Sie diese Nachricht wirklich löschen?")) {
+                  if (confirm("Möchtest du diese Nachricht wirklich löschen?")) {
                     deleteNoteMutation.mutate(selectedNote.id);
                   }
                 }}
@@ -411,7 +411,7 @@ export function EmployeeNotes() {
               <Button
                 variant="destructive"
                 onClick={() => {
-                  if (confirm("Möchten Sie diese Nachricht wirklich löschen?")) {
+                  if (confirm("Möchtest du diese Nachricht wirklich löschen?")) {
                     deleteMessageMutation.mutate(selectedMessage.id);
                   }
                 }}

@@ -35,7 +35,7 @@ export default function SuccessScreen({ updateState, goBack }: SuccessScreenProp
         </div>
         <h2 className="text-2xl font-medium mb-2">Checkliste erfolgreich übermittelt!</h2>
         <p className="text-gray-600 mb-6">
-          Ihre Aufgaben wurden erfolgreich dokumentiert und gespeichert.
+          Deine Aufgaben wurden erfolgreich dokumentiert und gespeichert.
         </p>
         <Button onClick={startNewChecklist} className="bg-primary hover:bg-blue-700">
           Neue Checkliste starten

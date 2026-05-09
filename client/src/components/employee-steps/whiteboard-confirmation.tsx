@@ -156,7 +156,7 @@ export default function WhiteboardConfirmation({ state, updateState, goBack, onC
       setIsConfirming(false);
       toast({
         title: "Fehler",
-        description: "Die Bestätigung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+        description: "Die Bestätigung konnte nicht gespeichert werden. Bitte versuche es erneut.",
         variant: "destructive",
       });
     },
@@ -213,7 +213,7 @@ export default function WhiteboardConfirmation({ state, updateState, goBack, onC
     if (!employeeName.trim() || !message.trim()) {
       toast({
         title: "Fehlende Angaben",
-        description: "Bitte geben Sie Ihren Namen und eine Nachricht ein.",
+        description: "Bitte gib deinen Namen und eine Nachricht ein.",
         variant: "destructive",
       });
       return;
@@ -238,7 +238,7 @@ export default function WhiteboardConfirmation({ state, updateState, goBack, onC
     if (!editingNote || !employeeName.trim() || !message.trim()) {
       toast({
         title: "Fehlende Angaben",
-        description: "Bitte geben Sie Ihren Namen und eine Nachricht ein.",
+        description: "Bitte gib deinen Namen und eine Nachricht ein.",
         variant: "destructive",
       });
       return;
@@ -252,7 +252,7 @@ export default function WhiteboardConfirmation({ state, updateState, goBack, onC
   };
 
   const handleDeleteNote = (noteId: string) => {
-    if (confirm("Möchten Sie diese Notiz wirklich löschen?")) {
+    if (confirm("Möchtest du diese Notiz wirklich löschen?")) {
       deleteNoteMutation.mutate(noteId);
     }
   };
@@ -426,7 +426,7 @@ export default function WhiteboardConfirmation({ state, updateState, goBack, onC
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="employee-name">Ihr Name</Label>
+              <Label htmlFor="employee-name">Dein Name</Label>
               <Input
                 id="employee-name"
                 value={employeeName}

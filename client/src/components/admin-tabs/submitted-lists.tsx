@@ -158,13 +158,13 @@ export default function SubmittedLists() {
   });
 
   const deleteChecklist = (id: string) => {
-    if (confirm("Sind Sie sicher, dass Sie diese Checkliste löschen möchten?")) {
+    if (confirm("Bist du sicher, dass du diese Checkliste löschen möchtest?")) {
       deleteMutation.mutate(id);
     }
   };
 
   const deleteOldChecklists = () => {
-    if (confirm("Möchten Sie wirklich alle Checklisten löschen, die älter als 7 Tage sind? Diese Aktion kann nicht rückgängig gemacht werden.")) {
+    if (confirm("Möchtest du wirklich alle Checklisten löschen, die älter als 7 Tage sind? Diese Aktion kann nicht rückgängig gemacht werden.")) {
       deleteOldChecklistsMutation.mutate();
     }
   };
@@ -598,7 +598,7 @@ export default function SubmittedLists() {
                     })}
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
-                    Klicken Sie auf ein Bild, um es in voller Größe zu öffnen.
+                    Klicke auf ein Bild, um es in voller Größe zu öffnen.
                   </p>
                 </div>
               )}

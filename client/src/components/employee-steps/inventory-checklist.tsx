@@ -142,7 +142,7 @@ export default function InventoryChecklist({ state, updateState, goBack }: Inven
           Mitarbeiter: {state.employeeName}
         </p>
         <p className="text-gray-600">
-          Erfassen Sie die Mengen für jeden Artikel
+          Erfasse die Mengen für jeden Artikel
         </p>
         <div className="bg-blue-50 p-3 rounded-lg">
           <p className="text-sm text-blue-800">
@@ -210,7 +210,7 @@ export default function InventoryChecklist({ state, updateState, goBack }: Inven
                       toast({
                         title: language === 'de' ? "Menge erforderlich" : "Quantity required",
                         description: language === 'de' 
-                          ? "Bitte geben Sie eine gültige Menge an (0 oder mehr)." 
+                          ? "Bitte gib eine gültige Menge an (0 oder mehr)." 
                           : "Please enter a valid quantity (0 or more).",
                         variant: "destructive",
                       });

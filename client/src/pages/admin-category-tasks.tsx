@@ -206,7 +206,7 @@ export default function AdminCategoryTasks() {
     } catch (error) {
       toast({
         title: "Validierungsfehler",
-        description: "Bitte überprüfen Sie Ihre Eingaben.",
+        description: "Bitte überprüfe deine Eingaben.",
         variant: "destructive"
       });
     }
@@ -217,7 +217,7 @@ export default function AdminCategoryTasks() {
   const handleDelete = (id: string) => {
     if (deleteMutation.isPending || deletingTaskId === id) return; // Prevent double-clicks
     
-    if (confirm("Möchten Sie diese Aufgabe wirklich löschen?")) {
+    if (confirm("Möchtest du diese Aufgabe wirklich löschen?")) {
       setDeletingTaskId(id);
       deleteMutation.mutate(id, {
         onSettled: () => {
@@ -305,7 +305,7 @@ export default function AdminCategoryTasks() {
             Aufgaben verwalten: {category?.name} - {store}
           </h1>
           <p className="text-gray-600 mt-1">
-            Verwalten Sie die Aufgaben für diesen Arbeitsbereich und Standort
+            Aufgaben für diesen Arbeitsbereich und Standort
           </p>
         </div>
 
@@ -459,7 +459,7 @@ export default function AdminCategoryTasks() {
                   ))}
                   {categoryTasks.length === 0 && (
                     <p className="text-gray-400 text-sm col-span-full">
-                      Noch keine Aufgaben vorhanden. Klicken Sie auf "Neue Aufgabe" um zu beginnen.
+                      Noch keine Aufgaben vorhanden. Klicke auf "Neue Aufgabe" um zu beginnen.
                     </p>
                   )}
                 </div>

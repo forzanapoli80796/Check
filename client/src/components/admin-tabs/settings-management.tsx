@@ -75,7 +75,7 @@ export function SettingsManagement() {
             System-Einstellungen
           </CardTitle>
           <CardDescription>
-            Verwalten Sie globale Einstellungen für das ForzaCheck-System
+            Globale Einstellungen für das ForzaCheck-System
           </CardDescription>
         </CardHeader>
       </Card>
@@ -88,7 +88,7 @@ export function SettingsManagement() {
             Aufgabenplaner
           </CardTitle>
           <CardDescription>
-            Legen Sie den Link fest, der beim Klick auf die "Aufgabenplaner"-Kachel geöffnet wird
+            Lege den Link fest, der beim Klick auf die "Aufgabenplaner"-Kachel geöffnet wird
           </CardDescription>
         </CardHeader>
         <CardContent>

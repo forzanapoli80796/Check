@@ -5,7 +5,7 @@ export const translations = {
     // Start page
     startPage: {
       title: 'Willkommen bei ForzaCheck',
-      subtitle: 'Wählen Sie Ihre Rolle aus',
+      subtitle: 'Wähle deine Rolle',
       roles: {
         employee: 'Mitarbeiter',
         employeeDesc: 'Checklisten ausfüllen',
@@ -22,11 +22,11 @@ export const translations = {
     employee: {
       storeSelection: {
         title: 'Store auswählen',
-        selectStore: 'Wählen Sie einen Store'
+        selectStore: 'Wähle einen Store'
       },
       areaSelection: {
         title: 'Arbeitsbereich auswählen',
-        selectArea: 'Wählen Sie einen Bereich',
+        selectArea: 'Wähle einen Bereich',
         areas: {
           'Terminal': 'Terminal',
           'Küche': 'Küche',
@@ -51,7 +51,7 @@ export const translations = {
       detailsEntry: {
         title: 'Details eingeben',
         employeeName: 'Mitarbeitername',
-        enterName: 'Geben Sie Ihren Namen ein',
+        enterName: 'Gib deinen Namen ein',
         shift: 'Schicht',
         earlyShift: 'Frühschicht',
         lateShift: 'Spätschicht',
@@ -61,14 +61,14 @@ export const translations = {
       },
       shiftPhase: {
         title: 'Schichtphase auswählen',
-        youSelected: 'Sie haben',
-        areYouAt: 'Sind Sie am',
+        youSelected: 'Du hast',
+        areYouAt: 'Bist du am',
         or: 'oder am',
         ofShift: 'der Schicht',
         start: 'Start',
         end: 'Ende',
         ofThe: 'der',
-        differentTasks: 'Je nach Schichtphase erhalten Sie unterschiedliche Aufgaben zur Bearbeitung.',
+        differentTasks: 'Je nach Schichtphase erhältst du unterschiedliche Aufgaben zur Bearbeitung.',
         continueToTasks: 'Weiter zu den Aufgaben'
       },
       taskCompletion: {
@@ -78,12 +78,12 @@ export const translations = {
         completed: 'erledigt',
         submit: 'Checkliste einreichen',
         submitting: 'Wird gesendet...',
-        confirmSubmit: 'Sind Sie sicher, dass Sie die Checkliste einreichen möchten?',
+        confirmSubmit: 'Bist du sicher, dass du die Checkliste einreichen möchtest?',
         progress: 'Fortschritt',
         noTasks: 'Keine Aufgaben für diese Schichtphase gefunden.',
-        contactAdmin: 'Bitte wenden Sie sich an Ihren Administrator.',
+        contactAdmin: 'Bitte wende dich an deinen Administrator.',
         commentsLabel: 'Anmerkungen (optional)',
-        commentsPlaceholder: 'Hier können Sie zusätzliche Anmerkungen hinzufügen...'
+        commentsPlaceholder: 'Hier kannst du zusätzliche Anmerkungen hinzufügen...'
       },
       inventory: {
         title: 'Inventur',
@@ -94,7 +94,7 @@ export const translations = {
       },
       success: {
         title: 'Erfolgreich eingereicht!',
-        message: 'Ihre Checkliste wurde erfolgreich eingereicht.',
+        message: 'Deine Checkliste wurde erfolgreich eingereicht.',
         newChecklist: 'Neue Checkliste starten',
         backToStart: 'Zur Startseite'
       }
@@ -139,7 +139,7 @@ export const translations = {
         simpleChecklist: 'Einfache Checkliste',
         withQuantity: 'Mit Mengenerfassung',
         delete: 'Löschen',
-        confirmDelete: 'Sind Sie sicher, dass Sie diesen Arbeitsbereich löschen möchten?'
+        confirmDelete: 'Bist du sicher, dass du diesen Arbeitsbereich löschen möchtest?'
       },
       tasks: {
         title: 'Aufgaben verwalten',
@@ -151,7 +151,7 @@ export const translations = {
         actions: 'Aktionen',
         edit: 'Bearbeiten',
         delete: 'Löschen',
-        confirmDelete: 'Sind Sie sicher, dass Sie diese Aufgabe löschen möchten?'
+        confirmDelete: 'Bist du sicher, dass du diese Aufgabe löschen möchtest?'
       },
       submitted: {
         title: 'Eingereichte Checklisten',
@@ -179,7 +179,7 @@ export const translations = {
         currentWeek: 'Aktuelle Woche',
         previousWeek: 'Vorherige Woche',
         nextWeek: 'Nächste Woche',
-        enterQuantity: 'Geben Sie die zu produzierende Kugelmenge pro Tag und Store ein.',
+        enterQuantity: 'Gib die zu produzierende Kugelmenge pro Tag und Store ein.',
         save: 'Speichern'
       }
     },

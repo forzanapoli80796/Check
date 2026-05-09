@@ -54,7 +54,7 @@ export default function LocationSelection() {
               Standort auswählen
             </h1>
             <p className="text-gray-600">
-              Wählen Sie einen Standort für den Arbeitsbereich "{categoryName}"
+              Wähle einen Standort für den Arbeitsbereich "{categoryName}"
             </p>
           </div>
 

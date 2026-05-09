@@ -111,7 +111,7 @@ export function TicketsView({ state, updateState, goBack }: TicketsViewProps) {
       setNewComment("");
       toast({
         title: "Kommentar hinzugefügt",
-        description: "Ihr Kommentar wurde erfolgreich hinzugefügt.",
+        description: "Dein Kommentar wurde erfolgreich hinzugefügt.",
       });
     },
     onError: () => {
@@ -143,7 +143,7 @@ export function TicketsView({ state, updateState, goBack }: TicketsViewProps) {
       }
       toast({
         title: "Nachricht gesendet",
-        description: "Ihre Nachricht wurde erfolgreich an den Admin gesendet.",
+        description: "Deine Nachricht wurde erfolgreich an den Admin gesendet.",
       });
     },
     onError: () => {
@@ -380,13 +380,13 @@ export function TicketsView({ state, updateState, goBack }: TicketsViewProps) {
         <CardHeader>
           <CardTitle>Nachricht an Admin</CardTitle>
           <CardDescription>
-            Senden Sie eine Nachricht oder einen Hinweis mit optionalem Bild an den Administrator
+            Sende eine Nachricht oder einen Hinweis mit optionalem Bild an den Administrator
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <Textarea
-              placeholder="Geben Sie hier Ihre Nachricht ein..."
+              placeholder="Gib hier deine Nachricht ein..."
               value={employeeNote}
               onChange={(e) => setEmployeeNote(e.target.value)}
               rows={4}

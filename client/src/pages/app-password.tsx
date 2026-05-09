@@ -47,7 +47,7 @@ export default function AppPassword() {
     } else {
       toast({
         title: "Falsches Passwort",
-        description: "Bitte versuchen Sie es erneut.",
+        description: "Bitte versuche es erneut.",
         variant: "destructive",
       });
       setPassword("");
@@ -68,7 +68,7 @@ export default function AppPassword() {
             App-Zugang
           </CardTitle>
           <p className="text-sm text-gray-600 mt-2">
-            Bitte geben Sie das Passwort ein, um fortzufahren
+            Bitte gib das Passwort ein, um fortzufahren
           </p>
         </CardHeader>
         <CardContent>

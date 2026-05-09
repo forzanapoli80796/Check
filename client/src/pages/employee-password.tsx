@@ -68,7 +68,7 @@ export default function EmployeePassword() {
             Passwort erforderlich
           </CardTitle>
           <CardDescription>
-            Bitte geben Sie das Passwort für {getRoleTitle()} ein
+            Bitte gib das Passwort für {getRoleTitle()} ein
           </CardDescription>
         </CardHeader>
         <CardContent>

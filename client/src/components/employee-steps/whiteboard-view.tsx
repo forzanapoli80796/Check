@@ -88,7 +88,7 @@ export function WhiteboardView({ state, updateState }: WhiteboardViewProps) {
         <CardContent>
           <div className="mb-6">
             <p className="text-gray-600">
-              Bitte lesen Sie alle wichtigen Nachrichten und Ankündigungen für Ihren Store.
+              Bitte lies alle wichtigen Nachrichten und Ankündigungen für deinen Store.
             </p>
           </div>
 

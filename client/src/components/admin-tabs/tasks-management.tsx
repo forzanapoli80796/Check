@@ -171,7 +171,7 @@ export default function TasksManagement() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Sind Sie sicher, dass Sie diese Aufgabe löschen möchten?")) {
+    if (confirm("Bist du sicher, dass du diese Aufgabe löschen möchtest?")) {
       deleteMutation.mutate(id);
     }
   };
@@ -302,7 +302,7 @@ export default function TasksManagement() {
               {formData.categoryId && categories?.find(cat => cat.id === formData.categoryId)?.categoryType === "inventory" && (
                 <div className="bg-blue-50 p-3 rounded-lg">
                   <p className="text-sm text-blue-800">
-                    <strong>Inventur-Hinweis:</strong> Erstellen Sie hier nur den Artikel-Namen (z.B. "Pizza Margherita", "Tomatensauce"). 
+                    <strong>Inventur-Hinweis:</strong> Erstelle hier nur den Artikel-Namen (z.B. "Pizza Margherita", "Tomatensauce"). 
                     Die Einheiten (Stück, Liter, KG) werden später beim Erfassen von den Mitarbeitern ausgewählt.
                   </p>
                 </div>
@@ -424,7 +424,7 @@ export default function TasksManagement() {
             <p className="text-gray-500">Keine Aufgaben gefunden.</p>
             {searchTerm && (
               <p className="text-sm text-gray-400 mt-2">
-                Versuchen Sie einen anderen Suchbegriff oder erstellen Sie eine neue Aufgabe.
+                Versuche einen anderen Suchbegriff oder erstelle eine neue Aufgabe.
               </p>
             )}
           </div>
@@ -451,7 +451,7 @@ export default function TasksManagement() {
       {(!tasks || tasks.length === 0) && (
         <div className="text-center py-8">
           <p className="text-gray-500">Noch keine Aufgaben erstellt.</p>
-          <p className="text-sm text-gray-400 mt-1">Erstellen Sie die erste Aufgabe mit dem Button oben.</p>
+          <p className="text-sm text-gray-400 mt-1">Erstelle die erste Aufgabe mit dem Button oben.</p>
         </div>
       )}
     </div>

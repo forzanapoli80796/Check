@@ -174,7 +174,7 @@ export default function CategoryTasks() {
   };
 
   const handleDelete = (taskId: string) => {
-    if (confirm("Sind Sie sicher, dass Sie diese Aufgabe löschen möchten?")) {
+    if (confirm("Bist du sicher, dass du diese Aufgabe löschen möchtest?")) {
       deleteMutation.mutate(taskId);
     }
   };
@@ -278,7 +278,7 @@ export default function CategoryTasks() {
               Aufgaben für {categoryName} - {locationName}
             </h1>
             <p className="text-gray-600 mt-2">
-              Verwalten Sie die Aufgaben nach Schichten und Phasen für Standort {locationName}
+              Aufgaben nach Schichten und Phasen für Standort {locationName}
             </p>
           </div>
 
