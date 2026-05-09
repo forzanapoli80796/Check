@@ -13,7 +13,6 @@ import ShiftPhaseSelection from "@/components/employee-steps/shift-phase-selecti
 import TaskChecklist from "@/components/employee-steps/task-checklist";
 import InventoryChecklist from "@/components/employee-steps/inventory-checklist";
 import SuccessScreen from "@/components/employee-steps/success-screen";
-import SendMessage from "@/components/employee-steps/send-message";
 import WhiteboardStep from "@/components/employee-steps/whiteboard-step";
 import WhiteboardConfirmation from "@/components/employee-steps/whiteboard-confirmation";
 
@@ -129,8 +128,6 @@ export default function EmployeeWorkflow() {
         return <TaskChecklist state={state} updateState={updateState} goBack={goBack} />;
       case 'success':
         return <SuccessScreen state={state} updateState={updateState} goBack={goBack} />;
-      case 'sendMessage':
-        return <SendMessage state={state} updateState={updateState} goBack={goBack} />;
       default:
         return <StoreSelection state={state} updateState={updateState} goBack={goBack} />;
     }
