@@ -1,11 +1,20 @@
-import { useLocation, Link } from "wouter";
-import { User, Settings, Cookie } from "lucide-react";
+import { useLocation } from "wouter";
+import { User, Settings, Cookie, CalendarCheck } from "lucide-react";
 import AppLogo from "@/components/app-logo";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useQuery } from "@tanstack/react-query";
+import type { AppSetting } from "@shared/schema";
 
 export default function RoleSelection() {
   const [, navigate] = useLocation();
   const { t } = useLanguage();
+
+  const { data: aufgabenplanerSetting } = useQuery<AppSetting>({
+    queryKey: ["/api/app-settings/aufgabenplaner_url"],
+    retry: false,
+  });
+
+  const aufgabenplanerUrl = aufgabenplanerSetting?.settingValue || "";
 
   const selectRole = (role: string) => {
     if (role === 'admin') {
@@ -13,8 +22,13 @@ export default function RoleSelection() {
     } else if (role === 'teig') {
       navigate("/teig");
     } else {
-      // Mitarbeiter
       navigate("/employee?role=mitarbeiter");
+    }
+  };
+
+  const handleAufgabenplaner = () => {
+    if (aufgabenplanerUrl) {
+      window.open(aufgabenplanerUrl, "_blank", "noopener,noreferrer");
     }
   };
 
@@ -31,7 +45,7 @@ export default function RoleSelection() {
       <div className="flex-1 flex items-center justify-center px-4 pb-16">
         <div className="w-full max-w-6xl">
           {/* Role Selection Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8">
             {/* Mitarbeiter Card */}
             <button
               onClick={() => selectRole('mitarbeiter')}
@@ -69,6 +83,28 @@ export default function RoleSelection() {
                   </h3>
                   <p className="text-base text-gray-600 leading-relaxed">
                     {t.startPage.roles.teigDesc}
+                  </p>
+                </div>
+              </div>
+            </button>
+
+            {/* Aufgabenplaner Card */}
+            <button
+              onClick={handleAufgabenplaner}
+              disabled={!aufgabenplanerUrl}
+              className="group relative bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 p-10 border-2 border-transparent hover:border-green-500 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:border-transparent disabled:hover:shadow-xl"
+              data-testid="button-role-aufgabenplaner"
+            >
+              <div className="flex flex-col items-center text-center space-y-6">
+                <div className="w-24 h-24 bg-gradient-to-br from-green-500 to-green-600 rounded-3xl flex items-center justify-center shadow-xl group-hover:shadow-green-500/50 group-hover:scale-110 transition-all duration-300">
+                  <CalendarCheck className="text-white" size={48} />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    Aufgabenplaner
+                  </h3>
+                  <p className="text-base text-gray-600 leading-relaxed">
+                    {aufgabenplanerUrl ? "Aufgabenplanung öffnen" : "Kein Link konfiguriert"}
                   </p>
                 </div>
               </div>

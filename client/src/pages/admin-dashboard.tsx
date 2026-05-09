@@ -12,6 +12,7 @@ import CategoriesManagement from "@/components/admin-tabs/categories-management"
 import { TicketsManagement } from "@/components/admin-tabs/tickets";
 import { EmployeeNotes } from "@/components/admin-tabs/employee-notes";
 import { DevTools } from "@/components/admin-tabs/dev-tools";
+import { SettingsManagement } from "@/components/admin-tabs/settings-management";
 import ErrorBoundary from "@/components/error-boundary";
 import TeigManagement from "@/components/teig-management";
 import MissingChecklists from "@/components/admin-tabs/missing-checklists";
@@ -28,6 +29,7 @@ export default function AdminDashboard() {
     { value: 'teig', label: 'Teig-Planung' },
     { value: 'tickets', label: 'Tickets' },
     { value: 'employeeNotes', label: 'Mitarbeiter-Nachrichten' },
+    { value: 'settings', label: 'Einstellungen' },
     { value: 'devTools', label: 'Dev Tools' },
   ];
 
@@ -61,6 +63,12 @@ export default function AdminDashboard() {
         return (
           <ErrorBoundary>
             <EmployeeNotes />
+          </ErrorBoundary>
+        );
+      case 'settings':
+        return (
+          <ErrorBoundary>
+            <SettingsManagement />
           </ErrorBoundary>
         );
       case 'devTools':
