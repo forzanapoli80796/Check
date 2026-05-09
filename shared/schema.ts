@@ -14,6 +14,7 @@ export const categories = pgTable("categories", {
   parentId: varchar("parent_id"), // Parent category ID for subcategories
   isSubcategoryParent: boolean("is_subcategory_parent").notNull().default(false), // true if this category has subcategories
   enforceReading: boolean("enforce_reading").notNull().default(false), // For whiteboard categories: true = employees must read and confirm once per shift
+  excludedShiftCombos: text("excluded_shift_combos").array().default(sql`ARRAY[]::text[]`), // Shift combos to exclude, e.g. ['frühschicht_schichtende', 'spätschicht_schichtanfang']
   createdAt: timestamp("created_at").defaultNow(),
 });
 

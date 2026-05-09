@@ -258,7 +258,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           if (cat.useShifts) {
             // Determine which shift combos are expected based on tasks
+            const excluded = cat.excludedShiftCombos ?? [];
             const expectedCombos = SHIFT_COMBOS.filter(combo => {
+              if (excluded.includes(combo)) return false;
               const [shift, phase] = combo.split('_') as [string, string];
               return storeTasks.some(t =>
                 (t.shift === shift || t.shift === 'both') &&
