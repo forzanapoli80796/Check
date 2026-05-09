@@ -8,7 +8,7 @@ export interface EmployeeWorkflowState {
   selectedArea: string | null;
   selectedAreaName?: string | null;
   selectedAreaUseShifts?: boolean; // Whether the selected category uses shifts
-  selectedAreaType?: 'shifts' | 'simple' | 'inventory' | 'tickets' | 'whiteboard'; // The category type (Option 1: shifts, Option 2: simple, Option 3: inventory, Option 4: tickets, Option 5: whiteboard)
+  selectedAreaType?: 'shifts' | 'simple' | 'inventory' | 'whiteboard'; // The category type (Option 1: shifts, Option 2: simple, Option 3: inventory, Option 4: whiteboard)
   selectedAreaHasSubcategories?: boolean; // Whether the selected area has subcategories
   employeeName: string;
   selectedShift: 'frühschicht' | 'spätschicht' | null;
@@ -20,7 +20,7 @@ export interface EmployeeWorkflowState {
 }
 
 export interface AdminTabState {
-  activeTab: 'submitted' | 'categories' | 'teig' | 'tickets' | 'employeeNotes' | 'devTools' | 'settings';
+  activeTab: 'submitted' | 'categories' | 'teig' | 'employeeNotes' | 'devTools' | 'settings';
 }
 
 export const STORES = ['JP23', 'KP5', 'TS17'] as const;

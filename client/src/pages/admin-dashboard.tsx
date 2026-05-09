@@ -9,7 +9,6 @@ import { ArrowLeft, Cookie, Menu } from "lucide-react";
 import AppLogo from "@/components/app-logo";
 import SubmittedLists from "@/components/admin-tabs/submitted-lists";
 import CategoriesManagement from "@/components/admin-tabs/categories-management";
-import { TicketsManagement } from "@/components/admin-tabs/tickets";
 import { EmployeeNotes } from "@/components/admin-tabs/employee-notes";
 import { DevTools } from "@/components/admin-tabs/dev-tools";
 import { SettingsManagement } from "@/components/admin-tabs/settings-management";
@@ -27,7 +26,6 @@ export default function AdminDashboard() {
     { value: 'submitted', label: 'Eingereichte Listen' },
     { value: 'categories', label: 'Arbeitsbereiche' },
     { value: 'teig', label: 'Teig-Planung' },
-    { value: 'tickets', label: 'Tickets' },
     { value: 'employeeNotes', label: 'Mitarbeiter-Nachrichten' },
     { value: 'settings', label: 'Einstellungen' },
     { value: 'devTools', label: 'Dev Tools' },
@@ -51,12 +49,6 @@ export default function AdminDashboard() {
         return (
           <ErrorBoundary>
             <TeigManagement />
-          </ErrorBoundary>
-        );
-      case 'tickets':
-        return (
-          <ErrorBoundary>
-            <TicketsManagement />
           </ErrorBoundary>
         );
       case 'employeeNotes':

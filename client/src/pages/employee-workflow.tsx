@@ -13,7 +13,6 @@ import ShiftPhaseSelection from "@/components/employee-steps/shift-phase-selecti
 import TaskChecklist from "@/components/employee-steps/task-checklist";
 import InventoryChecklist from "@/components/employee-steps/inventory-checklist";
 import SuccessScreen from "@/components/employee-steps/success-screen";
-import { TicketsView } from "@/components/employee-steps/tickets-view";
 import SendMessage from "@/components/employee-steps/send-message";
 import WhiteboardStep from "@/components/employee-steps/whiteboard-step";
 import WhiteboardConfirmation from "@/components/employee-steps/whiteboard-confirmation";
@@ -126,9 +125,6 @@ export default function EmployeeWorkflow() {
         }
         if (state.selectedAreaType === 'inventory') {
           return <InventoryChecklist state={state} updateState={updateState} goBack={goBack} />;
-        }
-        if (state.selectedAreaType === 'tickets') {
-          return <TicketsView state={state} updateState={updateState} goBack={goBack} />;
         }
         return <TaskChecklist state={state} updateState={updateState} goBack={goBack} />;
       case 'success':
