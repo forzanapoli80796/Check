@@ -113,7 +113,7 @@ export default function AppPassword() {
       </Card>
       
       <p className="mt-6 text-xs text-gray-500 text-center">
-        © 2024 ForzaCheck - Alle Rechte vorbehalten
+        © 2026 ForzaCheck - Alle Rechte vorbehalten
       </p>
     </div>
   );
