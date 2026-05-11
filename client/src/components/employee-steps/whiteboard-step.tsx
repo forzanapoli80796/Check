@@ -199,8 +199,8 @@ export default function WhiteboardStep({ state, updateState, goBack }: Whiteboar
       message: message.trim(),
       color: selectedColor,
       imageUrl: uploadedImage,
-      expiresAt,
-    });
+      ...(expiresAt ? { expiresAt } : {}),
+    } as any);
   };
 
   const handleEditNote = (note: StoreWhiteboard) => {
@@ -451,7 +451,7 @@ export default function WhiteboardStep({ state, updateState, goBack }: Whiteboar
           <div className="space-y-3">
             {notes.map((note) => {
               const { bgClass, borderClass } = getColorClasses(note.color);
-              const expiryText = getExpiryText(note.expiresAt);
+              const expiryText = getExpiryText((note as any).expiresAt);
               const editHistory = (note.editedBy as any[]) || [];
               
               return (

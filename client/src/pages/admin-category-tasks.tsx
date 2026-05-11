@@ -448,7 +448,6 @@ export default function AdminCategoryTasks() {
         {/* Tasks Grid */}
         <Card className="border">
           <CardContent className="p-6">
-            {console.log('Category in render:', category, 'useShifts:', category?.useShifts, 'Is false?:', category?.useShifts === false)}
             {category?.useShifts === false ? (
               // Simple list for categories without shifts
               <div>

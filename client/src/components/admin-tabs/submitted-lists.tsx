@@ -524,8 +524,8 @@ export default function SubmittedLists() {
               </div>
 
               {/* Task Notes and Images */}
-              {((selectedChecklist.taskNotes && typeof selectedChecklist.taskNotes === 'object' && Object.keys(selectedChecklist.taskNotes).length > 0) ||
-                (selectedChecklist.taskImages && typeof selectedChecklist.taskImages === 'object' && Object.keys(selectedChecklist.taskImages).length > 0)) && (
+              {(((selectedChecklist.taskNotes as any) && typeof selectedChecklist.taskNotes === 'object' && Object.keys(selectedChecklist.taskNotes as Record<string, string>).length > 0) ||
+                ((selectedChecklist.taskImages as any) && typeof selectedChecklist.taskImages === 'object' && Object.keys(selectedChecklist.taskImages as Record<string, string[]>).length > 0)) && (
                 <div>
                   <h4 className="font-medium mb-3">Zusätzliche Aufgaben-Informationen</h4>
                   <div className="space-y-4">

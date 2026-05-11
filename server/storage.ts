@@ -700,6 +700,7 @@ export class MemStorage implements IStorage {
         iconColor: null,
         parentId: null,
         enforceReading: false,
+        excludedShiftCombos: null,
         createdAt: new Date(),
       };
       this.categories.set(id, category);
@@ -724,6 +725,7 @@ export class MemStorage implements IStorage {
         parentId: kucheId,
         isSubcategoryParent: false,
         enforceReading: false,
+        excludedShiftCombos: null,
         createdAt: new Date(),
       };
       this.categories.set(id, category);
@@ -815,6 +817,7 @@ export class MemStorage implements IStorage {
       parentId: insertCategory.parentId || null,
       isSubcategoryParent: insertCategory.isSubcategoryParent || false,
       enforceReading: insertCategory.enforceReading ?? false,
+      excludedShiftCombos: insertCategory.excludedShiftCombos ?? null,
       createdAt: new Date(),
     };
     this.categories.set(id, category);
@@ -1138,9 +1141,9 @@ export class MemStorage implements IStorage {
     const note: StoreWhiteboard = {
       ...insertNote,
       id,
+      entryType: insertNote.entryType ?? null,
       color: insertNote.color || null,
       imageUrl: insertNote.imageUrl || null,
-      expiresAt: insertNote.expiresAt || null,
       editedBy: [],
       lastEditedAt: null,
       createdAt: new Date(),
@@ -1182,6 +1185,7 @@ export class MemStorage implements IStorage {
     const whiteboardRead: WhiteboardRead = {
       ...read,
       id,
+      shift: read.shift ?? null,
       readAt: new Date(),
     };
     const key = `${read.employeeName}-${read.store}-${read.shift}-${read.date}`;

@@ -396,7 +396,7 @@ export function TicketsManagement() {
                     </div>
                     
                     {/* Kommentare */}
-                    {ticket.comments && (ticket.comments as any[]).length > 0 && (
+                    {Boolean(ticket.comments) && (ticket.comments as any[]).length > 0 && (
                       <div className="mt-4 p-3 bg-gray-50 rounded">
                         <div className="text-sm font-medium mb-2 flex items-center gap-1">
                           <MessageSquare className="w-4 h-4" />
@@ -569,7 +569,7 @@ export function TicketsManagement() {
               </div>
               
               {/* Bestehende Kommentare */}
-              {editingTicket.comments && (editingTicket.comments as any[]).length > 0 && (
+              {Boolean(editingTicket.comments) && (editingTicket.comments as any[]).length > 0 && (
                 <div>
                   <Label>Kommentare</Label>
                   <ScrollArea className="h-[200px] border rounded p-3 mt-1">

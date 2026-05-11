@@ -242,7 +242,7 @@ export default function CategoriesManagement() {
       icon: category.icon,
       iconColor: category.iconColor || "#000000",
       useShifts: category.useShifts !== false,
-      categoryType: category.categoryType || (category.useShifts !== false ? "shifts" : "simple"),
+      categoryType: (category.categoryType as 'shifts' | 'simple' | 'inventory' | 'whiteboard') || (category.useShifts !== false ? "shifts" : "simple"),
       parentId: category.parentId || null,
       isSubcategoryParent: category.isSubcategoryParent || false,
       enforceReading: category.enforceReading || false,

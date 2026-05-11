@@ -49,7 +49,7 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
       selectedArea: subcategory.id, 
       selectedAreaName: subcategory.name,
       selectedAreaUseShifts: subcategory.useShifts !== false,
-      selectedAreaType: subcategory.categoryType || (subcategory.useShifts !== false ? "shifts" : "simple"),
+      selectedAreaType: (subcategory.categoryType === 'tickets' ? 'simple' : subcategory.categoryType) as 'shifts' | 'simple' | 'inventory' | 'whiteboard' || (subcategory.useShifts !== false ? "shifts" : "simple"),
       // Go to shift-phase if we have a shift selected and category uses shifts, otherwise straight to tasks
       step: needsShiftPhase ? 'shift-phase' : 'tasks'
     });

@@ -168,8 +168,8 @@ export default function CategoryTasks() {
       icon: task.icon,
       categoryId: task.categoryId,
     });
-    setSelectedShift((task.shift as 'früh' | 'spät') || "früh");
-    setSelectedPhase((task.phase as 'start' | 'ende') || "start");
+    setSelectedShift(task.shift === 'spätschicht' ? 'spät' : 'früh');
+    setSelectedPhase(task.shiftPhase === 'schichtende' ? 'ende' : 'start');
     setIsDialogOpen(true);
   };
 
@@ -187,7 +187,12 @@ export default function CategoryTasks() {
   };
 
   const getTasksForColumn = (shift: 'früh' | 'spät', phase: 'start' | 'ende') => {
-    return tasks.filter(task => task.shift === shift && task.phase === phase);
+    const dbShift = shift === 'früh' ? 'frühschicht' : 'spätschicht';
+    const dbPhase = phase === 'start' ? 'schichtanfang' : 'schichtende';
+    return tasks.filter(task => 
+      (task.shift === dbShift || task.shift === 'both') &&
+      (task.shiftPhase === dbPhase || task.shiftPhase === 'both')
+    );
   };
 
   const getPriorityColor = (priority: string) => {

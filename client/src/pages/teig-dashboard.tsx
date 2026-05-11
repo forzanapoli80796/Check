@@ -47,7 +47,7 @@ export default function TeigDashboard() {
             {/* Ideale Zubereitung für heute */}
             <IdealeZubereitung 
               kugelMenge={todayTotalKugeln}
-              stores={STORES}
+              stores={[...STORES]}
               showDetails={true}
             />
             

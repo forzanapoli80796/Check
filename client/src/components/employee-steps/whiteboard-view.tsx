@@ -132,9 +132,9 @@ export function WhiteboardView({ state, updateState }: WhiteboardViewProps) {
                           </div>
                         )}
 
-                        {entry.expiresAt && (
+                        {(entry as any).expiresAt && (
                           <div className="text-xs text-gray-500">
-                            Gültig bis: {format(new Date(entry.expiresAt), "dd.MM.yyyy", { locale: de })}
+                            Gültig bis: {format(new Date((entry as any).expiresAt), "dd.MM.yyyy", { locale: de })}
                           </div>
                         )}
 

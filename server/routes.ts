@@ -463,7 +463,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const rangeStart = isoDate(uploadMonday);
       const rangeEnd = isoDate(rangeEndDate);
       // Collect unique years covered by the range (handles year-end crossover)
-      const years = [...new Set([uploadMonday.getFullYear(), rangeEndDate.getFullYear()])];
+      const years = Array.from(new Set([uploadMonday.getFullYear(), rangeEndDate.getFullYear()]));
 
       // -- 1. Bavarian public holidays (fetch all years covered by the range) --
       type HolidayAPIResponse = Record<string, { datum: string; hinweis: string }>;
@@ -637,7 +637,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // WMO code → short German label + emoji icon
-      function wmoLabel(code: number): { icon: string; label: string } {
+      const wmoLabel = (code: number): { icon: string; label: string } => {
         if (code === 0)             return { icon: "☀️",  label: "Klarer Himmel" };
         if (code <= 2)              return { icon: "🌤️", label: "Leicht bewölkt" };
         if (code === 3)             return { icon: "☁️",  label: "Bedeckt" };
@@ -648,10 +648,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (code <= 82)             return { icon: "🌦️", label: "Regenschauer" };
         if (code <= 86)             return { icon: "🌨️", label: "Schneeschauer" };
         return                             { icon: "⛈️",  label: "Gewitter" };
-      }
+      };
 
       // General weather note for admin info
-      function deliveryPrognosis(code: number, tempMax: number, precipMm: number): string {
+      const deliveryPrognosis = (code: number, tempMax: number, precipMm: number): string => {
         const isRainy = precipMm > 1 || (code >= 51 && code <= 99);
         const isHot   = tempMax >= 24;
         const isCold  = tempMax <= 8;
@@ -662,7 +662,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (isHot)    return "Sehr warm – Höchsttemperatur " + tempMax + "°C";
         if (isCold)   return "Kalt – Höchsttemperatur nur " + tempMax + "°C";
         return                "Normales Wetter";
-      }
+      };
 
       let weatherDays: WeatherDay[] = [];
       try {
@@ -1019,8 +1019,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Filter out expired notes
     const now = new Date();
     const activeNotes = allNotes.filter(note => {
-      if (!note.expiresAt) return true;
-      return new Date(note.expiresAt) > now;
+      if (!(note as any).expiresAt) return true;
+      return new Date((note as any).expiresAt) > now;
     });
     
     res.json(activeNotes);

@@ -313,15 +313,15 @@ export function CompletedTickets() {
               </div>
 
               {/* Comments */}
-              {selectedTicket.comments && Array.isArray(selectedTicket.comments) && selectedTicket.comments.length > 0 && (
+              {Boolean(selectedTicket.comments) && Array.isArray(selectedTicket.comments) && (selectedTicket.comments as any[]).length > 0 && (
                 <div>
                   <Label className="text-sm text-gray-500 flex items-center gap-1 mb-2">
                     <MessageSquare className="w-4 h-4" />
-                    Kommentare ({selectedTicket.comments.length})
+                    Kommentare ({(selectedTicket.comments as any[]).length})
                   </Label>
                   <ScrollArea className="h-48 border rounded-lg p-3">
                     <div className="space-y-3">
-                      {selectedTicket.comments.map((comment: any, index: number) => (
+                      {(selectedTicket.comments as any[]).map((comment: any, index: number) => (
                         <div key={index} className="border-b pb-2">
                           <div className="flex justify-between text-sm">
                             <span className="font-medium">{comment.user}</span>
