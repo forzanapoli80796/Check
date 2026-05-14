@@ -14,6 +14,7 @@ import { SettingsManagement } from "@/components/admin-tabs/settings-management"
 import ErrorBoundary from "@/components/error-boundary";
 import TeigManagement from "@/components/teig-management";
 import MissingChecklists from "@/components/admin-tabs/missing-checklists";
+import WhiteboardManagement from "@/components/admin-tabs/whiteboard-management";
 import { AdminTabState } from "@/lib/types";
 
 
@@ -25,6 +26,7 @@ export default function AdminDashboard() {
     { value: 'submitted', label: 'Eingereichte Listen' },
     { value: 'categories', label: 'Arbeitsbereiche' },
     { value: 'teig', label: 'Teig-Planung' },
+    { value: 'whiteboard', label: 'Digitales Whiteboard' },
     { value: 'settings', label: 'Einstellungen' },
     { value: 'devTools', label: 'Dev Tools' },
   ];
@@ -47,6 +49,12 @@ export default function AdminDashboard() {
         return (
           <ErrorBoundary>
             <TeigManagement />
+          </ErrorBoundary>
+        );
+      case 'whiteboard':
+        return (
+          <ErrorBoundary>
+            <WhiteboardManagement />
           </ErrorBoundary>
         );
       case 'settings':
