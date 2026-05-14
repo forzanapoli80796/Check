@@ -86,8 +86,8 @@ export default function RoleSelection() {
               data-testid="button-role-aufgabenplaner"
             >
               <div className="flex flex-col items-center text-center space-y-6">
-                <div className="w-24 h-24 bg-gradient-to-br from-green-500 to-green-600 rounded-3xl flex items-center justify-center shadow-xl group-hover:shadow-green-500/50 group-hover:scale-110 transition-all duration-300">
-                  <CalendarCheck className="text-white" size={48} />
+                <div className="w-24 h-24 rounded-3xl flex items-center justify-center shadow-xl group-hover:scale-110 transition-all duration-300 overflow-hidden">
+                  <img src="/aufgabenplaner-logo.png" alt="Aufgabenplaner" className="w-full h-full object-cover" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900">
                   Aufgabenplaner
