@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { getStorage } from "./storage";
-import { insertCategorySchema, insertTaskSchema, insertChecklistSchema, insertTeigProductionSchema, insertInventoryItemSchema, insertTicketSchema, insertEmployeeNoteSchema } from "@shared/schema";
+import { insertCategorySchema, insertTaskSchema, insertChecklistSchema, insertTeigProductionSchema, insertInventoryItemSchema, insertEmployeeNoteSchema } from "@shared/schema";
 import { z } from "zod";
 import {
   ObjectStorageService,
@@ -820,123 +820,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Ticket routes
-  app.get("/api/tickets", async (req, res) => {
-    const storage = await getStorage();
-    const { store, startDate, endDate, categoryId } = req.query;
-    
-    // Get all tickets first
-    let tickets = await storage.getTickets();
-    
-    // Filter by store if provided
-    if (store && typeof store === 'string') {
-      tickets = tickets.filter(t => t.store === store);
-    }
-    
-    // Filter by categoryId if provided
-    if (categoryId && typeof categoryId === 'string') {
-      tickets = tickets.filter(t => t.categoryId === categoryId);
-    }
-    
-    // Filter by date range if provided
-    if (startDate && endDate) {
-      const start = new Date(startDate as string);
-      const end = new Date(endDate as string);
-      tickets = tickets.filter(t => {
-        if (!t.createdAt) return false;
-        const createdAt = new Date(t.createdAt);
-        return createdAt >= start && createdAt <= end;
-      });
-    }
-    
-    res.json(tickets);
-  });
-
-  app.get("/api/tickets/:id", async (req, res) => {
-    const storage = await getStorage();
-    const ticket = await storage.getTicketById(req.params.id);
-    if (!ticket) {
-      return res.status(404).json({ message: "Ticket not found" });
-    }
-    res.json(ticket);
-  });
-
-  app.post("/api/tickets", async (req, res) => {
-    try {
-      const storage = await getStorage();
-      console.log("Received ticket data:", req.body);
-      
-      // Convert dueDate string to Date object if present
-      const dataToValidate = {
-        ...req.body,
-        dueDate: req.body.dueDate ? new Date(req.body.dueDate) : undefined
-      };
-      
-      const validatedData = insertTicketSchema.parse(dataToValidate);
-      console.log("Validated ticket data:", validatedData);
-      const ticket = await storage.createTicket(validatedData);
-      res.json(ticket);
-    } catch (error) {
-      console.error("Error creating ticket - Details:", error);
-      console.error("Request body was:", req.body);
-      res.status(400).json({ message: "Invalid ticket data", error: error instanceof Error ? error.message : "Unknown error" });
-    }
-  });
-
-  app.put("/api/tickets/:id", async (req, res) => {
-    try {
-      const storage = await getStorage();
-      
-      // Convert dueDate string to Date object if present
-      const dataToValidate = {
-        ...req.body,
-        dueDate: req.body.dueDate ? new Date(req.body.dueDate) : undefined
-      };
-      
-      const validatedData = insertTicketSchema.partial().parse(dataToValidate);
-      const ticket = await storage.updateTicket(req.params.id, validatedData);
-      if (!ticket) {
-        return res.status(404).json({ message: "Ticket not found" });
-      }
-      res.json(ticket);
-    } catch (error) {
-      res.status(400).json({ message: "Invalid ticket data" });
-    }
-  });
-
-  app.delete("/api/tickets/:id", async (req, res) => {
-    const storage = await getStorage();
-    const success = await storage.deleteTicket(req.params.id);
-    if (!success) {
-      return res.status(404).json({ message: "Ticket not found" });
-    }
-    res.json({ success: true });
-  });
-
-  app.post("/api/tickets/:id/comments", async (req, res) => {
-    try {
-      const storage = await getStorage();
-      const { user, comment } = req.body;
-      
-      if (!user || !comment) {
-        return res.status(400).json({ message: "User and comment are required" });
-      }
-      
-      const ticket = await storage.addTicketComment(req.params.id, {
-        user,
-        comment,
-        timestamp: new Date(),
-      });
-      
-      if (!ticket) {
-        return res.status(404).json({ message: "Ticket not found" });
-      }
-      
-      res.json(ticket);
-    } catch (error) {
-      res.status(400).json({ message: "Invalid comment data" });
-    }
-  });
 
   // Employee Notes routes
   app.get("/api/employee-notes", async (req, res) => {
