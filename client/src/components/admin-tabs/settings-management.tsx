@@ -8,18 +8,13 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Settings as SettingsIcon, Link, Save } from "lucide-react";
-import type { Setting, AppSetting } from "@shared/schema";
+import type { AppSetting } from "@shared/schema";
 
-const WHITEBOARD_ENFORCEMENT_KEY = "enforce_whiteboard_reading";
 const AUFGABENPLANER_URL_KEY = "aufgabenplaner_url";
 
 export function SettingsManagement() {
   const { toast } = useToast();
   const [urlInput, setUrlInput] = useState("");
-
-  const { data: settings } = useQuery<Setting[]>({
-    queryKey: ["/api/settings"],
-  });
 
   const { data: aufgabenplanerSetting } = useQuery<AppSetting>({
     queryKey: ["/api/app-settings/aufgabenplaner_url"],
@@ -31,27 +26,6 @@ export function SettingsManagement() {
       setUrlInput(aufgabenplanerSetting.settingValue);
     }
   }, [aufgabenplanerSetting]);
-
-  const whiteboardEnforcementSetting = settings?.find(
-    s => s.key === WHITEBOARD_ENFORCEMENT_KEY
-  );
-  const isEnforced = whiteboardEnforcementSetting?.value ?? false;
-
-  const updateSettingMutation = useMutation({
-    mutationFn: async (enabled: boolean) => {
-      return await apiRequest("PUT", `/api/settings/${WHITEBOARD_ENFORCEMENT_KEY}`, {
-        value: enabled,
-        description: "Erzwingt, dass Mitarbeiter das Whiteboard pro Schicht lesen müssen"
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/settings"] });
-      toast({ title: "Erfolg", description: "Einstellung wurde aktualisiert" });
-    },
-    onError: () => {
-      toast({ title: "Fehler", description: "Einstellung konnte nicht aktualisiert werden", variant: "destructive" });
-    },
-  });
 
   const updateUrlMutation = useMutation({
     mutationFn: async (url: string) => {
@@ -123,51 +97,6 @@ export function SettingsManagement() {
         </CardContent>
       </Card>
 
-      {/* Whiteboard Enforcement Setting */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Whiteboard Lesebestätigung</CardTitle>
-          <CardDescription>
-            Legt fest, ob Mitarbeiter das Whiteboard einmal pro Schicht lesen müssen
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label htmlFor="whiteboard-enforcement" className="text-base font-medium">
-                Whiteboard-Pflicht aktivieren
-              </Label>
-              <p className="text-sm text-gray-500">
-                Wenn aktiviert, müssen Mitarbeiter einmal pro Schicht das Whiteboard lesen und bestätigen,
-                bevor sie ihre Aufgaben sehen können.
-              </p>
-            </div>
-            <Switch
-              id="whiteboard-enforcement"
-              checked={isEnforced}
-              onCheckedChange={v => updateSettingMutation.mutate(v)}
-              disabled={updateSettingMutation.isPending}
-              data-testid="toggle-whiteboard-enforcement"
-            />
-          </div>
-
-          {isEnforced && (
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-              <p className="text-sm text-blue-800">
-                ✓ Whiteboard-Pflicht ist aktiv. Mitarbeiter müssen das Whiteboard einmal pro Schicht bestätigen.
-              </p>
-            </div>
-          )}
-
-          {!isEnforced && (
-            <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-md">
-              <p className="text-sm text-gray-600">
-                Whiteboard-Pflicht ist deaktiviert. Mitarbeiter können das Whiteboard freiwillig ansehen.
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }

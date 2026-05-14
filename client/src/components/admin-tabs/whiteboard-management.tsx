@@ -1,18 +1,88 @@
 import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { StickyNote, Plus, Edit2, Trash2, Clock, User, Image as ImageIcon, Store } from "lucide-react";
+import { StickyNote, Plus, Edit2, Trash2, Clock, User, Image as ImageIcon, Store, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import type { StoreWhiteboard, InsertStoreWhiteboard } from "@shared/schema";
+import type { StoreWhiteboard, InsertStoreWhiteboard, Setting } from "@shared/schema";
 import { STORES } from "@/lib/types";
+
+const WHITEBOARD_ENFORCEMENT_KEY = "enforce_whiteboard_reading";
+
+function WhiteboardEnforcement() {
+  const { toast } = useToast();
+
+  const { data: settings } = useQuery<Setting[]>({
+    queryKey: ["/api/settings"],
+  });
+
+  const isEnforced = (settings?.find(s => s.key === WHITEBOARD_ENFORCEMENT_KEY)?.value ?? false) as boolean;
+
+  const updateMutation = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      return await apiRequest("PUT", `/api/settings/${WHITEBOARD_ENFORCEMENT_KEY}`, {
+        value: enabled,
+        description: "Erzwingt, dass Mitarbeiter das Whiteboard pro Schicht lesen müssen",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/settings"] });
+      toast({ title: "Erfolg", description: "Einstellung wurde aktualisiert" });
+    },
+    onError: () => {
+      toast({ title: "Fehler", description: "Einstellung konnte nicht aktualisiert werden", variant: "destructive" });
+    },
+  });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <BookOpen className="w-5 h-5 text-blue-600" />
+          Whiteboard Lesebestätigung
+        </CardTitle>
+        <CardDescription>
+          Legt fest, ob Mitarbeiter das Whiteboard einmal pro Schicht lesen müssen
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <Label htmlFor="whiteboard-enforcement" className="text-base font-medium">
+              Whiteboard-Pflicht aktivieren
+            </Label>
+            <p className="text-sm text-gray-500">
+              Wenn aktiviert, müssen Mitarbeiter einmal pro Schicht das Whiteboard lesen und bestätigen,
+              bevor sie ihre Aufgaben sehen können.
+            </p>
+          </div>
+          <Switch
+            id="whiteboard-enforcement"
+            checked={isEnforced}
+            onCheckedChange={v => updateMutation.mutate(v)}
+            disabled={updateMutation.isPending}
+            data-testid="toggle-whiteboard-enforcement"
+          />
+        </div>
+        <div className={`mt-4 p-3 rounded-md border ${isEnforced ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-gray-200"}`}>
+          <p className={`text-sm ${isEnforced ? "text-blue-800" : "text-gray-600"}`}>
+            {isEnforced
+              ? "✓ Whiteboard-Pflicht ist aktiv. Mitarbeiter müssen das Whiteboard einmal pro Schicht bestätigen."
+              : "Whiteboard-Pflicht ist deaktiviert. Mitarbeiter können das Whiteboard freiwillig ansehen."}
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 const NOTE_COLORS = [
   { name: "Gelb", value: "yellow", bgClass: "bg-yellow-100", borderClass: "border-yellow-300", dotClass: "bg-yellow-400" },
@@ -459,6 +529,9 @@ export default function WhiteboardManagement() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Lesebestätigung */}
+      <WhiteboardEnforcement />
 
       {/* Edit Note Dialog */}
       <Dialog open={!!editingNote} onOpenChange={open => { if (!open) { setEditingNote(null); setEditName(""); setEditMessage(""); } }}>
