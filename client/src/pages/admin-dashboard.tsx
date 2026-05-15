@@ -111,7 +111,7 @@ export default function AdminDashboard() {
                     className={`admin-tab text-sm sm:text-base px-3 sm:px-4 py-2 whitespace-nowrap ${
                       activeTab === tab.value ? 'active' : ''
                     }`}
-                    data-testid={tab.value === 'devTools' ? 'button-devtools-tab' : undefined}
+
                   >
                     {tab.label}
                   </button>
