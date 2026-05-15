@@ -9,7 +9,6 @@ import { ArrowLeft, Cookie, Menu } from "lucide-react";
 import AppLogo from "@/components/app-logo";
 import SubmittedLists from "@/components/admin-tabs/submitted-lists";
 import CategoriesManagement from "@/components/admin-tabs/categories-management";
-import { DevTools } from "@/components/admin-tabs/dev-tools";
 import { SettingsManagement } from "@/components/admin-tabs/settings-management";
 import ErrorBoundary from "@/components/error-boundary";
 import TeigManagement from "@/components/teig-management";
@@ -28,7 +27,6 @@ export default function AdminDashboard() {
     { value: 'teig', label: 'Teig-Planung' },
     { value: 'whiteboard', label: 'Digitales Whiteboard' },
     { value: 'settings', label: 'Einstellungen' },
-    { value: 'devTools', label: 'Dev Tools' },
   ];
 
   const renderTabContent = () => {
@@ -61,12 +59,6 @@ export default function AdminDashboard() {
         return (
           <ErrorBoundary>
             <SettingsManagement />
-          </ErrorBoundary>
-        );
-      case 'devTools':
-        return (
-          <ErrorBoundary>
-            <DevTools />
           </ErrorBoundary>
         );
       default:
