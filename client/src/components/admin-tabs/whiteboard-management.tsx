@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
@@ -18,26 +17,6 @@ import { STORES } from "@/lib/types";
 
 function WhiteboardSettings() {
   const { toast } = useToast();
-
-  const { data: skipButtonData } = useQuery({
-    queryKey: ["/api/app-settings/whiteboard_skip_button_enabled"],
-    retry: false,
-  });
-
-  const skipButtonEnabled = (skipButtonData as any)?.settingValue === "true";
-
-  const updateSkipButtonMutation = useMutation({
-    mutationFn: async (enabled: boolean) => {
-      await apiRequest("PUT", "/api/app-settings/whiteboard_skip_button_enabled", { value: enabled ? "true" : "false" });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/app-settings/whiteboard_skip_button_enabled"] });
-      toast({ title: "Erfolgreich geändert", description: "Die Whiteboard-Skip-Button-Einstellung wurde aktualisiert." });
-    },
-    onError: () => {
-      toast({ title: "Fehler", description: "Einstellung konnte nicht geändert werden.", variant: "destructive" });
-    },
-  });
 
   const resetWhiteboardMutation = useMutation({
     mutationFn: async () => {
@@ -65,41 +44,22 @@ function WhiteboardSettings() {
       <CardHeader>
         <CardTitle className="text-lg">Whiteboard Einstellungen</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label htmlFor="skip-button-toggle" className="font-medium">
-              "Trotzdem fortfahren" Button anzeigen
-            </Label>
-            <p className="text-sm text-gray-600">
-              Wenn aktiviert, können Mitarbeiter das Whiteboard überspringen, ohne es zu lesen.
-            </p>
-          </div>
-          <Switch
-            id="skip-button-toggle"
-            checked={skipButtonEnabled}
-            onCheckedChange={checked => updateSkipButtonMutation.mutate(checked)}
-            disabled={updateSkipButtonMutation.isPending}
-            data-testid="switch-whiteboard-skip-button"
-          />
-        </div>
-        <div className="border-t pt-4">
-          <p className="text-gray-600 mb-4">
-            Setzt alle Whiteboard-Bestätigungen zurück. Nach dem Zurücksetzen müssen alle Mitarbeiter das Whiteboard heute erneut lesen.
-          </p>
-          <Button
-            onClick={handleReset}
-            disabled={resetWhiteboardMutation.isPending}
-            variant="destructive"
-            data-testid="button-reset-whiteboard"
-          >
-            {resetWhiteboardMutation.isPending ? (
-              <><Loader className="w-4 h-4 mr-2 animate-spin" />Wird zurückgesetzt...</>
-            ) : (
-              <><RotateCcw className="w-4 h-4 mr-2" />Whiteboard-Erzwingung zurücksetzen</>
-            )}
-          </Button>
-        </div>
+      <CardContent>
+        <p className="text-gray-600 mb-4">
+          Setzt alle Whiteboard-Bestätigungen zurück. Nach dem Zurücksetzen müssen alle Mitarbeiter das Whiteboard heute erneut lesen.
+        </p>
+        <Button
+          onClick={handleReset}
+          disabled={resetWhiteboardMutation.isPending}
+          variant="destructive"
+          data-testid="button-reset-whiteboard"
+        >
+          {resetWhiteboardMutation.isPending ? (
+            <><Loader className="w-4 h-4 mr-2 animate-spin" />Wird zurückgesetzt...</>
+          ) : (
+            <><RotateCcw className="w-4 h-4 mr-2" />Whiteboard-Bestätigungen zurücksetzen</>
+          )}
+        </Button>
       </CardContent>
     </Card>
   );
