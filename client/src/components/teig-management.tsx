@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Save, Upload, Cog, Clock } from "lucide-react";
+import { Calendar, Save, Upload, Cog, Clock, Archive } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { TeigProduction } from "@shared/schema";
@@ -61,7 +61,46 @@ const WEEKDAYS = [
   { id: 7, name: 'Sonntag', nameEn: 'Sunday' },
 ];
 
-type SubTab = 'planung' | 'lightspeed';
+type SubTab = 'planung' | 'lightspeed' | 'archiv';
+
+function getISOWeekNumber(date: Date): { kw: number; year: number } {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return {
+    kw: Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7),
+    year: d.getUTCFullYear(),
+  };
+}
+
+function getMondayOfISOWeek(kw: number, year: number): Date {
+  const jan4 = new Date(Date.UTC(year, 0, 4));
+  const dayOfWeek = jan4.getUTCDay() || 7;
+  const monday = new Date(jan4);
+  monday.setUTCDate(jan4.getUTCDate() - (dayOfWeek - 1) + (kw - 1) * 7);
+  return monday;
+}
+
+function getLastFourWeeks(): Array<{ kw: number; year: number; monday: Date; sunday: Date }> {
+  const today = new Date();
+  const current = getISOWeekNumber(today);
+  const weeks = [];
+  for (let i = 1; i <= 4; i++) {
+    let kw = current.kw - i;
+    let year = current.year;
+    if (kw <= 0) {
+      year -= 1;
+      const dec28 = new Date(Date.UTC(year, 11, 28));
+      kw = getISOWeekNumber(dec28).kw + kw;
+    }
+    const monday = getMondayOfISOWeek(kw, year);
+    const sunday = new Date(monday);
+    sunday.setUTCDate(monday.getUTCDate() + 6);
+    weeks.push({ kw, year, monday, sunday });
+  }
+  return weeks;
+}
 
 export default function TeigManagement() {
   const { toast } = useToast();
@@ -142,9 +181,13 @@ export default function TeigManagement() {
     return { prodName: wd.name, salesName, total, plan, waste };
   });
 
+  const archivWeeks = getLastFourWeeks();
+  const formatShort = (d: Date) => d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+
   const subTabs: { id: SubTab; label: string; icon: React.ReactNode }[] = [
     { id: 'planung', label: 'Planung', icon: <Calendar size={14} /> },
     { id: 'lightspeed', label: 'Lightspeed', icon: <Upload size={14} /> },
+    { id: 'archiv', label: 'Archiv', icon: <Archive size={14} /> },
   ];
 
   return (
@@ -169,6 +212,87 @@ export default function TeigManagement() {
 
       {/* Lightspeed tab */}
       {activeSubTab === 'lightspeed' && <LightspeedUpload />}
+
+      {/* Archiv tab */}
+      {activeSubTab === 'archiv' && (
+        <div className="space-y-6">
+          <p className="text-sm text-gray-500">
+            Teig-Produktionsplanung der letzten 4 Kalenderwochen (basierend auf den aktuellen Wochentags-Templates).
+          </p>
+          {archivWeeks.map(({ kw, year, monday, sunday }) => {
+            const weekRows = WEEKDAYS.map(wd => {
+              const total = (productions || [])
+                .filter(p => p.weekday === wd.id)
+                .reduce((s, p) => s + p.kugelMenge, 0);
+              const salesWd = salesWeekdayOf(wd.id);
+              const salesName = WEEKDAYS.find(w => w.id === salesWd)?.name ?? '–';
+              const plan = calcMachinePlan(total);
+              return { ...wd, total, plan, salesName, waste: plan.total - total };
+            });
+            const weekTotal = weekRows.reduce((s, r) => s + r.total, 0);
+
+            return (
+              <Card key={`${year}-${kw}`}>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-3">
+                    <Archive size={16} className="text-gray-500" />
+                    <span>KW {kw} / {year}</span>
+                    <span className="text-sm font-normal text-gray-500">
+                      {formatShort(monday)} – {formatShort(sunday)}.{year}
+                    </span>
+                    <span className="ml-auto text-sm font-normal text-gray-600">
+                      Gesamt: {weekTotal} Kugeln
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm border-collapse">
+                      <thead>
+                        <tr className="bg-gray-50">
+                          <th className="border border-gray-200 p-2 text-left font-semibold">Produktionstag</th>
+                          <th className="border border-gray-200 p-2 text-left font-semibold">→ Verkaufstag</th>
+                          {STORES.map(s => (
+                            <th key={s} className="border border-gray-200 p-2 text-right font-semibold">{s}</th>
+                          ))}
+                          <th className="border border-gray-200 p-2 text-right font-semibold">Gesamt</th>
+                          <th className="border border-gray-200 p-2 text-left font-semibold">Maschinen</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {weekRows.map(row => {
+                          const hasData = row.total > 0;
+                          return (
+                            <tr key={row.id} className={hasData ? 'hover:bg-gray-50' : 'bg-gray-50 opacity-40'}>
+                              <td className="border border-gray-200 p-2 font-medium text-gray-800">{row.name}</td>
+                              <td className="border border-gray-200 p-2 text-gray-500 text-xs">{row.salesName}</td>
+                              {STORES.map(store => {
+                                const prod = productions?.find(p => p.weekday === row.id && p.store === store);
+                                const qty = prod?.kugelMenge ?? 0;
+                                return (
+                                  <td key={store} className="border border-gray-200 p-2 text-right tabular-nums">
+                                    {qty > 0 ? qty : <span className="text-gray-300">–</span>}
+                                  </td>
+                                );
+                              })}
+                              <td className="border border-gray-200 p-2 text-right tabular-nums font-bold text-orange-900">
+                                {hasData ? row.total : <span className="text-gray-300">–</span>}
+                              </td>
+                              <td className="border border-gray-200 p-2 text-xs text-orange-800 font-medium">
+                                {hasData ? row.plan.label : <span className="text-gray-300">–</span>}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       {/* Planung tab */}
       {activeSubTab === 'planung' && (
