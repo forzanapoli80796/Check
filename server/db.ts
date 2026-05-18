@@ -11,5 +11,17 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
+});
+
+// Prevent unhandled pool errors (e.g. Neon terminating idle connections – code 57P01)
+// from crashing the process. The pool reconnects automatically on the next request.
+pool.on('error', (err) => {
+  console.error('[db] Pool connection error (will reconnect):', err.message);
+});
+
 export const db = drizzle({ client: pool, schema });
