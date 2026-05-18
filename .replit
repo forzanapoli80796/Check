@@ -39,3 +39,10 @@ waitForPort = 5000
 
 [agent]
 integrations = ["javascript_object_storage:1.0.0", "javascript_database:1.0.0"]
+
+[userenv]
+
+[userenv.shared]
+SMTP_HOST = "smtp.ionos.de"
+SMTP_PORT = "465"
+SMTP_USER = "check@forzanapoli.de"
