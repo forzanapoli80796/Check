@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { getStorage } from "./storage";
+import { sendKugelnWarningEmail } from "./email";
 import { insertCategorySchema, insertTaskSchema, insertChecklistSchema, insertTeigProductionSchema, insertInventoryItemSchema, insertEmployeeNoteSchema } from "@shared/schema";
 import { z } from "zod";
 import {
@@ -748,6 +749,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertInventoryItemSchema.parse(req.body);
       const item = await storage.createInventoryItem(validatedData);
       res.json(item);
+
+      // Fire-and-forget: warn if "Kugeln von morgen verwendet" has quantity > 0
+      if (validatedData.quantity > 0) {
+        const task = await storage.getTaskById(validatedData.taskId).catch(() => undefined);
+        if (task && task.title.toLowerCase().includes("kugeln von morgen")) {
+          const checklist = await storage.getChecklistById(validatedData.checklistId).catch(() => undefined);
+          if (checklist) {
+            sendKugelnWarningEmail({
+              store: checklist.store,
+              quantity: validatedData.quantity,
+              employeeName: checklist.employeeName,
+            });
+          }
+        }
+      }
     } catch (error) {
       res.status(400).json({ message: "Invalid inventory item data" });
     }
