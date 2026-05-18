@@ -65,6 +65,17 @@ export const teigProduction = pgTable("teig_production", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Teig-Produktions-Archiv: historische Werte pro KW/Jahr
+export const teigProductionHistory = pgTable("teig_production_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  kw: integer("kw").notNull(),
+  year: integer("year").notNull(),
+  weekday: integer("weekday").notNull(),
+  store: text("store").notNull(),
+  kugelMenge: integer("kugel_menge").notNull(),
+  savedAt: timestamp("saved_at").defaultNow(),
+});
+
 // Inventur-Tabelle für Mengenangaben
 export const inventoryItems = pgTable("inventory_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -231,6 +242,8 @@ export type Checklist = typeof checklists.$inferSelect;
 
 export type InsertTeigProduction = z.infer<typeof insertTeigProductionSchema>;
 export type TeigProduction = typeof teigProduction.$inferSelect;
+
+export type TeigProductionHistory = typeof teigProductionHistory.$inferSelect;
 
 export type InsertInventoryItem = z.infer<typeof insertInventoryItemSchema>;
 export type InventoryItem = typeof inventoryItems.$inferSelect;

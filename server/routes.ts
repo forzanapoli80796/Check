@@ -439,9 +439,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const production = await storage.upsertTeigProduction(weekday, store, kugelMenge);
+
+      // Auto-archive: save historical snapshot for the current ISO week
+      const now = new Date();
+      const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      const currentKw = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+      const currentYear = d.getUTCFullYear();
+      await storage.upsertTeigProductionHistory(currentKw, currentYear, weekday, store, kugelMenge);
+
       res.json(production);
     } catch (error) {
       res.status(400).json({ message: "Invalid production data" });
+    }
+  });
+
+  app.get("/api/teig-production-history", async (req, res) => {
+    try {
+      const storage = await getStorage();
+      const kw = parseInt(req.query.kw as string);
+      const year = parseInt(req.query.year as string);
+      if (!kw || !year) return res.status(400).json({ message: "Missing kw or year" });
+      const history = await storage.getTeigProductionHistoryByWeek(kw, year);
+      res.json(history);
+    } catch (error) {
+      res.status(500).json({ message: "Server error" });
     }
   });
 

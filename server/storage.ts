@@ -1,7 +1,7 @@
-import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist, type TeigProduction, type InsertTeigProduction, type InventoryItem, type InsertInventoryItem, type EmployeeNote, type InsertEmployeeNote, type EmployeeMessage, type InsertEmployeeMessage, type StoreWhiteboard, type InsertStoreWhiteboard, type WhiteboardRead, type InsertWhiteboardRead, type Setting, type InsertSetting, type AppSetting, type InsertAppSetting } from "@shared/schema";
+import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist, type TeigProduction, type InsertTeigProduction, type TeigProductionHistory, type InventoryItem, type InsertInventoryItem, type EmployeeNote, type InsertEmployeeNote, type EmployeeMessage, type InsertEmployeeMessage, type StoreWhiteboard, type InsertStoreWhiteboard, type WhiteboardRead, type InsertWhiteboardRead, type Setting, type InsertSetting, type AppSetting, type InsertAppSetting } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { categories, tasks, checklists, teigProduction, inventoryItems, employeeNotes, employeeMessages, storeWhiteboard, whiteboardReads, settings, appSettings } from "@shared/schema";
+import { categories, tasks, checklists, teigProduction, teigProductionHistory, inventoryItems, employeeNotes, employeeMessages, storeWhiteboard, whiteboardReads, settings, appSettings } from "@shared/schema";
 import { eq, sql, and } from "drizzle-orm";
 
 export interface IStorage {
@@ -33,6 +33,10 @@ export interface IStorage {
   getTeigProduction(): Promise<TeigProduction[]>;
   getTeigProductionByWeekdayStore(weekday: number, store: string): Promise<TeigProduction | undefined>;
   upsertTeigProduction(weekday: number, store: string, kugelMenge: number): Promise<TeigProduction>;
+
+  // Teig Production History
+  upsertTeigProductionHistory(kw: number, year: number, weekday: number, store: string, kugelMenge: number): Promise<void>;
+  getTeigProductionHistoryByWeek(kw: number, year: number): Promise<TeigProductionHistory[]>;
 
   // Inventory Items
   getInventoryItems(): Promise<InventoryItem[]>;
@@ -342,6 +346,37 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async upsertTeigProductionHistory(kw: number, year: number, weekday: number, store: string, kugelMenge: number): Promise<void> {
+    const existing = await db
+      .select()
+      .from(teigProductionHistory)
+      .where(sql`${teigProductionHistory.kw} = ${kw} AND ${teigProductionHistory.year} = ${year} AND ${teigProductionHistory.weekday} = ${weekday} AND ${teigProductionHistory.store} = ${store}`)
+      .limit(1);
+    if (existing.length > 0) {
+      await db
+        .update(teigProductionHistory)
+        .set({ kugelMenge, savedAt: new Date() })
+        .where(eq(teigProductionHistory.id, existing[0].id));
+    } else {
+      await db.insert(teigProductionHistory).values({
+        id: randomUUID(),
+        kw,
+        year,
+        weekday,
+        store,
+        kugelMenge,
+        savedAt: new Date(),
+      });
+    }
+  }
+
+  async getTeigProductionHistoryByWeek(kw: number, year: number): Promise<TeigProductionHistory[]> {
+    return await db
+      .select()
+      .from(teigProductionHistory)
+      .where(sql`${teigProductionHistory.kw} = ${kw} AND ${teigProductionHistory.year} = ${year}`);
+  }
+
   async getInventoryItems(): Promise<InventoryItem[]> {
     return await db.select().from(inventoryItems);
   }
@@ -579,6 +614,7 @@ export class MemStorage implements IStorage {
   private tasks: Map<string, Task> = new Map();
   private checklists: Map<string, Checklist> = new Map();
   private teigProductions: Map<string, TeigProduction> = new Map();
+  private teigProductionHistoryMap: Map<string, TeigProductionHistory> = new Map();
   private inventoryItems: Map<string, InventoryItem> = new Map();
   private employeeNotes: Map<string, EmployeeNote> = new Map();
   private employeeMessages: Map<string, EmployeeMessage> = new Map();
@@ -874,6 +910,25 @@ export class MemStorage implements IStorage {
     
     this.teigProductions.set(key, production);
     return production;
+  }
+
+  async upsertTeigProductionHistory(kw: number, year: number, weekday: number, store: string, kugelMenge: number): Promise<void> {
+    const key = `${year}-${kw}-${weekday}-${store}`;
+    const existing = this.teigProductionHistoryMap.get(key);
+    const record: TeigProductionHistory = {
+      id: existing?.id || randomUUID(),
+      kw,
+      year,
+      weekday,
+      store,
+      kugelMenge,
+      savedAt: new Date(),
+    };
+    this.teigProductionHistoryMap.set(key, record);
+  }
+
+  async getTeigProductionHistoryByWeek(kw: number, year: number): Promise<TeigProductionHistory[]> {
+    return Array.from(this.teigProductionHistoryMap.values()).filter(h => h.kw === kw && h.year === year);
   }
 
   // Inventory Items methods

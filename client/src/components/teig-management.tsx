@@ -63,6 +63,108 @@ const WEEKDAYS = [
 
 type SubTab = 'planung' | 'lightspeed' | 'archiv';
 
+interface ArchivWeekCardProps {
+  kw: number;
+  year: number;
+  monday: Date;
+  sunday: Date;
+  formatShort: (d: Date) => string;
+}
+
+function ArchivWeekCard({ kw, year, monday, sunday, formatShort }: ArchivWeekCardProps) {
+  const { data: history, isLoading } = useQuery<{ id: string; kw: number; year: number; weekday: number; store: string; kugelMenge: number; savedAt: string }[]>({
+    queryKey: ['/api/teig-production-history', kw, year],
+    queryFn: async () => {
+      const res = await fetch(`/api/teig-production-history?kw=${kw}&year=${year}`);
+      return res.json();
+    },
+  });
+
+  const hasAnyData = (history?.length ?? 0) > 0;
+
+  const weekRows = WEEKDAYS.map(wd => {
+    const salesWd = salesWeekdayOf(wd.id);
+    const salesName = WEEKDAYS.find(w => w.id === salesWd)?.name ?? '–';
+    const total = (history || [])
+      .filter(h => h.weekday === wd.id)
+      .reduce((s, h) => s + h.kugelMenge, 0);
+    const plan = calcMachinePlan(total);
+    return { ...wd, salesName, total, plan };
+  });
+
+  const weekTotal = weekRows.reduce((s, r) => s + r.total, 0);
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-3">
+          <Archive size={16} className="text-gray-500" />
+          <span>KW {kw} / {year}</span>
+          <span className="text-sm font-normal text-gray-500">
+            {formatShort(monday)} – {formatShort(sunday)}.{year}
+          </span>
+          {hasAnyData && (
+            <span className="ml-auto text-sm font-normal text-gray-600">
+              Gesamt: {weekTotal} Kugeln
+            </span>
+          )}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <p className="text-sm text-gray-400">Lade...</p>
+        ) : !hasAnyData ? (
+          <p className="text-sm text-gray-400 italic">
+            Keine Daten vorhanden – in dieser Woche wurden keine Werte gespeichert.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="border border-gray-200 p-2 text-left font-semibold">Produktionstag</th>
+                  <th className="border border-gray-200 p-2 text-left font-semibold">→ Verkaufstag</th>
+                  {STORES.map(s => (
+                    <th key={s} className="border border-gray-200 p-2 text-right font-semibold">{s}</th>
+                  ))}
+                  <th className="border border-gray-200 p-2 text-right font-semibold">Gesamt</th>
+                  <th className="border border-gray-200 p-2 text-left font-semibold">Maschinen</th>
+                </tr>
+              </thead>
+              <tbody>
+                {weekRows.map(row => {
+                  const hasData = row.total > 0;
+                  return (
+                    <tr key={row.id} className={hasData ? 'hover:bg-gray-50' : 'bg-gray-50 opacity-40'}>
+                      <td className="border border-gray-200 p-2 font-medium text-gray-800">{row.name}</td>
+                      <td className="border border-gray-200 p-2 text-gray-500 text-xs">{row.salesName}</td>
+                      {STORES.map(store => {
+                        const entry = (history || []).find(h => h.weekday === row.id && h.store === store);
+                        const qty = entry?.kugelMenge ?? 0;
+                        return (
+                          <td key={store} className="border border-gray-200 p-2 text-right tabular-nums">
+                            {qty > 0 ? qty : <span className="text-gray-300">–</span>}
+                          </td>
+                        );
+                      })}
+                      <td className="border border-gray-200 p-2 text-right tabular-nums font-bold text-orange-900">
+                        {hasData ? row.total : <span className="text-gray-300">–</span>}
+                      </td>
+                      <td className="border border-gray-200 p-2 text-xs text-orange-800 font-medium">
+                        {hasData ? row.plan.label : <span className="text-gray-300">–</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function getISOWeekNumber(date: Date): { kw: number; year: number } {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
   const dayNum = d.getUTCDay() || 7;
@@ -217,80 +319,18 @@ export default function TeigManagement() {
       {activeSubTab === 'archiv' && (
         <div className="space-y-6">
           <p className="text-sm text-gray-500">
-            Teig-Produktionsplanung der letzten 4 Kalenderwochen (basierend auf den aktuellen Wochentags-Templates).
+            Historische Teig-Produktionsplanung der letzten 4 Kalenderwochen. Werte werden automatisch gespeichert, wenn du im Planung-Tab einen Wert speicherst.
           </p>
-          {archivWeeks.map(({ kw, year, monday, sunday }) => {
-            const weekRows = WEEKDAYS.map(wd => {
-              const total = (productions || [])
-                .filter(p => p.weekday === wd.id)
-                .reduce((s, p) => s + p.kugelMenge, 0);
-              const salesWd = salesWeekdayOf(wd.id);
-              const salesName = WEEKDAYS.find(w => w.id === salesWd)?.name ?? '–';
-              const plan = calcMachinePlan(total);
-              return { ...wd, total, plan, salesName, waste: plan.total - total };
-            });
-            const weekTotal = weekRows.reduce((s, r) => s + r.total, 0);
-
-            return (
-              <Card key={`${year}-${kw}`}>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-3">
-                    <Archive size={16} className="text-gray-500" />
-                    <span>KW {kw} / {year}</span>
-                    <span className="text-sm font-normal text-gray-500">
-                      {formatShort(monday)} – {formatShort(sunday)}.{year}
-                    </span>
-                    <span className="ml-auto text-sm font-normal text-gray-600">
-                      Gesamt: {weekTotal} Kugeln
-                    </span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm border-collapse">
-                      <thead>
-                        <tr className="bg-gray-50">
-                          <th className="border border-gray-200 p-2 text-left font-semibold">Produktionstag</th>
-                          <th className="border border-gray-200 p-2 text-left font-semibold">→ Verkaufstag</th>
-                          {STORES.map(s => (
-                            <th key={s} className="border border-gray-200 p-2 text-right font-semibold">{s}</th>
-                          ))}
-                          <th className="border border-gray-200 p-2 text-right font-semibold">Gesamt</th>
-                          <th className="border border-gray-200 p-2 text-left font-semibold">Maschinen</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {weekRows.map(row => {
-                          const hasData = row.total > 0;
-                          return (
-                            <tr key={row.id} className={hasData ? 'hover:bg-gray-50' : 'bg-gray-50 opacity-40'}>
-                              <td className="border border-gray-200 p-2 font-medium text-gray-800">{row.name}</td>
-                              <td className="border border-gray-200 p-2 text-gray-500 text-xs">{row.salesName}</td>
-                              {STORES.map(store => {
-                                const prod = productions?.find(p => p.weekday === row.id && p.store === store);
-                                const qty = prod?.kugelMenge ?? 0;
-                                return (
-                                  <td key={store} className="border border-gray-200 p-2 text-right tabular-nums">
-                                    {qty > 0 ? qty : <span className="text-gray-300">–</span>}
-                                  </td>
-                                );
-                              })}
-                              <td className="border border-gray-200 p-2 text-right tabular-nums font-bold text-orange-900">
-                                {hasData ? row.total : <span className="text-gray-300">–</span>}
-                              </td>
-                              <td className="border border-gray-200 p-2 text-xs text-orange-800 font-medium">
-                                {hasData ? row.plan.label : <span className="text-gray-300">–</span>}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+          {archivWeeks.map(week => (
+            <ArchivWeekCard
+              key={`${week.year}-${week.kw}`}
+              kw={week.kw}
+              year={week.year}
+              monday={week.monday}
+              sunday={week.sunday}
+              formatShort={formatShort}
+            />
+          ))}
         </div>
       )}
 
