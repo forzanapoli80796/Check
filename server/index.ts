@@ -1,6 +1,9 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { db } from "./db";
+import { categories } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
@@ -37,6 +40,15 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // One-time data migration: rename "Montagliste" → "Montagsliste (Dienstag TS17)"
+  try {
+    await db.update(categories)
+      .set({ name: 'Montagsliste (Dienstag TS17)' })
+      .where(eq(categories.name, 'Montagliste'));
+  } catch (e) {
+    console.error('[startup] Category rename failed (non-fatal):', e);
+  }
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
