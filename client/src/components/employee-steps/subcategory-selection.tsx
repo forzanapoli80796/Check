@@ -173,13 +173,18 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
   // Day-restricted checklists: only shown on their designated weekday
   // JS: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
   const DAY_RESTRICTED: Record<string, number> = {
-    'Montagliste':              1, // Monday
+    'Montagsliste (Dienstag TS17)': 1, // Monday (JP23/KP5); TS17 handled below (Tuesday)
     'Mittwochsliste':           3, // Wednesday
     'Sonder/Samstagsreinigung': 6, // Saturday
     'MHD-Check':                5, // Friday
   };
   const todayJS = new Date().getDay();
+  const selectedStore = state.selectedStore;
   const visibleSubcategories = subcategories.filter(sub => {
+    // Special: TS17 does Montagsliste on Tuesday (closed Monday)
+    if (sub.name === 'Montagsliste (Dienstag TS17)') {
+      return selectedStore === 'TS17' ? todayJS === 2 : todayJS === 1;
+    }
     const restrictedDay = DAY_RESTRICTED[sub.name];
     return restrictedDay === undefined || restrictedDay === todayJS;
   });

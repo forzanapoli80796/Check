@@ -292,7 +292,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Day-restricted categories: only treat as missing on their designated weekday
       // 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat
       const DAY_RESTRICTED: Record<string, number> = {
-        'Montagliste': 1,
+        'Montagsliste (Dienstag TS17)': 1, // Monday (JP23 + KP5); TS17 handled separately below
         'Mittwochsliste': 3,
         'Sonder/Samstagsreinigung': 6,
         'MHD-Check': 6, // Saturday (checklist is done Friday, missing check runs Saturday)
@@ -307,11 +307,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const nameLower = entry.categoryName.toLowerCase();
         // INVENTUR/NON-FOOD: never show as missing
         if (nameLower.includes('inventur') || nameLower.includes('non-food')) return false;
+        // TS17 Montagsliste: handled separately (Wednesday check vs. Tuesday submission)
+        if (entry.categoryName === 'Montagsliste (Dienstag TS17)' && entry.store === 'TS17') return false;
         // Day-restricted: only show on the correct weekday
         const restricted = DAY_RESTRICTED[entry.categoryName];
         if (restricted !== undefined && restricted !== targetDayOfWeek) return false;
         return true;
       });
+
+      // Special rule: TS17 "Montagsliste (Dienstag TS17)" is done Tuesday.
+      // Show as missing on Wednesday only if TS17 did NOT submit on Tuesday.
+      if (targetDayOfWeek === 3) { // Wednesday
+        const tuesdayDate = new Date(targetDate);
+        tuesdayDate.setDate(targetDate.getDate() - 1);
+        const tuesdayStart = new Date(tuesdayDate);
+        tuesdayStart.setHours(0, 0, 0, 0);
+        const tuesdayEnd = new Date(tuesdayDate);
+        tuesdayEnd.setHours(23, 59, 59, 999);
+        const tuesdayChecklists = await storage.getChecklistsByDateRange(tuesdayStart, tuesdayEnd);
+
+        const montagsCat = allCategories.find(c => c.name === 'Montagsliste (Dienstag TS17)');
+        if (montagsCat) {
+          const submittedTS17 = tuesdayChecklists.some(
+            c => c.categoryId === montagsCat.id && c.store === 'TS17'
+          );
+          if (!submittedTS17) {
+            filteredMissing.push({
+              categoryId: montagsCat.id,
+              categoryName: montagsCat.name,
+              store: 'TS17',
+              shiftType: 'keine_schicht',
+            });
+          }
+        }
+      }
 
       res.setHeader('Cache-Control', 'no-store');
       res.json({
