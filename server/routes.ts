@@ -33,6 +33,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin backup export
+  app.get("/api/admin/backup", async (req, res) => {
+    try {
+      const storage = await getStorage();
+      const [
+        cats,
+        taskList,
+        checklists,
+        teigProd,
+        inventoryItems,
+        employeeNotes,
+        employeeMessages,
+      ] = await Promise.all([
+        storage.getCategories(),
+        storage.getTasks(),
+        storage.getChecklists(),
+        storage.getTeigProduction(),
+        storage.getInventoryItems(),
+        storage.getEmployeeNotes(),
+        storage.getEmployeeMessages(),
+      ]);
+
+      const backup = {
+        exportedAt: new Date().toISOString(),
+        version: 1,
+        data: {
+          categories: cats,
+          tasks: taskList,
+          checklists,
+          teigProduction: teigProd,
+          inventoryItems,
+          employeeNotes,
+          employeeMessages,
+        },
+      };
+
+      const date = new Date().toISOString().slice(0, 10);
+      res.setHeader("Content-Type", "application/json");
+      res.setHeader("Content-Disposition", `attachment; filename="forzacheck-backup-${date}.json"`);
+      res.json(backup);
+    } catch (error) {
+      console.error("Backup error:", error);
+      res.status(500).json({ message: "Backup konnte nicht erstellt werden" });
+    }
+  });
+
   // Categories routes
   app.get("/api/categories", async (req, res) => {
     const storage = await getStorage();

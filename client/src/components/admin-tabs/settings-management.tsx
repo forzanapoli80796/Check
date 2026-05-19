@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Settings as SettingsIcon, Link, Save, Key, LogOut, Loader2 } from "lucide-react";
+import { Settings as SettingsIcon, Link, Save, Key, LogOut, Loader2, Download } from "lucide-react";
 import type { AppSetting } from "@shared/schema";
 
 const AUFGABENPLANER_URL_KEY = "aufgabenplaner_url";
@@ -78,6 +78,29 @@ export function SettingsManagement() {
       toast({ title: "Fehler", description: "Admin-Passwort konnte nicht geändert werden.", variant: "destructive" });
     },
   });
+
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleBackupDownload = async () => {
+    setIsDownloading(true);
+    try {
+      const response = await fetch("/api/admin/backup");
+      if (!response.ok) throw new Error("Backup fehlgeschlagen");
+      const blob = await response.blob();
+      const date = new Date().toISOString().slice(0, 10);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `forzacheck-backup-${date}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast({ title: "Backup heruntergeladen", description: "Die Datei wurde erfolgreich gespeichert." });
+    } catch {
+      toast({ title: "Fehler", description: "Backup konnte nicht erstellt werden.", variant: "destructive" });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const handleLogout = () => {
     sessionStorage.removeItem("appAuthenticated");
@@ -199,6 +222,32 @@ export function SettingsManagement() {
               </Button>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Datenbank-Backup */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Download className="w-5 h-5 text-purple-600" />
+            Datenbank-Backup
+          </CardTitle>
+          <CardDescription>
+            Alle Daten als JSON-Datei herunterladen – Kategorien, Aufgaben, Checklisten, Teig-Daten und mehr.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            onClick={handleBackupDownload}
+            disabled={isDownloading}
+            className="bg-purple-600 hover:bg-purple-700 text-white"
+          >
+            {isDownloading ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Wird erstellt...</>
+            ) : (
+              <><Download className="w-4 h-4 mr-2" />Backup herunterladen</>
+            )}
+          </Button>
         </CardContent>
       </Card>
 
