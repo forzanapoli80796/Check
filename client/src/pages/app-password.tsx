@@ -72,43 +72,36 @@ export default function AppPassword() {
           </p>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-              <span className="ml-3 text-gray-600">Lade Einstellungen...</span>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="relative">
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Passwort eingeben"
-                  className="pr-10 text-lg"
-                  autoFocus
-                  data-testid="input-app-password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                  data-testid="button-toggle-password"
-                >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
-              
-              <Button 
-                type="submit" 
-                className="w-full h-12 text-lg"
-                disabled={!password}
-                data-testid="button-submit-password"
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Passwort eingeben"
+                className="pr-10 text-lg"
+                autoFocus
+                data-testid="input-app-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                data-testid="button-toggle-password"
               >
-                Anmelden
-              </Button>
-            </form>
-          )}
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+            
+            <Button 
+              type="submit" 
+              className="w-full h-12 text-lg"
+              disabled={!password || isLoading}
+              data-testid="button-submit-password"
+            >
+              {isLoading ? "Lade..." : "Anmelden"}
+            </Button>
+          </form>
         </CardContent>
       </Card>
       
