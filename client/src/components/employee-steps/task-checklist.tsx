@@ -24,7 +24,6 @@ interface TaskChecklistProps {
 export default function TaskChecklist({ state, updateState, goBack }: TaskChecklistProps) {
   const { t, language } = useLanguage();
   const [completedTasks, setCompletedTasks] = useState<string[]>(state.completedTasks);
-  const [comments, setComments] = useState<string>("");
   const [earliestExpiryDate, setEarliestExpiryDate] = useState<string>("");
   const [productDetails, setProductDetails] = useState<string>("");
   const [lateShiftDate, setLateShiftDate] = useState<string>("");
@@ -62,7 +61,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
           ? 'keine_schicht' 
           : `${state.selectedShift}_${state.selectedShiftPhase}`,
         completedTasks,
-        comments: comments || null,
+        comments: null,
       };
       
       // Add special fields based on category
@@ -378,19 +377,6 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
             </div>
           </div>
         )}
-
-        <div className="mb-6">
-          <Label htmlFor="comments" className="text-sm font-medium mb-2 block">
-            {t.employee.taskCompletion.commentsLabel}
-          </Label>
-          <Textarea
-            id="comments"
-            value={comments}
-            onChange={(e) => setComments(e.target.value)}
-            placeholder={t.employee.taskCompletion.commentsPlaceholder}
-            className="w-full min-h-[100px]"
-          />
-        </div>
 
         <div className="flex space-x-3">
           <Button

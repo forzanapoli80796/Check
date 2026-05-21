@@ -473,17 +473,6 @@ export default function SubmittedLists() {
                 </div>
               )}
 
-              {/* Comments Section */}
-              {selectedChecklist.comments && (
-                <div>
-                  <h4 className="font-medium text-sm text-gray-600 mb-1">
-                    {language === 'de' ? 'Anmerkungen' : 'Comments'}
-                  </h4>
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                    <p className="text-sm">{selectedChecklist.comments}</p>
-                  </div>
-                </div>
-              )}
 
               {/* Completed Tasks */}
               <div>
