@@ -473,6 +473,11 @@ export default function AdminCategoryTasks() {
               </div>
             ) : (
               // Grid with shifts for categories with shifts
+              (() => {
+                const excluded = category?.excludedShiftCombos ?? [];
+                const showFrühEnde = !excluded.includes('frühschicht_schichtende');
+                const showSpätAnfang = !excluded.includes('spätschicht_schichtanfang');
+                return (
               <div className="grid grid-cols-2 gap-6">
                 {/* Frühschicht Column */}
                 <div>
@@ -481,7 +486,7 @@ export default function AdminCategoryTasks() {
                     Frühschicht
                   </h5>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className={`grid gap-4 ${showFrühEnde ? 'grid-cols-2' : 'grid-cols-1'}`}>
                   {/* Schichtanfang */}
                   <div>
                     <h6 className="text-sm font-medium text-blue-600 mb-2">Start</h6>
@@ -535,8 +540,8 @@ export default function AdminCategoryTasks() {
                     </div>
                   </div>
 
-                  {/* Schichtende */}
-                  <div>
+                  {/* Schichtende - Frühschicht */}
+                  {showFrühEnde && <div>
                     <h6 className="text-sm font-medium text-purple-600 mb-2">Ende</h6>
                     <div className="space-y-2 min-h-[200px] bg-purple-50 p-3 rounded">
                       {categoryTasks
@@ -586,7 +591,7 @@ export default function AdminCategoryTasks() {
                         <p className="text-gray-400 text-xs">Keine Aufgaben</p>
                       )}
                     </div>
-                  </div>
+                  </div>}
                 </div>
               </div>
 
@@ -597,9 +602,9 @@ export default function AdminCategoryTasks() {
                   Spätschicht
                 </h5>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Schichtanfang */}
-                  <div>
+                <div className={`grid gap-4 ${showSpätAnfang ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                  {/* Schichtanfang - Spätschicht */}
+                  {showSpätAnfang && <div>
                     <h6 className="text-sm font-medium text-blue-600 mb-2">Start</h6>
                     <div className="space-y-2 min-h-[200px] bg-blue-50 p-3 rounded">
                       {categoryTasks
@@ -649,9 +654,9 @@ export default function AdminCategoryTasks() {
                         <p className="text-gray-400 text-xs">Keine Aufgaben</p>
                       )}
                     </div>
-                  </div>
+                  </div>}
 
-                  {/* Schichtende */}
+                  {/* Schichtende - Spätschicht */}
                   <div>
                     <h6 className="text-sm font-medium text-purple-600 mb-2">Ende</h6>
                     <div className="space-y-2 min-h-[200px] bg-purple-50 p-3 rounded">
@@ -706,6 +711,8 @@ export default function AdminCategoryTasks() {
                 </div>
               </div>
             </div>
+                );
+              })()
             )}
           </CardContent>
         </Card>
