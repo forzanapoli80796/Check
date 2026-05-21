@@ -364,9 +364,17 @@ export default function AdminCategoryTasks() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="schichtanfang">Schichtanfang</SelectItem>
-                          <SelectItem value="schichtende">Schichtende</SelectItem>
-                          <SelectItem value="both">Beide</SelectItem>
+                          {(() => {
+                            const excluded = category?.excludedShiftCombos ?? [];
+                            const shift = formData.shift;
+                            const showAnfang = shift === "both" || !excluded.includes(`${shift}_schichtanfang`);
+                            const showEnde = shift === "both" || !excluded.includes(`${shift}_schichtende`);
+                            return <>
+                              {showAnfang && <SelectItem value="schichtanfang">Schichtanfang</SelectItem>}
+                              {showEnde && <SelectItem value="schichtende">Schichtende</SelectItem>}
+                              <SelectItem value="both">Beide</SelectItem>
+                            </>;
+                          })()}
                         </SelectContent>
                       </Select>
                     </div>

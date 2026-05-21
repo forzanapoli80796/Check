@@ -31,6 +31,15 @@ export default function TasksManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const getAvailablePhases = () => {
+    const selectedCategory = categories?.find(c => c.id === formData.categoryId);
+    const excluded = selectedCategory?.excludedShiftCombos ?? [];
+    const shift = formData.shift;
+    const showAnfang = shift === "both" || !excluded.includes(`${shift}_schichtanfang`);
+    const showEnde = shift === "both" || !excluded.includes(`${shift}_schichtende`);
+    return { showAnfang, showEnde };
+  };
+
   const { data: tasks, isLoading: tasksLoading } = useQuery<Task[]>({
     queryKey: ["/api/tasks"],
   });
@@ -292,8 +301,12 @@ export default function TasksManagement() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="both">Anfang und Ende</SelectItem>
-                    <SelectItem value="schichtanfang">Nur Schichtanfang</SelectItem>
-                    <SelectItem value="schichtende">Nur Schichtende</SelectItem>
+                    {getAvailablePhases().showAnfang && (
+                      <SelectItem value="schichtanfang">Nur Schichtanfang</SelectItem>
+                    )}
+                    {getAvailablePhases().showEnde && (
+                      <SelectItem value="schichtende">Nur Schichtende</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
