@@ -50,9 +50,11 @@ export default function AdminLogin() {
           <Card className="shadow-lg border border-gray-100">
             <CardContent className="pt-6 space-y-4">
               <h2 className="text-2xl font-medium text-center mb-6">Admin-Code eingeben</h2>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4" autoComplete="on">
                 <Input
                   type="password"
+                  name="password"
+                  autoComplete="current-password"
                   placeholder="Code eingeben"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
