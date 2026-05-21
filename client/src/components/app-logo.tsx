@@ -18,7 +18,7 @@ export default function AppLogo({
     <>
       <img src={logoPath} alt="ForzaCheck Logo" className={imgClassName} />
       <p className="mt-1.5 text-xs font-medium text-gray-400 tracking-wide text-center select-none">
-        Version 2.1
+        Version 2.2
       </p>
     </>
   );
