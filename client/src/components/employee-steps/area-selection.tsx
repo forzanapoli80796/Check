@@ -20,8 +20,20 @@ export default function AreaSelection({ state, updateState, goBack }: AreaSelect
     queryKey: ["/api/categories"],
   });
 
+  // Day-restricted top-level categories: only shown on their designated weekday
+  // JS: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+  const AREA_DAY_RESTRICTED: Record<string, number> = {
+    'MHD-Check': 5, // Friday only
+  };
+  const todayJS = new Date().getDay();
+
   // Filter out subcategories - only show main categories (those without parentId)
-  const categories = allCategories.filter(cat => !cat.parentId);
+  // Also apply day restrictions for day-specific categories
+  const categories = allCategories.filter(cat => {
+    if (cat.parentId) return false;
+    const restrictedDay = AREA_DAY_RESTRICTED[cat.name];
+    return restrictedDay === undefined || restrictedDay === todayJS;
+  });
 
   const selectArea = async (category: Category) => {
     console.log('Selected category:', { 

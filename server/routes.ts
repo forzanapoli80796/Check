@@ -341,7 +341,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'Montagsliste (Dienstag TS17)': 1, // Monday (JP23 + KP5); TS17 handled separately below
         'Mittwochsliste': 3,
         'Sonder/Samstagsreinigung': 6,
-        'MHD-Check': 6, // Saturday (checklist is done Friday, missing check runs Saturday)
+        // MHD-Check handled separately below (checks Friday's submissions when viewed on Saturday)
       };
 
       // Derive local day-of-week from the date query param (or targetDate) to avoid UTC shift
@@ -355,22 +355,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (nameLower.includes('inventur') || nameLower.includes('non-food')) return false;
         // TS17 Montagsliste: handled separately (Wednesday check vs. Tuesday submission)
         if (entry.categoryName === 'Montagsliste (Dienstag TS17)' && entry.store === 'TS17') return false;
+        // MHD-Check: handled separately (Saturday check vs. Friday submission)
+        if (entry.categoryName === 'MHD-Check') return false;
         // Day-restricted: only show on the correct weekday
         const restricted = DAY_RESTRICTED[entry.categoryName];
         if (restricted !== undefined && restricted !== targetDayOfWeek) return false;
         return true;
       });
 
+      // Special rule: MHD-Check is done on Friday.
+      // Show as missing on Saturday only if no store submitted MHD-Check on Friday.
+      if (targetDayOfWeek === 6) { // Saturday
+        const fridayDate = new Date(yr, mo - 1, dy - 1); // local Friday date
+        const fridayStart = new Date(fridayDate);
+        fridayStart.setHours(0, 0, 0, 0);
+        const fridayEnd = new Date(fridayDate);
+        fridayEnd.setHours(23, 59, 59, 999);
+        // Use already-loaded allChecklists filtered by Friday range (avoids broken getChecklistsByDateRange)
+        const fridayChecklists = allChecklists.filter(c => {
+          if (!c.submittedAt) return false;
+          const d = new Date(c.submittedAt);
+          return d >= fridayStart && d <= fridayEnd;
+        });
+
+        const mhdCat = allCategories.find(c => c.name === 'MHD-Check');
+        if (mhdCat) {
+          for (const store of STORES) {
+            const submitted = fridayChecklists.some(
+              c => c.categoryId === mhdCat.id && c.store === store
+            );
+            if (!submitted) {
+              filteredMissing.push({
+                categoryId: mhdCat.id,
+                categoryName: mhdCat.name,
+                store,
+                shiftType: 'keine_schicht',
+              });
+            }
+          }
+        }
+      }
+
       // Special rule: TS17 "Montagsliste (Dienstag TS17)" is done Tuesday.
       // Show as missing on Wednesday only if TS17 did NOT submit on Tuesday.
       if (targetDayOfWeek === 3) { // Wednesday
-        const tuesdayDate = new Date(targetDate);
-        tuesdayDate.setDate(targetDate.getDate() - 1);
+        const tuesdayDate = new Date(yr, mo - 1, dy - 1); // local Tuesday date
         const tuesdayStart = new Date(tuesdayDate);
         tuesdayStart.setHours(0, 0, 0, 0);
         const tuesdayEnd = new Date(tuesdayDate);
         tuesdayEnd.setHours(23, 59, 59, 999);
-        const tuesdayChecklists = await storage.getChecklistsByDateRange(tuesdayStart, tuesdayEnd);
+        // Use already-loaded allChecklists filtered by Tuesday range (avoids broken getChecklistsByDateRange)
+        const tuesdayChecklists = allChecklists.filter(c => {
+          if (!c.submittedAt) return false;
+          const d = new Date(c.submittedAt);
+          return d >= tuesdayStart && d <= tuesdayEnd;
+        });
 
         const montagsCat = allCategories.find(c => c.name === 'Montagsliste (Dienstag TS17)');
         if (montagsCat) {

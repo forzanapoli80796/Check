@@ -1,0 +1,1 @@
+- [getChecklistsByDateRange broken](get-checklists-by-date-range.md) — method returns ALL checklists, not date-filtered; use allChecklists.filter() instead in routes.ts
