@@ -335,94 +335,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Day-restricted categories: only treat as missing on their designated weekday
+      // All day-restricted categories use "next-day" reporting:
+      // They are excluded from the general missing pool and handled by dedicated daily handlers.
+      // Each handler checks the PREVIOUS day's submissions when the admin views the NEXT day.
       // 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat
-      const DAY_RESTRICTED: Record<string, number> = {
-        'Montagsliste (Dienstag TS17)': 1, // Monday (JP23 + KP5); TS17 handled separately below
-        'Mittwochsliste': 3,
-        'Sonder/Samstagsreinigung': 6,
-        // MHD-Check handled separately below (checks Friday's submissions when viewed on Saturday)
-      };
 
       // Derive local day-of-week from the date query param (or targetDate) to avoid UTC shift
       const dateStr = typeof date === 'string' ? date : targetDate.toISOString().split('T')[0];
       const [yr, mo, dy] = dateStr.split('-').map(Number);
       const targetDayOfWeek = new Date(yr, mo - 1, dy).getDay();
 
+      // Helper: filter already-loaded allChecklists by a local date (avoids broken getChecklistsByDateRange)
+      const checklistsForLocalDate = (localDy: number) => {
+        const d = new Date(yr, mo - 1, localDy);
+        const start = new Date(d); start.setHours(0, 0, 0, 0);
+        const end = new Date(d); end.setHours(23, 59, 59, 999);
+        return allChecklists.filter(c => {
+          if (!c.submittedAt) return false;
+          const ts = new Date(c.submittedAt);
+          return ts >= start && ts <= end;
+        });
+      };
+
+      // Day-restricted category names — excluded from the general pool entirely
+      const DAY_RESTRICTED_NAMES = new Set([
+        'Montagsliste (Dienstag TS17)',
+        'Mittwochsliste',
+        'Sonder/Samstagsreinigung',
+        'MHD-Check',
+      ]);
+
       const filteredMissing = missing.filter(entry => {
         const nameLower = entry.categoryName.toLowerCase();
         // INVENTUR/NON-FOOD: never show as missing
         if (nameLower.includes('inventur') || nameLower.includes('non-food')) return false;
-        // TS17 Montagsliste: handled separately (Wednesday check vs. Tuesday submission)
-        if (entry.categoryName === 'Montagsliste (Dienstag TS17)' && entry.store === 'TS17') return false;
-        // MHD-Check: handled separately (Saturday check vs. Friday submission)
-        if (entry.categoryName === 'MHD-Check') return false;
-        // Day-restricted: only show on the correct weekday
-        const restricted = DAY_RESTRICTED[entry.categoryName];
-        if (restricted !== undefined && restricted !== targetDayOfWeek) return false;
+        // All day-restricted categories: handled by dedicated daily handlers below
+        if (DAY_RESTRICTED_NAMES.has(entry.categoryName)) return false;
         return true;
       });
 
-      // Special rule: MHD-Check is done on Friday.
-      // Show as missing on Saturday only if no store submitted MHD-Check on Friday.
-      if (targetDayOfWeek === 6) { // Saturday
-        const fridayDate = new Date(yr, mo - 1, dy - 1); // local Friday date
-        const fridayStart = new Date(fridayDate);
-        fridayStart.setHours(0, 0, 0, 0);
-        const fridayEnd = new Date(fridayDate);
-        fridayEnd.setHours(23, 59, 59, 999);
-        // Use already-loaded allChecklists filtered by Friday range (avoids broken getChecklistsByDateRange)
-        const fridayChecklists = allChecklists.filter(c => {
-          if (!c.submittedAt) return false;
-          const d = new Date(c.submittedAt);
-          return d >= fridayStart && d <= fridayEnd;
-        });
-
-        const mhdCat = allCategories.find(c => c.name === 'MHD-Check');
-        if (mhdCat) {
-          for (const store of STORES) {
-            const submitted = fridayChecklists.some(
-              c => c.categoryId === mhdCat.id && c.store === store
-            );
-            if (!submitted) {
-              filteredMissing.push({
-                categoryId: mhdCat.id,
-                categoryName: mhdCat.name,
-                store,
-                shiftType: 'keine_schicht',
-              });
-            }
+      // ── TUESDAY: Montagsliste (JP23 + KP5) not submitted on Monday ──────────
+      if (targetDayOfWeek === 2) {
+        const mondayChecklists = checklistsForLocalDate(dy - 1);
+        const cat = allCategories.find(c => c.name === 'Montagsliste (Dienstag TS17)');
+        if (cat) {
+          for (const store of ['JP23', 'KP5']) {
+            const submitted = mondayChecklists.some(c => c.categoryId === cat.id && c.store === store);
+            if (!submitted) filteredMissing.push({ categoryId: cat.id, categoryName: cat.name, store, shiftType: 'keine_schicht' });
           }
         }
       }
 
-      // Special rule: TS17 "Montagsliste (Dienstag TS17)" is done Tuesday.
-      // Show as missing on Wednesday only if TS17 did NOT submit on Tuesday.
-      if (targetDayOfWeek === 3) { // Wednesday
-        const tuesdayDate = new Date(yr, mo - 1, dy - 1); // local Tuesday date
-        const tuesdayStart = new Date(tuesdayDate);
-        tuesdayStart.setHours(0, 0, 0, 0);
-        const tuesdayEnd = new Date(tuesdayDate);
-        tuesdayEnd.setHours(23, 59, 59, 999);
-        // Use already-loaded allChecklists filtered by Tuesday range (avoids broken getChecklistsByDateRange)
-        const tuesdayChecklists = allChecklists.filter(c => {
-          if (!c.submittedAt) return false;
-          const d = new Date(c.submittedAt);
-          return d >= tuesdayStart && d <= tuesdayEnd;
-        });
+      // ── WEDNESDAY: Montagsliste (TS17) not submitted on Tuesday ─────────────
+      if (targetDayOfWeek === 3) {
+        const tuesdayChecklists = checklistsForLocalDate(dy - 1);
+        const cat = allCategories.find(c => c.name === 'Montagsliste (Dienstag TS17)');
+        if (cat) {
+          const submitted = tuesdayChecklists.some(c => c.categoryId === cat.id && c.store === 'TS17');
+          if (!submitted) filteredMissing.push({ categoryId: cat.id, categoryName: cat.name, store: 'TS17', shiftType: 'keine_schicht' });
+        }
+      }
 
-        const montagsCat = allCategories.find(c => c.name === 'Montagsliste (Dienstag TS17)');
-        if (montagsCat) {
-          const submittedTS17 = tuesdayChecklists.some(
-            c => c.categoryId === montagsCat.id && c.store === 'TS17'
-          );
-          if (!submittedTS17) {
-            filteredMissing.push({
-              categoryId: montagsCat.id,
-              categoryName: montagsCat.name,
-              store: 'TS17',
-              shiftType: 'keine_schicht',
-            });
+      // ── THURSDAY: Mittwochsliste not submitted on Wednesday ──────────────────
+      if (targetDayOfWeek === 4) {
+        const wednesdayChecklists = checklistsForLocalDate(dy - 1);
+        const cat = allCategories.find(c => c.name === 'Mittwochsliste');
+        if (cat) {
+          for (const store of STORES) {
+            const submitted = wednesdayChecklists.some(c => c.categoryId === cat.id && c.store === store);
+            if (!submitted) filteredMissing.push({ categoryId: cat.id, categoryName: cat.name, store, shiftType: 'keine_schicht' });
+          }
+        }
+      }
+
+      // ── SATURDAY: MHD-Check not submitted on Friday ──────────────────────────
+      if (targetDayOfWeek === 6) {
+        const fridayChecklists = checklistsForLocalDate(dy - 1);
+        const cat = allCategories.find(c => c.name === 'MHD-Check');
+        if (cat) {
+          for (const store of STORES) {
+            const submitted = fridayChecklists.some(c => c.categoryId === cat.id && c.store === store);
+            if (!submitted) filteredMissing.push({ categoryId: cat.id, categoryName: cat.name, store, shiftType: 'keine_schicht' });
+          }
+        }
+      }
+
+      // ── SUNDAY: Sonder/Samstagsreinigung not submitted on Saturday ───────────
+      if (targetDayOfWeek === 0) {
+        const saturdayChecklists = checklistsForLocalDate(dy - 1);
+        const cat = allCategories.find(c => c.name === 'Sonder/Samstagsreinigung');
+        if (cat) {
+          for (const store of STORES) {
+            const submitted = saturdayChecklists.some(c => c.categoryId === cat.id && c.store === store);
+            if (!submitted) filteredMissing.push({ categoryId: cat.id, categoryName: cat.name, store, shiftType: 'keine_schicht' });
           }
         }
       }
