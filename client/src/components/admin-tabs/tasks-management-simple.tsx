@@ -85,21 +85,8 @@ export default function TasksManagementSimple() {
     return <div>Laden...</div>;
   }
 
-  console.log('TASKS DATA:', tasks);
-  console.log('CATEGORIES DATA:', categories);
-
   return (
     <div>
-      {/* DEBUG BOX */}
-      <div className="mb-4 p-4 bg-red-100 border-2 border-red-500">
-        <h3 className="font-bold text-red-800">DEBUG INFO</h3>
-        <p>Tasks Array: {tasks ? `${tasks.length} Aufgaben` : 'undefined'}</p>
-        <p>Categories: {categories ? `${categories.length} Kategorien` : 'undefined'}</p>
-        <p>Loading: Tasks={tasksLoading ? 'Ja' : 'Nein'}, Categories={categoriesLoading ? 'Ja' : 'Nein'}</p>
-        {tasks && tasks.length > 0 && (
-          <p>Erste Aufgabe: {tasks[0].title}</p>
-        )}
-      </div>
 
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-medium">Aufgaben verwalten</h3>

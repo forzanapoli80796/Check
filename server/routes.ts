@@ -99,7 +99,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/categories/:id/subcategories", async (req, res) => {
     const storage = await getStorage();
     const subcategories = await storage.getSubcategories(req.params.id);
-    console.log(`Subcategories for ${req.params.id}:`, subcategories.map(s => ({ id: s.id, name: s.name, categoryType: s.categoryType })));
     res.json(subcategories);
   });
 

@@ -40,7 +40,6 @@ export default function SubmittedLists() {
       }
       
       if (dateFilter !== "alle") {
-        const now = new Date();
         if (dateFilter === "heute") {
           const today = new Date();
           today.setHours(0, 0, 0, 0);
@@ -559,7 +558,6 @@ export default function SubmittedLists() {
                                       alt={`${task?.title || 'Aufgabe'} Bild ${index + 1}`}
                                       className="w-full h-24 object-cover rounded border cursor-pointer hover:opacity-90 transition-opacity"
                                       onClick={() => {
-                                        console.log('Opening image in new tab');
                                         const newWindow = window.open();
                                         if (newWindow) {
                                           newWindow.document.write(`

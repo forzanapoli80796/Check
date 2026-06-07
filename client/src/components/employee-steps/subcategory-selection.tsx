@@ -23,14 +23,6 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
   });
 
   const selectSubcategory = (subcategory: Category) => {
-    console.log('Selected subcategory:', { 
-      id: subcategory.id, 
-      name: subcategory.name, 
-      useShifts: subcategory.useShifts,
-      categoryType: subcategory.categoryType,
-      enforceReading: subcategory.enforceReading,
-    });
-    
     // Check if this is a whiteboard subcategory - go directly to whiteboard view
     if (subcategory.categoryType === 'whiteboard') {
       updateState({ 

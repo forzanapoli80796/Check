@@ -51,8 +51,6 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
         throw new Error('No area selected');
       }
       
-      console.log('Submitting checklist with categoryId:', state.selectedArea);
-      
       const submissionData: any = {
         categoryId: state.selectedArea,
         employeeName: state.employeeName,
@@ -135,13 +133,6 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
   };
 
   const submitChecklist = () => {
-    console.log('Submit button clicked! Current state:', {
-      selectedArea: state.selectedArea,
-      currentCategory,
-      completedTasks,
-      categories: categories?.map(c => ({ id: c.id, name: c.name }))
-    });
-    
     if (!currentCategory) {
       console.error('No category found - checking if we need to create one');
       toast({
