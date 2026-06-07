@@ -30,8 +30,6 @@ export const translations = {
         areas: {
           'Terminal': 'Terminal',
           'Küche': 'Küche',
-          'Fahrer': 'Fahrer',
-
           'Sonder/Samstagsreinigung': 'Sonder/Samstagsreinigung',
           'Inventur/Non-Food': 'Inventur/Non-Food',
           'Inventur': 'Inventur',
@@ -237,8 +235,6 @@ export const translations = {
         areas: {
           'Terminal': 'Terminal',
           'Küche': 'Kitchen',
-          'Fahrer': 'Driver',
-
           'Sonder/Samstagsreinigung': 'Special/Saturday Cleaning',
           'Inventur/Non-Food': 'Inventory/Non-Food',
           'Inventur': 'Inventory',

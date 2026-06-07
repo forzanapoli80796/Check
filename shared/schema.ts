@@ -10,7 +10,7 @@ export const categories = pgTable("categories", {
   icon: text("icon").notNull(),
   iconColor: text("icon_color").default("#000000"), // Icon color in hex format
   useShifts: boolean("use_shifts").notNull().default(true), // true = mit Schichten, false = einfache Checkliste
-  categoryType: text("category_type", { enum: ["shifts", "simple", "inventory", "tickets", "whiteboard"] }).notNull().default("shifts"), // Option 1: Mit Schichten, Option 2: Einfache Checkliste, Option 3: Mit Mengenerfassung, Option 4: Tickets, Option 5: Digitales Whiteboard
+  categoryType: text("category_type", { enum: ["shifts", "simple", "inventory", "whiteboard"] }).notNull().default("shifts"), // Option 1: Mit Schichten, Option 2: Einfache Checkliste, Option 3: Mit Mengenerfassung, Option 4: Digitales Whiteboard
   parentId: varchar("parent_id"), // Parent category ID for subcategories
   isSubcategoryParent: boolean("is_subcategory_parent").notNull().default(false), // true if this category has subcategories
   enforceReading: boolean("enforce_reading").notNull().default(false), // For whiteboard categories: true = employees must read and confirm once per shift
@@ -83,36 +83,6 @@ export const inventoryItems = pgTable("inventory_items", {
   taskId: varchar("task_id").references(() => tasks.id).notNull(),
   quantity: integer("quantity").notNull(),
   unit: text("unit").notNull(), // Stück, Einheit, Karton, Liter, KG
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-// Tickets-Tabelle für Kugelfahrer-Hausmeister
-export const tickets = pgTable("tickets", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  image: text("image"), // Base64 oder URL des Bildes
-  status: text("status", { enum: ["offen", "in_bearbeitung", "erledigt"] }).notNull().default("offen"),
-  priority: text("priority", { enum: ["niedrig", "mittel", "hoch"] }).notNull().default("mittel"),
-  store: text("store").notNull(), // JP23, KP5, TS17
-  dueDate: timestamp("due_date"), // Gewünschtes Erledigungsdatum mit Uhrzeit
-  categoryId: varchar("category_id"), // Verknüpfung mit Kugelfahrer-Hausmeister Kategorie
-  createdBy: text("created_by").notNull(), // Admin, der das Ticket erstellt hat
-  assignedTo: text("assigned_to"), // Kugelfahrer-Hausmeister, dem es zugewiesen ist
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-  completedAt: timestamp("completed_at"), // Zeitpunkt der Erledigung
-  comments: jsonb("comments").default('[]'), // Array von Kommentaren [{user, comment, timestamp}]
-});
-
-// Mitarbeiter-Notizen für Kugelfahrer-Hausmeister
-export const employeeNotes = pgTable("employee_notes", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  message: text("message").notNull(),
-  employeeName: text("employee_name").notNull(),
-  store: text("store").notNull(),
-  categoryId: varchar("category_id"),
-  imageUrl: text("image_url"), // Bild-URL aus Object Storage
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -194,18 +164,6 @@ export const insertInventoryItemSchema = createInsertSchema(inventoryItems).omit
   createdAt: true,
 });
 
-export const insertTicketSchema = createInsertSchema(tickets).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-  completedAt: true,
-});
-
-export const insertEmployeeNoteSchema = createInsertSchema(employeeNotes).omit({
-  id: true,
-  createdAt: true,
-});
-
 export const insertEmployeeMessageSchema = createInsertSchema(employeeMessages).omit({
   id: true,
   createdAt: true,
@@ -247,12 +205,6 @@ export type TeigProductionHistory = typeof teigProductionHistory.$inferSelect;
 
 export type InsertInventoryItem = z.infer<typeof insertInventoryItemSchema>;
 export type InventoryItem = typeof inventoryItems.$inferSelect;
-
-export type InsertTicket = z.infer<typeof insertTicketSchema>;
-export type Ticket = typeof tickets.$inferSelect;
-
-export type InsertEmployeeNote = z.infer<typeof insertEmployeeNoteSchema>;
-export type EmployeeNote = typeof employeeNotes.$inferSelect;
 
 export type InsertEmployeeMessage = z.infer<typeof insertEmployeeMessageSchema>;
 export type EmployeeMessage = typeof employeeMessages.$inferSelect;

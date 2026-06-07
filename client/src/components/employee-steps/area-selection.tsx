@@ -48,7 +48,7 @@ export default function AreaSelection({ state, updateState, goBack }: AreaSelect
       selectedAreaName: category.name,
       selectedAreaHasSubcategories: hasSubcategories || category.isSubcategoryParent,
       selectedAreaUseShifts: category.useShifts !== false,
-      selectedAreaType: (category.categoryType === 'tickets' ? 'simple' : category.categoryType) as 'shifts' | 'simple' | 'inventory' | 'whiteboard' || (category.useShifts !== false ? "shifts" : "simple")
+      selectedAreaType: (category.categoryType as 'shifts' | 'simple' | 'inventory' | 'whiteboard') || (category.useShifts !== false ? "shifts" : "simple")
     };
     
     // Determine the next step - WICHTIG: Whiteboard kommt NACH Area-Auswahl, VOR Shift!

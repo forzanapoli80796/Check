@@ -1,7 +1,7 @@
-import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist, type TeigProduction, type InsertTeigProduction, type TeigProductionHistory, type InventoryItem, type InsertInventoryItem, type EmployeeNote, type InsertEmployeeNote, type EmployeeMessage, type InsertEmployeeMessage, type StoreWhiteboard, type InsertStoreWhiteboard, type WhiteboardRead, type InsertWhiteboardRead, type Setting, type InsertSetting, type AppSetting, type InsertAppSetting } from "@shared/schema";
+import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist, type TeigProduction, type InsertTeigProduction, type TeigProductionHistory, type InventoryItem, type InsertInventoryItem, type EmployeeMessage, type InsertEmployeeMessage, type StoreWhiteboard, type InsertStoreWhiteboard, type WhiteboardRead, type InsertWhiteboardRead, type Setting, type InsertSetting, type AppSetting, type InsertAppSetting } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { categories, tasks, checklists, teigProduction, teigProductionHistory, inventoryItems, employeeNotes, employeeMessages, storeWhiteboard, whiteboardReads, settings, appSettings } from "@shared/schema";
+import { categories, tasks, checklists, teigProduction, teigProductionHistory, inventoryItems, employeeMessages, storeWhiteboard, whiteboardReads, settings, appSettings } from "@shared/schema";
 import { eq, sql, and } from "drizzle-orm";
 
 export interface IStorage {
@@ -44,12 +44,6 @@ export interface IStorage {
   createInventoryItem(item: InsertInventoryItem): Promise<InventoryItem>;
   updateInventoryItem(id: string, item: Partial<InsertInventoryItem>): Promise<InventoryItem | undefined>;
   deleteInventoryItem(id: string): Promise<boolean>;
-  
-  // Employee Notes
-  getEmployeeNotes(): Promise<EmployeeNote[]>;
-  getEmployeeNoteById(id: string): Promise<EmployeeNote | undefined>;
-  createEmployeeNote(note: InsertEmployeeNote): Promise<EmployeeNote>;
-  deleteEmployeeNote(id: string): Promise<boolean>;
   
   // Employee Messages (from all areas)
   getEmployeeMessages(): Promise<EmployeeMessage[]>;
@@ -411,33 +405,6 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount || 0) > 0;
   }
 
-  // Employee Notes methods
-  async getEmployeeNotes(): Promise<EmployeeNote[]> {
-    return await db.select().from(employeeNotes).orderBy(sql`${employeeNotes.createdAt} DESC`);
-  }
-
-  async getEmployeeNoteById(id: string): Promise<EmployeeNote | undefined> {
-    const [note] = await db.select().from(employeeNotes).where(eq(employeeNotes.id, id));
-    return note || undefined;
-  }
-
-  async createEmployeeNote(insertNote: InsertEmployeeNote): Promise<EmployeeNote> {
-    const [note] = await db
-      .insert(employeeNotes)
-      .values({
-        ...insertNote,
-        id: randomUUID(),
-        createdAt: new Date(),
-      })
-      .returning();
-    return note;
-  }
-
-  async deleteEmployeeNote(id: string): Promise<boolean> {
-    const result = await db.delete(employeeNotes).where(eq(employeeNotes.id, id));
-    return (result.rowCount || 0) > 0;
-  }
-
   // Employee Messages methods
   async getEmployeeMessages(): Promise<EmployeeMessage[]> {
     return await db.select().from(employeeMessages).orderBy(sql`${employeeMessages.createdAt} DESC`);
@@ -616,7 +583,6 @@ export class MemStorage implements IStorage {
   private teigProductions: Map<string, TeigProduction> = new Map();
   private teigProductionHistoryMap: Map<string, TeigProductionHistory> = new Map();
   private inventoryItems: Map<string, InventoryItem> = new Map();
-  private employeeNotes: Map<string, EmployeeNote> = new Map();
   private employeeMessages: Map<string, EmployeeMessage> = new Map();
   private whiteboardNotes: Map<string, StoreWhiteboard> = new Map();
   private whiteboardReadRecords: Map<string, WhiteboardRead> = new Map();
@@ -640,7 +606,6 @@ export class MemStorage implements IStorage {
     const mainCategories = [
       { name: "Terminal", description: "Kassensystem & Kundenbereich", icon: "desktop", useShifts: true, categoryType: "shifts" as const, isSubcategoryParent: false },
       { name: "Küche", description: "Zubereitung & Hygiene", icon: "utensils", useShifts: true, categoryType: "shifts" as const, isSubcategoryParent: true },
-      { name: "Fahrer", description: "Fahrzeug & Lieferung", icon: "car", useShifts: true, categoryType: "shifts" as const, isSubcategoryParent: false },
       { name: "Inventur", description: "Bestandsaufnahme", icon: "clipboard-list", useShifts: false, categoryType: "inventory" as const, isSubcategoryParent: false },
       { name: "Sonderreinigung", description: "Tiefenreinigung", icon: "broom", useShifts: false, categoryType: "simple" as const, isSubcategoryParent: false },
     ];
@@ -702,10 +667,6 @@ export class MemStorage implements IStorage {
       { categoryName: "MHD-Check", title: "Alle Wurstwaren auf MHD überprüft", description: "Alte Ware vorne, neue Ware hinten", icon: "clipboard-check", priority: "high" as const },
       { categoryName: "MHD-Check", title: "Alle Käseprodukte auf MHD überprüft", description: "Alte Ware vorne, neue Ware hinten", icon: "clipboard-check", priority: "high" as const },
       { categoryName: "MHD-Check", title: "Käse vegan auf MHD überprüft", description: "Alte Ware vorne, neue Ware hinten", icon: "clipboard-check", priority: "high" as const },
-      
-      // Fahrer tasks  
-      { categoryName: "Fahrer", title: "Fahrzeug checken", description: "Lichter, Bremsen und Reifen prüfen", icon: "car", priority: "high" as const },
-      { categoryName: "Fahrer", title: "Liefertaschen kontrollieren", description: "Thermotaschen auf Sauberkeit prüfen", icon: "shopping-cart", priority: "medium" as const },
       
       // Inventur tasks
       { categoryName: "Inventur", title: "Warenbestand zählen", description: "Alle Artikel erfassen und dokumentieren", icon: "barcode", priority: "medium" as const },
@@ -969,34 +930,6 @@ export class MemStorage implements IStorage {
   }
 
 
-  // Employee Notes methods
-  async getEmployeeNotes(): Promise<EmployeeNote[]> {
-    return Array.from(this.employeeNotes.values()).sort((a, b) =>
-      new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
-    );
-  }
-
-  async getEmployeeNoteById(id: string): Promise<EmployeeNote | undefined> {
-    return this.employeeNotes.get(id);
-  }
-
-  async createEmployeeNote(insertNote: InsertEmployeeNote): Promise<EmployeeNote> {
-    const id = randomUUID();
-    const note: EmployeeNote = {
-      ...insertNote,
-      id,
-      categoryId: insertNote.categoryId || null,
-      imageUrl: insertNote.imageUrl || null,
-      createdAt: new Date(),
-    };
-    this.employeeNotes.set(id, note);
-    return note;
-  }
-
-  async deleteEmployeeNote(id: string): Promise<boolean> {
-    return this.employeeNotes.delete(id);
-  }
-
   // Employee Messages methods
   async getEmployeeMessages(): Promise<EmployeeMessage[]> {
     return Array.from(this.employeeMessages.values()).sort((a, b) =>
@@ -1189,7 +1122,6 @@ async function initializeDefaultData(storage: DatabaseStorage) {
   const defaultCategories = [
     { name: "Terminal", description: "Kassensystem & Kundenbereich", icon: "desktop" },
     { name: "Küche", description: "Zubereitung & Hygiene", icon: "utensils" },
-    { name: "Fahrer", description: "Fahrzeug & Lieferung", icon: "car" },
     { name: "Inventur", description: "Bestandsaufnahme", icon: "clipboard-list" },
     { name: "Sonderreinigung", description: "Tiefenreinigung", icon: "broom" },
   ];
@@ -1211,10 +1143,6 @@ async function initializeDefaultData(storage: DatabaseStorage) {
     { categoryName: "Küche", title: "Küchengeräte reinigen", description: "Alle Geräte gründlich säubern", icon: "utensils", priority: "high" as const },
     { categoryName: "Küche", title: "Temperatur kontrollieren", description: "Kühl- und Gefriergeräte prüfen", icon: "thermometer", priority: "high" as const },
     { categoryName: "Küche", title: "Arbeitsflächen desinfizieren", description: "Alle Oberflächen mit Desinfektionsmittel reinigen", icon: "spray-can", priority: "high" as const },
-    
-    // Fahrer tasks  
-    { categoryName: "Fahrer", title: "Fahrzeug checken", description: "Lichter, Bremsen und Reifen prüfen", icon: "car", priority: "high" as const },
-    { categoryName: "Fahrer", title: "Liefertaschen kontrollieren", description: "Thermotaschen auf Sauberkeit prüfen", icon: "shopping-cart", priority: "medium" as const },
     
     // Inventur tasks
     { categoryName: "Inventur", title: "Warenbestand zählen", description: "Alle Artikel erfassen und dokumentieren", icon: "barcode", priority: "medium" as const },
