@@ -415,9 +415,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // ── SUNDAY: Sonder/Samstagsreinigung not submitted on Saturday ───────────
-      if (targetDayOfWeek === 0) {
-        const saturdayChecklists = checklistsForLocalDate(dy - 1);
+      // ── SUNDAY (admin viewed): Sonder/Samstagsreinigung not submitted on Saturday ──
+      // selectedDate = Saturday (yesterday) → targetDayOfWeek = 6
+      if (targetDayOfWeek === 6) {
+        const saturdayChecklists = checklistsForLocalDate(dy);
         const cat = allCategories.find(c => c.name === 'Sonder/Samstagsreinigung');
         if (cat) {
           for (const store of STORES) {
