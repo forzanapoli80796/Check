@@ -6,7 +6,6 @@ import { Lock, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AppLogo from "@/components/app-logo";
 
-const CORRECT_PASSWORD = "0101";
 const AUTH_STORAGE_KEY = "forzacheck_auth";
 
 interface PasswordProtectionProps {
@@ -18,21 +17,35 @@ export function PasswordProtection({ children }: PasswordProtectionProps) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [correctPassword, setCorrectPassword] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is already authenticated
     const authStatus = sessionStorage.getItem(AUTH_STORAGE_KEY);
     if (authStatus === "true") {
       setIsAuthenticated(true);
+      setLoading(false);
+      return;
     }
-    setLoading(false);
+
+    // Fetch the current app password from the server
+    fetch("/api/app-settings/app_password")
+      .then(r => r.json())
+      .then(data => {
+        setCorrectPassword(data?.settingValue ?? "0101");
+      })
+      .catch(() => {
+        setCorrectPassword("0101");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (password === CORRECT_PASSWORD) {
+
+    if (correctPassword !== null && password === correctPassword) {
       sessionStorage.setItem(AUTH_STORAGE_KEY, "true");
       setIsAuthenticated(true);
       toast({
@@ -66,7 +79,7 @@ export function PasswordProtection({ children }: PasswordProtectionProps) {
       <div className="mb-8">
         <AppLogo imgClassName="h-20 object-contain" />
       </div>
-      
+
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="flex items-center justify-center gap-2">
@@ -105,11 +118,11 @@ export function PasswordProtection({ children }: PasswordProtectionProps) {
                 </button>
               </div>
             </div>
-            
-            <Button 
-              type="submit" 
+
+            <Button
+              type="submit"
               className="w-full"
-              disabled={!password}
+              disabled={!password || correctPassword === null}
               data-testid="button-submit-password"
             >
               Anmelden
