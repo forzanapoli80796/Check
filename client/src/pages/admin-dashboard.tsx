@@ -27,7 +27,7 @@ export default function AdminDashboard() {
     { value: 'categories', label: 'Arbeitsbereiche' },
     { value: 'teig', label: 'Teig-Planung' },
     { value: 'whiteboard', label: 'Digitales Whiteboard' },
-    { value: 'pruefplan', label: 'Prüfplan' },
+    { value: 'pruefplan', label: 'Prüfplan Sonderlisten' },
     { value: 'settings', label: 'Einstellungen' },
   ];
 

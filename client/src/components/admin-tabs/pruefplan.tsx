@@ -16,8 +16,9 @@ export default function Pruefplan() {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold text-gray-900">Prüfplan – Fehlende Checklisten</h2>
+        <h2 className="text-lg font-semibold text-gray-900">Prüfplan Sonderlisten</h2>
         <p className="text-sm text-gray-500 mt-1">
+          Regeln für: Montagsliste, Mittwochsliste, MHD-Check, Sonder/Samstagsreinigung.<br />
           Wenn eine Liste nicht ausgefüllt wurde, erscheint die Meldung <strong>nur am Folgetag</strong> im Admin.
         </p>
       </div>
