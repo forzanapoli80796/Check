@@ -38,7 +38,7 @@ export const AREA_LABELS = {
 export const AREA_ICONS = {
   terminal: 'desktop',
   kueche: 'utensils',
-  fahrer: 'bicycle',
+  fahrer: 'bike',
   inventur: 'clipboard-list',
   sonderreinigung: 'broom',
 } as const;
