@@ -2,7 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { db } from "./db";
-import { categories } from "@shared/schema";
+import { categories, tasks } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
 const app = express();
@@ -47,6 +47,60 @@ app.use((req, res, next) => {
       .where(eq(categories.name, 'Montagliste'));
   } catch (e) {
     console.error('[startup] Category rename failed (non-fatal):', e);
+  }
+
+  // Seed: create Fahrer category + tasks if missing
+  try {
+    const existing = await db.select().from(categories).where(eq(categories.name, 'Fahrer'));
+    if (existing.length === 0) {
+      const [fahrerCat] = await db.insert(categories).values({
+        name: 'Fahrer',
+        description: 'Fahrzeug & Lieferung',
+        icon: 'bike',
+        useShifts: true,
+        categoryType: 'shifts',
+        parentId: null,
+        isSubcategoryParent: false,
+        enforceReading: false,
+      }).returning();
+
+      const fahrerTasks = [
+        { title: 'Fahrzeug überprüfen',                         description: 'Öl, Reifen und allgemeinen Zustand prüfen',                           icon: 'car',              priority: 'medium' as const, shift: 'both' as const, shiftPhase: 'schichtanfang' as const },
+        { title: 'Lieferungen zuordnen',                         description: 'Lieferrouten organisieren',                                            icon: 'map',              priority: 'medium' as const, shift: 'both' as const, shiftPhase: 'schichtanfang' as const },
+        { title: 'Wechselgeld prüfen',                           description: 'Ausreichend Wechselgeld für Lieferungen sicherstellen',                icon: 'banknote',         priority: 'medium' as const, shift: 'both' as const, shiftPhase: 'schichtanfang' as const },
+        { title: 'Fahrzeug tanken',                              description: 'Lieferfahrzeug auffüllen',                                             icon: 'fuel',             priority: 'medium' as const, shift: 'both' as const, shiftPhase: 'both' as const },
+        { title: 'Liefertaschen reinigen',                       description: 'Liefertaschen reinigen und desinfizieren',                             icon: 'shopping-bag',     priority: 'high' as const,   shift: 'both' as const, shiftPhase: 'schichtende' as const },
+        { title: 'Tagesabrechnung',                              description: 'Lieferberichte abschließen',                                           icon: 'receipt',          priority: 'high' as const,   shift: 'both' as const, shiftPhase: 'schichtende' as const },
+        { title: 'Fahrer Regal Sauber machen und aufräumen',     description: 'Wo die Batterien sind',                                               icon: 'archive',          priority: 'medium' as const, shift: 'both' as const, shiftPhase: 'both' as const },
+        { title: 'Fahreraufgaben Kontrolieren',                  description: 'Fahrer haben ihr eigenes Forzacheck, einfach kontrollieren',          icon: 'clipboard-check',  priority: 'medium' as const, shift: 'both' as const, shiftPhase: 'both' as const },
+        { title: 'Fahrrad Box Reinigen',                         description: '',                                                                     icon: 'box',              priority: 'medium' as const, shift: 'both' as const, shiftPhase: 'schichtende' as const },
+        { title: 'Fahrräder Kontrollieren',                      description: 'Sauberkeit und Verkehrssicherheit, wenn defekt Schalau informieren',  icon: 'bicycle',          priority: 'high' as const,   shift: 'both' as const, shiftPhase: 'schichtanfang' as const },
+        { title: 'Fahrräder Raus stellen',                       description: '',                                                                     icon: 'bicycle',          priority: 'medium' as const, shift: 'frühschicht' as const, shiftPhase: 'schichtanfang' as const },
+        { title: 'Fahrräder Rein stellen',                       description: '',                                                                     icon: 'bicycle',          priority: 'medium' as const, shift: 'spätschicht' as const, shiftPhase: 'schichtende' as const },
+        { title: 'Helme Reinigen',                               description: 'Jeder soll seinen Helm nach der Schicht selbst reinigen',             icon: 'shield',           priority: 'medium' as const, shift: 'both' as const, shiftPhase: 'schichtende' as const },
+        { title: 'Pizza Taschen Reinigen',                       description: 'Belege rauswerfen',                                                   icon: 'package',          priority: 'medium' as const, shift: 'both' as const, shiftPhase: 'schichtende' as const },
+        { title: 'Akkus Aufladen',                               description: 'WICHTIG',                                                             icon: 'battery-charging', priority: 'high' as const,   shift: 'both' as const, shiftPhase: 'schichtende' as const },
+        { title: 'Power Bank',                                   description: 'Beide da? Zum Laden anschließen WICHTIG',                             icon: 'zap',              priority: 'high' as const,   shift: 'both' as const, shiftPhase: 'schichtende' as const },
+        { title: 'Power Banks zurück zum Terminal und aufladen', description: '',                                                                     icon: 'zap',              priority: 'high' as const,   shift: 'both' as const, shiftPhase: 'schichtende' as const },
+      ];
+
+      await db.insert(tasks).values(
+        fahrerTasks.map(t => ({
+          categoryId: fahrerCat.id,
+          title: t.title,
+          description: t.description || null,
+          icon: t.icon,
+          priority: t.priority,
+          estimatedMinutes: '5',
+          shift: t.shift,
+          shiftPhase: t.shiftPhase,
+          stores: ['JP23', 'KP5', 'TS17'],
+        }))
+      );
+      log('[startup] Fahrer category + 17 tasks created');
+    }
+  } catch (e) {
+    console.error('[startup] Fahrer seed failed (non-fatal):', e);
   }
 
   const server = await registerRoutes(app);
