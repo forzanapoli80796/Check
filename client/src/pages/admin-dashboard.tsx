@@ -14,6 +14,7 @@ import ErrorBoundary from "@/components/error-boundary";
 import TeigManagement from "@/components/teig-management";
 import MissingChecklists from "@/components/admin-tabs/missing-checklists";
 import WhiteboardManagement from "@/components/admin-tabs/whiteboard-management";
+import Pruefplan from "@/components/admin-tabs/pruefplan";
 import { AdminTabState } from "@/lib/types";
 
 
@@ -26,6 +27,7 @@ export default function AdminDashboard() {
     { value: 'categories', label: 'Arbeitsbereiche' },
     { value: 'teig', label: 'Teig-Planung' },
     { value: 'whiteboard', label: 'Digitales Whiteboard' },
+    { value: 'pruefplan', label: 'Prüfplan' },
     { value: 'settings', label: 'Einstellungen' },
   ];
 
@@ -53,6 +55,12 @@ export default function AdminDashboard() {
         return (
           <ErrorBoundary>
             <WhiteboardManagement />
+          </ErrorBoundary>
+        );
+      case 'pruefplan':
+        return (
+          <ErrorBoundary>
+            <Pruefplan />
           </ErrorBoundary>
         );
       case 'settings':
