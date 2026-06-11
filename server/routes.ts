@@ -369,25 +369,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return true;
       });
 
-      // ── TUESDAY: Montagsliste (JP23 + KP5) not submitted on Monday ──────────
+      // ── TUESDAY (selected date): Montagsliste
+      //    JP23 + KP5 check Monday (dy-1), TS17 checks Tuesday itself (dy)
+      //    This fires when admin is opened on Wednesday (yesterday = Tuesday)
       if (targetDayOfWeek === 2) {
         const mondayChecklists = checklistsForLocalDate(dy - 1);
+        const tuesdayChecklists = checklistsForLocalDate(dy);
         const cat = allCategories.find(c => c.name === 'Montagsliste (Dienstag TS17)');
         if (cat) {
           for (const store of ['JP23', 'KP5']) {
             const submitted = mondayChecklists.some(c => c.categoryId === cat.id && c.store === store);
             if (!submitted) filteredMissing.push({ categoryId: cat.id, categoryName: cat.name, store, shiftType: 'keine_schicht' });
           }
-        }
-      }
-
-      // ── WEDNESDAY: Montagsliste (TS17) not submitted on Tuesday ─────────────
-      if (targetDayOfWeek === 3) {
-        const tuesdayChecklists = checklistsForLocalDate(dy - 1);
-        const cat = allCategories.find(c => c.name === 'Montagsliste (Dienstag TS17)');
-        if (cat) {
-          const submitted = tuesdayChecklists.some(c => c.categoryId === cat.id && c.store === 'TS17');
-          if (!submitted) filteredMissing.push({ categoryId: cat.id, categoryName: cat.name, store: 'TS17', shiftType: 'keine_schicht' });
+          // TS17 is closed Monday and submits on Tuesday — only flag if missed on Tuesday itself
+          const ts17Submitted = tuesdayChecklists.some(c => c.categoryId === cat.id && c.store === 'TS17');
+          if (!ts17Submitted) filteredMissing.push({ categoryId: cat.id, categoryName: cat.name, store: 'TS17', shiftType: 'keine_schicht' });
         }
       }
 
