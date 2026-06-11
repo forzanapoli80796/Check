@@ -535,6 +535,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/teig-production", async (req, res) => {
     const storage = await getStorage();
     const productions = await storage.getTeigProduction();
+
+    // Auto-archive: if the current ISO week has no history yet, snapshot all current values now.
+    // This ensures the archive is populated even when no individual "Speichern" click happened.
+    if (productions.length > 0) {
+      const now = new Date();
+      const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      const currentKw = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+      const currentYear = d.getUTCFullYear();
+
+      const existing = await storage.getTeigProductionHistoryByWeek(currentKw, currentYear);
+      if (existing.length === 0) {
+        await Promise.all(
+          productions.map(p =>
+            storage.upsertTeigProductionHistory(currentKw, currentYear, p.weekday, p.store, p.kugelMenge)
+          )
+        );
+      }
+    }
+
     res.json(productions);
   });
 
