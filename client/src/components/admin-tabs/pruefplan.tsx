@@ -85,15 +85,21 @@ export default function Pruefplan() {
         </table>
       </div>
 
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-600 space-y-1.5">
-        <p className="font-semibold text-gray-800">Regeln:</p>
-        <ul className="space-y-1 list-disc list-inside">
-          <li><strong>Montagsliste</strong> – JP23 & KP5 reichen montags ein → Meldung dienstags</li>
-          <li><strong>Montagsliste</strong> – TS17 reicht dienstags ein (montags geschlossen) → Meldung mittwochs</li>
-          <li><strong>Mittwochsliste</strong> – alle Filialen reichen mittwochs ein → Meldung donnerstags</li>
-          <li><strong>MHD-Check</strong> – alle Filialen reichen freitags ein → Meldung samstags</li>
-          <li><strong>Sonder/Samstagsreinigung</strong> – alle Filialen reichen samstags ein → Meldung sonntags</li>
-        </ul>
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-600 space-y-3">
+        <div>
+          <p className="font-semibold text-gray-800 mb-1">Sonderlisten – Regeln:</p>
+          <ul className="space-y-1 list-disc list-inside">
+            <li><strong>Montagsliste</strong> – JP23 & KP5 reichen montags ein → Meldung dienstags</li>
+            <li><strong>Montagsliste</strong> – TS17 reicht dienstags ein (montags geschlossen) → Meldung mittwochs</li>
+            <li><strong>Mittwochsliste</strong> – alle Filialen reichen mittwochs ein → Meldung donnerstags</li>
+            <li><strong>MHD-Check</strong> – alle Filialen reichen freitags ein → Meldung samstags</li>
+            <li><strong>Sonder/Samstagsreinigung</strong> – alle Filialen reichen samstags ein → Meldung sonntags</li>
+          </ul>
+        </div>
+        <div className="border-t border-gray-200 pt-3">
+          <p className="font-semibold text-gray-800 mb-1">Alle anderen Listen (Terminal, Küche, etc.):</p>
+          <p>Werden <strong>täglich</strong> geprüft. Wenn eine Liste am Vortag nicht ausgefüllt wurde, erscheint sie ohne Ausnahme als fehlend im Admin.</p>
+        </div>
       </div>
     </div>
   );
