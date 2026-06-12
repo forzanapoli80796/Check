@@ -489,6 +489,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const checklist = await storage.createChecklist(checklistData);
       res.json(checklist);
+
+      // Fire-and-forget: warn if Kugeln von morgen wurden verwendet (newBalls > 0)
+      if (checklistData.newBalls && checklistData.newBalls > 0) {
+        sendKugelnWarningEmail({
+          store: checklist.store,
+          quantity: checklistData.newBalls,
+          employeeName: checklist.employeeName,
+        });
+      }
     } catch (error) {
       console.error("Checklist creation error:", error);
       res.status(400).json({ message: "Invalid checklist data" });
