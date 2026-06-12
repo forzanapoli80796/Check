@@ -172,9 +172,15 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
   };
   const todayJS = new Date().getDay();
   const selectedStore = state.selectedStore;
+  // Sonderlisten identified by name (day-restricted) or DB flag
+  const isSonderliste = (sub: Category) =>
+    sub.earlyShiftOnly === true ||
+    Object.prototype.hasOwnProperty.call(DAY_RESTRICTED, sub.name) ||
+    sub.name.startsWith('Montagsliste');
+
   const visibleSubcategories = subcategories.filter(sub => {
     // Sonderlisten: nur Frühschicht
-    if (sub.earlyShiftOnly && state.selectedShift === 'spätschicht') return false;
+    if (state.selectedShift === 'spätschicht' && isSonderliste(sub)) return false;
     // Special: TS17 does Montagsliste on Tuesday (closed Monday)
     if (sub.name === 'Montagsliste (Dienstag TS17)') {
       return selectedStore === 'TS17' ? todayJS === 2 : todayJS === 1;
