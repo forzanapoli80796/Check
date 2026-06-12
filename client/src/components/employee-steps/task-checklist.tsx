@@ -69,11 +69,18 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
       if (areaName === 'MHD-Check') {
         submissionData.mhdExpiryDate = earliestExpiryDate || null;
         submissionData.mhdProductDetails = productDetails || null;
-      } else if (areaName === 'Mengenformular Spätschicht') {
+      } else if (
+        areaName === 'Mengenformular Spätschicht' ||
+        (areaName === 'Küche Checkliste' && state.selectedShift === 'spätschicht')
+      ) {
         submissionData.lateShiftDate = lateShiftDate || null;
         submissionData.ballsForTomorrow = ballsForTomorrow ? parseInt(ballsForTomorrow) : null;
         submissionData.newBalls = newBalls ? parseInt(newBalls) : null;
-      } else if (areaName === 'Mengenformular Frühschicht' || areaName === 'Mengenformular Mittagsschicht') {
+      } else if (
+        areaName === 'Mengenformular Frühschicht' ||
+        areaName === 'Mengenformular Mittagsschicht' ||
+        (areaName === 'Küche Checkliste' && state.selectedShift === 'frühschicht')
+      ) {
         submissionData.lunchShiftDate = lunchShiftDate || null;
         submissionData.ballsForToday = ballsForToday ? parseInt(ballsForToday) : null;
       }
@@ -373,7 +380,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
         )}
 
         {/* Mengenformular Spätschicht specific fields */}
-        {areaName === 'Mengenformular Spätschicht' && (
+        {(areaName === 'Mengenformular Spätschicht' || (areaName === 'Küche Checkliste' && state.selectedShift === 'spätschicht')) && (
           <div className="space-y-4 mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div>
               <Label className="text-sm font-medium mb-2 block">
@@ -419,7 +426,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
         )}
 
         {/* Mengenformular Frühschicht specific fields */}
-        {(areaName === 'Mengenformular Frühschicht' || areaName === 'Mengenformular Mittagsschicht') && (
+        {(areaName === 'Mengenformular Frühschicht' || areaName === 'Mengenformular Mittagsschicht' || (areaName === 'Küche Checkliste' && state.selectedShift === 'frühschicht')) && (
           <div className="space-y-4 mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
             <div>
               <Label className="text-sm font-medium mb-2 block">

@@ -196,6 +196,8 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
     sub.name === 'Mengenformular Spätschicht';
 
   const visibleSubcategories = subcategories.filter(sub => {
+    // Hide archived categories (merged into other lists)
+    if (sub.name.startsWith('[Archiv]')) return false;
     // earlyShiftOnly: nur Frühschicht
     if (state.selectedShift === 'spätschicht' && isEarlyShiftOnly(sub)) return false;
     // lateShiftOnly: nur Spätschicht

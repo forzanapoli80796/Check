@@ -59,7 +59,21 @@ app.use((req, res, next) => {
     console.error('[startup] Mengenformular rename failed (non-fatal):', e);
   }
 
-  // Migration: set earlyShiftOnly=true for the 4 Sonderlisten
+  // One-time migration: archive standalone Mengenformular categories (merged into Küche Checkliste)
+  // Cannot delete due to FK constraint; rename to [Archiv] prefix so they are hidden from employees
+  try {
+    await db.update(categories)
+      .set({ name: '[Archiv] Mengenformular Frühschicht' })
+      .where(eq(categories.name, 'Mengenformular Frühschicht'));
+    await db.update(categories)
+      .set({ name: '[Archiv] Mengenformular Spätschicht' })
+      .where(eq(categories.name, 'Mengenformular Spätschicht'));
+    log('[startup] Mengenformular categories archived (hidden from employees)');
+  } catch (e) {
+    console.error('[startup] Mengenformular archive failed (non-fatal):', e);
+  }
+
+  // Migration: set earlyShiftOnly=true for the Sonderlisten
   try {
     await db.update(categories)
       .set({ earlyShiftOnly: true })
@@ -68,7 +82,7 @@ app.use((req, res, next) => {
         like(categories.name, '%Mittwochsliste%'),
         like(categories.name, '%MHD-Check%'),
         like(categories.name, '%Samstagsreinigung%'),
-        like(categories.name, '%Mengenformular Frühschicht%'),
+        like(categories.name, '%Frühschicht%'),
       ));
     log('[startup] earlyShiftOnly set for Sonderlisten');
   } catch (e) {
