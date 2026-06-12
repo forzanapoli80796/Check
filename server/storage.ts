@@ -632,7 +632,7 @@ export class MemStorage implements IStorage {
       { name: "Küche Checkliste", description: "Standard Küchen-Checkliste", icon: "utensils", useShifts: true, categoryType: "shifts" as const },
       { name: "MHD-Check", description: "Mindesthaltbarkeitsdatum überprüfen", icon: "calendar-check", useShifts: false, categoryType: "simple" as const },
       { name: "Mengenformular Spätschicht", description: "Teigmengen für Spätschicht", icon: "calculator", useShifts: false, categoryType: "simple" as const },
-      { name: "Mengenformular Mittagsschicht", description: "Teigmengen für Mittagsschicht", icon: "clipboard-check", useShifts: false, categoryType: "simple" as const },
+      { name: "Mengenformular Frühschicht", description: "Teigmengen für Frühschicht", icon: "clipboard-check", useShifts: false, categoryType: "simple" as const },
     ];
     
     kucheSubcategories.forEach(cat => {
@@ -680,8 +680,8 @@ export class MemStorage implements IStorage {
       { categoryName: "Mengenformular Spätschicht", title: "Kugelmengen erfasst", description: "Anzahl der Teigkugeln für morgen gezählt", icon: "clipboard-list", priority: "high" as const },
       { categoryName: "Mengenformular Spätschicht", title: "Neue Kugeln dokumentiert", description: "Anzahl der neuen Kugeln notiert", icon: "calculator", priority: "high" as const },
       
-      // Mengenformular Mittagsschicht tasks
-      { categoryName: "Mengenformular Mittagsschicht", title: "Kugelmengen für heute erfasst", description: "Anzahl der Teigkugeln für heute gezählt", icon: "clipboard-check", priority: "high" as const },
+      // Mengenformular Frühschicht tasks
+      { categoryName: "Mengenformular Frühschicht", title: "Kugelmengen für heute erfasst", description: "Anzahl der Teigkugeln für heute gezählt", icon: "clipboard-check", priority: "high" as const },
     ];
 
     defaultTasks.forEach(taskData => {

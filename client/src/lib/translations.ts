@@ -35,7 +35,7 @@ export const translations = {
           'Inventur': 'Inventur',
           'MHD-Check': 'MHD-Check',
           'Mengenformular Spätschicht': 'Mengenformular Spätschicht',
-          'Mengenformular Mittagsschicht': 'Mengenformular Mittagsschicht'
+          'Mengenformular Frühschicht': 'Mengenformular Frühschicht'
         }
       },
       subcategorySelection: {
@@ -44,7 +44,7 @@ export const translations = {
         kitchenChecklist: 'Küchen-Checkliste',
         mhdCheck: 'MHD-Check',
         lateShiftForm: 'Mengenformular Spätschicht',
-        lunchShiftForm: 'Mengenformular Mittagsschicht'
+        lunchShiftForm: 'Mengenformular Frühschicht'
       },
       detailsEntry: {
         title: 'Details eingeben',
@@ -240,7 +240,7 @@ export const translations = {
           'Inventur': 'Inventory',
           'MHD-Check': 'Expiry Check',
           'Mengenformular Spätschicht': 'Late Shift Quantity Form',
-          'Mengenformular Mittagsschicht': 'Lunch Shift Quantity Form'
+          'Mengenformular Frühschicht': 'Early Shift Quantity Form'
         }
       },
       subcategorySelection: {

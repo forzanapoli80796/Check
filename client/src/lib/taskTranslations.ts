@@ -82,7 +82,7 @@ export const taskTranslations: Record<string, { title: string; description: stri
     description: 'Number of new balls recorded'
   },
 
-  // Mengenformular Mittagsschicht Tasks
+  // Mengenformular Frühschicht Tasks
   'Kugelmengen für heute erfasst': {
     title: 'Dough ball quantities for today recorded',
     description: 'Number of dough balls for today counted'

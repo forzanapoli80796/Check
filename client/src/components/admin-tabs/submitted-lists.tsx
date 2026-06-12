@@ -445,11 +445,11 @@ export default function SubmittedLists() {
                 </div>
               )}
 
-              {/* Mengenformular Mittagsschicht Details */}
-              {categories?.find(c => c.id === selectedChecklist.categoryId)?.name === 'Mengenformular Mittagsschicht' && (
+              {/* Mengenformular Frühschicht Details */}
+              {categories?.find(c => c.id === selectedChecklist.categoryId)?.name === 'Mengenformular Frühschicht' && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
                   <h4 className="font-medium text-sm text-green-800 mb-2">
-                    {language === 'de' ? 'Mittagsschicht Mengenformular Details' : 'Lunch Shift Quantity Form Details'}
+                    {language === 'de' ? 'Frühschicht Mengenformular Details' : 'Early Shift Quantity Form Details'}
                   </h4>
                   {(selectedChecklist as any).lunchShiftDate && (
                     <div>

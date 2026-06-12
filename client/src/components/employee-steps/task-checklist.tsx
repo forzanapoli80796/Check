@@ -71,7 +71,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
         submissionData.lateShiftDate = lateShiftDate || null;
         submissionData.ballsForTomorrow = ballsForTomorrow ? parseInt(ballsForTomorrow) : null;
         submissionData.newBalls = newBalls ? parseInt(newBalls) : null;
-      } else if (currentCategory?.name === 'Mengenformular Mittagsschicht') {
+      } else if (currentCategory?.name === 'Mengenformular Frühschicht') {
         submissionData.lunchShiftDate = lunchShiftDate || null;
         submissionData.ballsForToday = ballsForToday ? parseInt(ballsForToday) : null;
       }
@@ -335,8 +335,8 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
           </div>
         )}
 
-        {/* Mengenformular Mittagsschicht specific fields */}
-        {currentCategory?.name === 'Mengenformular Mittagsschicht' && (
+        {/* Mengenformular Frühschicht specific fields */}
+        {currentCategory?.name === 'Mengenformular Frühschicht' && (
           <div className="space-y-4 mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
             <div>
               <Label className="text-sm font-medium mb-2 block">
@@ -348,7 +348,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
                 value={lunchShiftDate}
                 onChange={(e) => setLunchShiftDate(e.target.value)}
                 className="w-full"
-                required={currentCategory?.name === 'Mengenformular Mittagsschicht'}
+                required={currentCategory?.name === 'Mengenformular Frühschicht'}
               />
             </div>
             <div>
@@ -363,7 +363,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
                 onChange={(e) => setBallsForToday(e.target.value)}
                 placeholder={language === 'de' ? 'Anzahl eingeben...' : 'Enter amount...'}
                 className="w-full"
-                required={currentCategory?.name === 'Mengenformular Mittagsschicht'}
+                required={currentCategory?.name === 'Mengenformular Frühschicht'}
               />
             </div>
           </div>
