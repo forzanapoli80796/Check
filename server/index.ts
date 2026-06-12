@@ -68,6 +68,7 @@ app.use((req, res, next) => {
         like(categories.name, '%Mittwochsliste%'),
         like(categories.name, '%MHD-Check%'),
         like(categories.name, '%Samstagsreinigung%'),
+        like(categories.name, '%Mengenformular Frühschicht%'),
       ));
     log('[startup] earlyShiftOnly set for Sonderlisten');
   } catch (e) {
