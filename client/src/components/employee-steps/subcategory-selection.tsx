@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import { SlideToUnlock } from "@/components/ui/slide-to-unlock";
 import { ArrowLeft } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,7 +21,6 @@ const MENGENFORMULAR_NAMES = ['Mengenformular Frühschicht', 'Mengenformular Sp�
 export default function SubcategorySelection({ state, updateState, goBack }: SubcategorySelectionProps) {
   const { t } = useLanguage();
   const [pendingSubcategory, setPendingSubcategory] = useState<Category | null>(null);
-  const [sliderConfirmed, setSliderConfirmed] = useState(false);
 
   const { data: subcategories = [], isLoading } = useQuery<Category[]>({
     queryKey: [`/api/categories/${state.selectedArea}/subcategories`],
@@ -228,7 +225,6 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
                   variant="outline"
                   onClick={() => {
                     if (MENGENFORMULAR_NAMES.includes(subcategory.name)) {
-                      setSliderConfirmed(false);
                       setPendingSubcategory(subcategory);
                     } else {
                       selectSubcategory(subcategory);
@@ -261,50 +257,42 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
       </CardContent>
     </Card>
 
-    {/* Confirmation dialog for Mengenformular categories */}
-    <Dialog open={!!pendingSubcategory} onOpenChange={(open) => { if (!open) setPendingSubcategory(null); }}>
-      <DialogContent className="max-w-sm mx-4">
-        <DialogHeader>
-          <DialogTitle className="text-base font-semibold">Bestätigung erforderlich</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-5 pt-2">
-          <p className="text-sm text-gray-700 leading-relaxed border-l-4 border-orange-400 pl-3 bg-orange-50 py-3 pr-3 rounded-r-md">
-            "Ich bestätige, zuerst die Küchen-Checkliste und anschließend das Mengenformular auszufüllen. Mir ist bewusst, dass bei Nichteinhaltung arbeitsrechtliche Konsequenzen drohen können."
-          </p>
-          <div className="flex items-center gap-3">
-            <Switch
-              id="mengenformular-confirm"
-              checked={sliderConfirmed}
-              onCheckedChange={setSliderConfirmed}
-            />
-            <Label htmlFor="mengenformular-confirm" className="text-sm cursor-pointer select-none">
-              {sliderConfirmed ? 'Bestätigt' : 'Zum Bestätigen aktivieren'}
-            </Label>
+    {pendingSubcategory && (
+      <Card className="shadow-sm border border-gray-200 mt-4">
+        <CardContent className="pt-6 space-y-5">
+          <div className="flex items-center mb-2">
+            <div className="step-indicator mr-3">2</div>
+            <h2 className="text-xl font-medium">Bestätigung erforderlich</h2>
           </div>
-          <div className="flex gap-2 pt-1">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => setPendingSubcategory(null)}
-            >
-              Abbrechen
-            </Button>
-            <Button
-              className="flex-1"
-              disabled={!sliderConfirmed}
-              onClick={() => {
-                if (pendingSubcategory) {
-                  setPendingSubcategory(null);
-                  selectSubcategory(pendingSubcategory);
-                }
-              }}
-            >
-              Weiter
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+
+          <Card className="border-blue-200 bg-blue-50">
+            <CardContent className="pt-4 pb-4">
+              <p className="text-sm text-blue-900 font-medium text-center leading-relaxed">
+                Ich bestätige, zuerst die Küchen-Checkliste und anschließend das Mengenformular auszufüllen. Mir ist bewusst, dass bei Nichteinhaltung arbeitsrechtliche Konsequenzen drohen können.
+              </p>
+            </CardContent>
+          </Card>
+
+          <SlideToUnlock
+            onUnlock={() => {
+              const sub = pendingSubcategory;
+              setPendingSubcategory(null);
+              selectSubcategory(sub);
+            }}
+            text="Zum Bestätigen schieben"
+          />
+
+          <Button
+            variant="ghost"
+            className="w-full"
+            onClick={() => setPendingSubcategory(null)}
+          >
+            <ArrowLeft size={16} className="mr-2" />
+            Abbrechen
+          </Button>
+        </CardContent>
+      </Card>
+    )}
     </>
   );
 }
