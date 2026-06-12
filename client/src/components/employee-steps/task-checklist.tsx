@@ -268,7 +268,19 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
     return <IconComponent className="text-primary" size={20} />;
   };
 
-  const canSubmit = filteredTasks.length > 0 && (!needsSignature || !!signature);
+  const allTasksDone =
+    filteredTasks.length > 0 &&
+    filteredTasks.every(t => completedTasks.includes(t.id));
+
+  const mengenformularDone = !isKuecheChecklist || (
+    areaName === 'Küche Frühschicht – Checkliste & Mengenformular'
+      ? !!ballsForToday
+      : !!ballsForTomorrow && !!newBalls
+  );
+
+  const signatureDone = !needsSignature || !!signature;
+
+  const canSubmit = allTasksDone && mengenformularDone && signatureDone;
 
   if (isLoading) {
     return (
