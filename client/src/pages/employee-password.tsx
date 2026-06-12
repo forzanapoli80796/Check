@@ -72,12 +72,12 @@ export default function EmployeePassword() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="on">
+          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
             <div className="relative">
               <Input
                 type={showPassword ? "text" : "password"}
-                name="password"
-                autoComplete="current-password"
+                name="forzacheck-employee"
+                autoComplete="off"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Passwort eingeben"
