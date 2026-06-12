@@ -1,5 +1,9 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { ArrowLeft } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,9 +18,13 @@ interface SubcategorySelectionProps {
   goBack: () => void;
 }
 
+const MENGENFORMULAR_NAMES = ['Mengenformular Frühschicht', 'Mengenformular Spätschicht'];
+
 export default function SubcategorySelection({ state, updateState, goBack }: SubcategorySelectionProps) {
   const { t } = useLanguage();
-  
+  const [pendingSubcategory, setPendingSubcategory] = useState<Category | null>(null);
+  const [sliderConfirmed, setSliderConfirmed] = useState(false);
+
   const { data: subcategories = [], isLoading } = useQuery<Category[]>({
     queryKey: [`/api/categories/${state.selectedArea}/subcategories`],
     enabled: !!state.selectedArea,
@@ -204,6 +212,7 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
   });
 
   return (
+    <>
     <Card className="shadow-sm border border-gray-200">
       <CardContent className="pt-6">
         <div className="flex items-center mb-6">
@@ -217,7 +226,14 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
               <div key={subcategory.id} className="flex flex-col gap-1">
                 <Button
                   variant="outline"
-                  onClick={() => selectSubcategory(subcategory)}
+                  onClick={() => {
+                    if (MENGENFORMULAR_NAMES.includes(subcategory.name)) {
+                      setSliderConfirmed(false);
+                      setPendingSubcategory(subcategory);
+                    } else {
+                      selectSubcategory(subcategory);
+                    }
+                  }}
                   className={`selection-button justify-start ${sonderliste ? 'border-2 border-red-500 text-red-700 hover:border-red-600 hover:text-red-800' : ''}`}
                   data-testid={`button-subcategory-${subcategory.id}`}
                 >
@@ -244,5 +260,51 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
         </Button>
       </CardContent>
     </Card>
+
+    {/* Confirmation dialog for Mengenformular categories */}
+    <Dialog open={!!pendingSubcategory} onOpenChange={(open) => { if (!open) setPendingSubcategory(null); }}>
+      <DialogContent className="max-w-sm mx-4">
+        <DialogHeader>
+          <DialogTitle className="text-base font-semibold">Bestätigung erforderlich</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-5 pt-2">
+          <p className="text-sm text-gray-700 leading-relaxed border-l-4 border-orange-400 pl-3 bg-orange-50 py-3 pr-3 rounded-r-md">
+            "Ich bestätige, zuerst die Küchen-Checkliste und anschließend das Mengenformular auszufüllen. Mir ist bewusst, dass bei Nichteinhaltung arbeitsrechtliche Konsequenzen drohen können."
+          </p>
+          <div className="flex items-center gap-3">
+            <Switch
+              id="mengenformular-confirm"
+              checked={sliderConfirmed}
+              onCheckedChange={setSliderConfirmed}
+            />
+            <Label htmlFor="mengenformular-confirm" className="text-sm cursor-pointer select-none">
+              {sliderConfirmed ? 'Bestätigt' : 'Zum Bestätigen aktivieren'}
+            </Label>
+          </div>
+          <div className="flex gap-2 pt-1">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setPendingSubcategory(null)}
+            >
+              Abbrechen
+            </Button>
+            <Button
+              className="flex-1"
+              disabled={!sliderConfirmed}
+              onClick={() => {
+                if (pendingSubcategory) {
+                  setPendingSubcategory(null);
+                  selectSubcategory(pendingSubcategory);
+                }
+              }}
+            >
+              Weiter
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
