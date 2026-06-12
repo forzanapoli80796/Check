@@ -71,7 +71,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
         submissionData.mhdProductDetails = productDetails || null;
       } else if (
         areaName === 'Mengenformular Spätschicht' ||
-        (areaName === 'Küche Checkliste' && state.selectedShift === 'spätschicht')
+        areaName === 'Küche Spätschicht – Checkliste & Mengenformular'
       ) {
         submissionData.lateShiftDate = new Date().toISOString().split('T')[0];
         submissionData.ballsForTomorrow = ballsForTomorrow ? parseInt(ballsForTomorrow) : null;
@@ -79,7 +79,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
       } else if (
         areaName === 'Mengenformular Frühschicht' ||
         areaName === 'Mengenformular Mittagsschicht' ||
-        (areaName === 'Küche Checkliste' && state.selectedShift === 'frühschicht')
+        areaName === 'Küche Frühschicht – Checkliste & Mengenformular'
       ) {
         submissionData.lunchShiftDate = new Date().toISOString().split('T')[0];
         submissionData.ballsForToday = ballsForToday ? parseInt(ballsForToday) : null;
@@ -380,7 +380,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
         )}
 
         {/* Mengenformular Spätschicht specific fields */}
-        {(areaName === 'Mengenformular Spätschicht' || (areaName === 'Küche Checkliste' && state.selectedShift === 'spätschicht')) && (
+        {(areaName === 'Mengenformular Spätschicht' || areaName === 'Küche Spätschicht – Checkliste & Mengenformular') && (
           <div className="space-y-4 mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <h3 className="font-bold text-sm tracking-widest text-blue-800 uppercase">
               Mengenformular Spätschicht
@@ -417,7 +417,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
         )}
 
         {/* Mengenformular Frühschicht specific fields */}
-        {(areaName === 'Mengenformular Frühschicht' || areaName === 'Mengenformular Mittagsschicht' || (areaName === 'Küche Checkliste' && state.selectedShift === 'frühschicht')) && (
+        {(areaName === 'Mengenformular Frühschicht' || areaName === 'Mengenformular Mittagsschicht' || areaName === 'Küche Frühschicht – Checkliste & Mengenformular') && (
           <div className="space-y-4 mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
             <h3 className="font-bold text-sm tracking-widest text-green-800 uppercase">
               Mengenformular Frühschicht

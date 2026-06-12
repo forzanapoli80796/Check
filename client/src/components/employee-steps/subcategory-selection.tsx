@@ -27,6 +27,14 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
     enabled: !!state.selectedArea,
   });
 
+  // Returns a display/storage name for "Küche Checkliste" that reflects the selected shift
+  const getKuecheDisplayName = (baseName: string): string => {
+    if (baseName !== 'Küche Checkliste') return baseName;
+    if (state.selectedShift === 'frühschicht') return 'Küche Frühschicht – Checkliste & Mengenformular';
+    if (state.selectedShift === 'spätschicht') return 'Küche Spätschicht – Checkliste & Mengenformular';
+    return baseName;
+  };
+
   const selectSubcategory = (subcategory: Category) => {
     // Check if this is a whiteboard subcategory - go directly to whiteboard view
     if (subcategory.categoryType === 'whiteboard') {
@@ -43,12 +51,11 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
     const needsShiftPhase = subcategory.useShifts !== false && state.selectedShift;
     
     updateState({ 
-      selectedParentArea: state.selectedArea, // remember parent (e.g. Küche) for back navigation
+      selectedParentArea: state.selectedArea,
       selectedArea: subcategory.id, 
-      selectedAreaName: subcategory.name,
+      selectedAreaName: getKuecheDisplayName(subcategory.name),
       selectedAreaUseShifts: subcategory.useShifts !== false,
       selectedAreaType: (subcategory.categoryType as 'shifts' | 'simple' | 'inventory' | 'whiteboard') || (subcategory.useShifts !== false ? "shifts" : "simple"),
-      // Go to shift-phase if we have a shift selected and category uses shifts, otherwise straight to tasks
       step: needsShiftPhase ? 'shift-phase' : 'tasks'
     });
   };
@@ -267,7 +274,7 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
                   data-testid={`button-subcategory-${subcategory.id}`}
                 >
                   {getIcon(subcategory.icon, sonderliste ? '#dc2626' : (subcategory.iconColor || undefined))}
-                  <span className="font-medium">{getTranslatedSubcategoryName(subcategory.name)}</span>
+                  <span className="font-medium">{getTranslatedSubcategoryName(getKuecheDisplayName(subcategory.name))}</span>
                   {sonderliste && (
                     <span className="ml-auto text-xs font-bold text-red-600 animate-pulse bg-red-50 border border-red-300 rounded px-2 py-0.5 shrink-0">
                       NICHT VERGESSEN
