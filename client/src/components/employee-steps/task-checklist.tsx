@@ -73,7 +73,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
         areaName === 'Mengenformular Spätschicht' ||
         (areaName === 'Küche Checkliste' && state.selectedShift === 'spätschicht')
       ) {
-        submissionData.lateShiftDate = lateShiftDate || null;
+        submissionData.lateShiftDate = new Date().toISOString().split('T')[0];
         submissionData.ballsForTomorrow = ballsForTomorrow ? parseInt(ballsForTomorrow) : null;
         submissionData.newBalls = newBalls ? parseInt(newBalls) : null;
       } else if (
@@ -81,7 +81,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
         areaName === 'Mengenformular Mittagsschicht' ||
         (areaName === 'Küche Checkliste' && state.selectedShift === 'frühschicht')
       ) {
-        submissionData.lunchShiftDate = lunchShiftDate || null;
+        submissionData.lunchShiftDate = new Date().toISOString().split('T')[0];
         submissionData.ballsForToday = ballsForToday ? parseInt(ballsForToday) : null;
       }
       if (redBags !== "" || blackBags !== "" || drinksBags !== "") {
@@ -382,18 +382,9 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
         {/* Mengenformular Spätschicht specific fields */}
         {(areaName === 'Mengenformular Spätschicht' || (areaName === 'Küche Checkliste' && state.selectedShift === 'spätschicht')) && (
           <div className="space-y-4 mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div>
-              <Label className="text-sm font-medium mb-2 block">
-                <CalendarDays className="inline mr-2" size={16} />
-                {language === 'de' ? 'Datum wählen' : 'Select Date'}
-              </Label>
-              <Input
-                type="date"
-                value={lateShiftDate}
-                onChange={(e) => setLateShiftDate(e.target.value)}
-                className="w-full"
-              />
-            </div>
+            <h3 className="font-bold text-sm tracking-widest text-blue-800 uppercase">
+              Mengenformular Spätschicht
+            </h3>
             <div>
               <Label htmlFor="balls-tomorrow" className="text-sm font-medium mb-2 block">
                 {language === 'de' ? 'Wie viele Kugeln haben wir für morgen?' : 'How many dough balls do we have for tomorrow?'}
@@ -428,18 +419,9 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
         {/* Mengenformular Frühschicht specific fields */}
         {(areaName === 'Mengenformular Frühschicht' || areaName === 'Mengenformular Mittagsschicht' || (areaName === 'Küche Checkliste' && state.selectedShift === 'frühschicht')) && (
           <div className="space-y-4 mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <div>
-              <Label className="text-sm font-medium mb-2 block">
-                <CalendarDays className="inline mr-2" size={16} />
-                {language === 'de' ? 'Datum wählen' : 'Select Date'}
-              </Label>
-              <Input
-                type="date"
-                value={lunchShiftDate}
-                onChange={(e) => setLunchShiftDate(e.target.value)}
-                className="w-full"
-              />
-            </div>
+            <h3 className="font-bold text-sm tracking-widest text-green-800 uppercase">
+              Mengenformular Frühschicht
+            </h3>
             <div>
               <Label htmlFor="balls-today" className="text-sm font-medium mb-2 block">
                 {language === 'de' ? 'Wie viele Kugeln haben wir für heute?' : 'How many dough balls do we have for today?'}
