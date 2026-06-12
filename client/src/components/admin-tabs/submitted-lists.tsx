@@ -474,21 +474,33 @@ export default function SubmittedLists() {
 
 
               {/* Liefertaschen zählen */}
-              {((selectedChecklist as any).redBags != null || (selectedChecklist as any).blackBags != null) && (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-2">
-                  <h4 className="font-medium text-sm text-gray-800 mb-2">
+              {((selectedChecklist as any).redBags != null || (selectedChecklist as any).blackBags != null || (selectedChecklist as any).drinksBags != null) && (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
+                  <h4 className="font-medium text-sm text-gray-800">
                     {language === 'de' ? 'Liefertaschen' : 'Delivery Bags'}
                   </h4>
-                  {(selectedChecklist as any).redBags != null && (
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase mb-1">{language === 'de' ? 'Pizza-Liefertaschen' : 'Pizza bags'}</p>
+                    {(selectedChecklist as any).redBags != null && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600">🔴 {language === 'de' ? 'ROT:' : 'RED:'}</span>
+                        <span className="text-sm font-bold">{(selectedChecklist as any).redBags}</span>
+                      </div>
+                    )}
+                    {(selectedChecklist as any).blackBags != null && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600">⚫ {language === 'de' ? 'SCHWARZ:' : 'BLACK:'}</span>
+                        <span className="text-sm font-bold">{(selectedChecklist as any).blackBags}</span>
+                      </div>
+                    )}
+                  </div>
+                  {(selectedChecklist as any).drinksBags != null && (
                     <div>
-                      <span className="text-sm font-medium text-gray-600">🔴 {language === 'de' ? 'Rote Taschen:' : 'Red bags:'}</span>
-                      <span className="ml-2 text-sm font-bold">{(selectedChecklist as any).redBags}</span>
-                    </div>
-                  )}
-                  {(selectedChecklist as any).blackBags != null && (
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">⚫ {language === 'de' ? 'Schwarze Taschen:' : 'Black bags:'}</span>
-                      <span className="ml-2 text-sm font-bold">{(selectedChecklist as any).blackBags}</span>
+                      <p className="text-xs font-semibold text-gray-500 uppercase mb-1">{language === 'de' ? 'Getränke/Dessert-Liefertaschen' : 'Drinks/Dessert bags'}</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600">{language === 'de' ? 'Anzahl:' : 'Amount:'}</span>
+                        <span className="text-sm font-bold">{(selectedChecklist as any).drinksBags}</span>
+                      </div>
                     </div>
                   )}
                 </div>

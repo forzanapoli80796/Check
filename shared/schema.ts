@@ -52,8 +52,9 @@ export const checklists = pgTable("checklists", {
   newBalls: integer("new_balls"), // Spätschicht: How many are new
   lunchShiftDate: date("lunch_shift_date"), // Mittagsschicht Mengenformular: selected date
   ballsForToday: integer("balls_for_today"), // Mittagsschicht: How many balls for today
-  redBags: integer("red_bags"), // Liefertaschen zählen: Anzahl rote Taschen
-  blackBags: integer("black_bags"), // Liefertaschen zählen: Anzahl schwarze Taschen
+  redBags: integer("red_bags"), // Liefertaschen zählen: Pizza rote Taschen
+  blackBags: integer("black_bags"), // Liefertaschen zählen: Pizza schwarze Taschen
+  drinksBags: integer("drinks_bags"), // Liefertaschen zählen: Getränke/Dessert Taschen
   completionDate: date("completion_date"), // Betriebsleiter: When tasks were actually completed
   submittedAt: timestamp("submitted_at").defaultNow(),
 });

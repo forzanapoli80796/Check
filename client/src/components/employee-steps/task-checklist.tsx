@@ -33,6 +33,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
   const [ballsForToday, setBallsForToday] = useState<string>("");
   const [redBags, setRedBags] = useState<string>("");
   const [blackBags, setBlackBags] = useState<string>("");
+  const [drinksBags, setDrinksBags] = useState<string>("");
 
   const { toast } = useToast();
 
@@ -77,9 +78,10 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
         submissionData.lunchShiftDate = lunchShiftDate || null;
         submissionData.ballsForToday = ballsForToday ? parseInt(ballsForToday) : null;
       }
-      if (redBags !== "" || blackBags !== "") {
+      if (redBags !== "" || blackBags !== "" || drinksBags !== "") {
         submissionData.redBags = redBags !== "" ? parseInt(redBags) : null;
         submissionData.blackBags = blackBags !== "" ? parseInt(blackBags) : null;
+        submissionData.drinksBags = drinksBags !== "" ? parseInt(drinksBags) : null;
       }
       
       const response = await apiRequest("POST", "/api/checklists", submissionData);
@@ -237,13 +239,13 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
               const isLiefertaschen = task.title === 'Liefertaschen zählen';
 
               if (isLiefertaschen) {
-                const bothFilled = redBags !== "" && blackBags !== "";
+                const allFilled = redBags !== "" && blackBags !== "" && drinksBags !== "";
                 return (
-                  <div key={task.id} className={`task-item ${bothFilled ? 'completed' : ''}`} onClick={undefined}>
+                  <div key={task.id} className={`task-item ${allFilled ? 'completed' : ''}`} onClick={undefined}>
                     <div className="flex-1">
-                      <div className="flex items-center mb-3">
+                      <div className="flex items-center mb-4">
                         <div className="mr-3">
-                          {bothFilled ? (
+                          {allFilled ? (
                             <Check className="text-secondary" size={20} />
                           ) : (
                             <div className="w-5 h-5 border-2 border-gray-400 rounded"></div>
@@ -251,41 +253,60 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
                         </div>
                         <h4 className="font-medium text-gray-800">{language === 'de' ? 'Liefertaschen zählen' : 'Count delivery bags'}</h4>
                       </div>
-                      <div className="grid grid-cols-2 gap-3 ml-8">
-                        <div>
-                          <Label htmlFor="red-bags" className="text-sm font-medium mb-1 block text-red-700">
-                            🔴 {language === 'de' ? 'Rote Taschen' : 'Red bags'}
-                          </Label>
-                          <Input
-                            id="red-bags"
-                            type="number"
-                            min="0"
-                            value={redBags}
-                            onChange={(e) => {
-                              e.stopPropagation();
-                              setRedBags(e.target.value);
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                            placeholder="0"
-                            className="w-full"
-                          />
+
+                      {/* Pizza-Liefertaschen */}
+                      <div className="ml-8 mb-4">
+                        <p className="text-sm font-semibold text-gray-700 mb-2">{language === 'de' ? 'Pizza-Liefertaschen' : 'Pizza delivery bags'}</p>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label htmlFor="red-bags" className="text-sm font-medium mb-1 block text-red-700">
+                              🔴 {language === 'de' ? 'Anzahl ROT' : 'Amount RED'}
+                            </Label>
+                            <Input
+                              id="red-bags"
+                              type="number"
+                              min="0"
+                              value={redBags}
+                              onChange={(e) => { e.stopPropagation(); setRedBags(e.target.value); }}
+                              onClick={(e) => e.stopPropagation()}
+                              placeholder="0"
+                              className="w-full"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="black-bags" className="text-sm font-medium mb-1 block text-gray-800">
+                              ⚫ {language === 'de' ? 'Anzahl SCHWARZ' : 'Amount BLACK'}
+                            </Label>
+                            <Input
+                              id="black-bags"
+                              type="number"
+                              min="0"
+                              value={blackBags}
+                              onChange={(e) => { e.stopPropagation(); setBlackBags(e.target.value); }}
+                              onClick={(e) => e.stopPropagation()}
+                              placeholder="0"
+                              className="w-full"
+                            />
+                          </div>
                         </div>
+                      </div>
+
+                      {/* Getränke/Dessert-Liefertaschen */}
+                      <div className="ml-8">
+                        <p className="text-sm font-semibold text-gray-700 mb-2">{language === 'de' ? 'Getränke/Dessert-Liefertaschen' : 'Drinks/Dessert delivery bags'}</p>
                         <div>
-                          <Label htmlFor="black-bags" className="text-sm font-medium mb-1 block text-gray-800">
-                            ⚫ {language === 'de' ? 'Schwarze Taschen' : 'Black bags'}
+                          <Label htmlFor="drinks-bags" className="text-sm font-medium mb-1 block text-gray-700">
+                            {language === 'de' ? 'Anzahl' : 'Amount'}
                           </Label>
                           <Input
-                            id="black-bags"
+                            id="drinks-bags"
                             type="number"
                             min="0"
-                            value={blackBags}
-                            onChange={(e) => {
-                              e.stopPropagation();
-                              setBlackBags(e.target.value);
-                            }}
+                            value={drinksBags}
+                            onChange={(e) => { e.stopPropagation(); setDrinksBags(e.target.value); }}
                             onClick={(e) => e.stopPropagation()}
                             placeholder="0"
-                            className="w-full"
+                            className="w-full max-w-[160px]"
                           />
                         </div>
                       </div>
