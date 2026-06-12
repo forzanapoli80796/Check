@@ -127,7 +127,15 @@ export default function EmployeeWorkflow() {
         if (state.selectedAreaType === 'inventory') {
           return <InventoryChecklist state={state} updateState={updateState} goBack={goBack} />;
         }
-        return <TaskChecklist state={state} updateState={updateState} goBack={goBack} />;
+        return <TaskChecklist state={state} updateState={updateState} goBack={() => {
+          // Always go back to subcategory selection (step 2) if area has subcategories,
+          // otherwise fall back to area selection
+          if (state.selectedAreaHasSubcategories) {
+            setState(prev => ({ ...prev, step: 'subcategory', navigationHistory: [...(prev.navigationHistory || []).filter(s => s !== 'tasks' && s !== 'shift-phase'), 'subcategory'] }));
+          } else {
+            setState(prev => ({ ...prev, step: 'area', navigationHistory: [...(prev.navigationHistory || []).filter(s => s !== 'tasks' && s !== 'shift-phase'), 'area'] }));
+          }
+        }} />;
       case 'success':
         return <SuccessScreen state={state} updateState={updateState} goBack={goBack} />;
       default:
