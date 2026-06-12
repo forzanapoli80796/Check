@@ -15,6 +15,7 @@ export const categories = pgTable("categories", {
   isSubcategoryParent: boolean("is_subcategory_parent").notNull().default(false), // true if this category has subcategories
   enforceReading: boolean("enforce_reading").notNull().default(false), // For whiteboard categories: true = employees must read and confirm once per shift
   excludedShiftCombos: text("excluded_shift_combos").array().default(sql`ARRAY[]::text[]`), // Shift combos to exclude, e.g. ['frühschicht_schichtende', 'spätschicht_schichtanfang']
+  earlyShiftOnly: boolean("early_shift_only").notNull().default(false), // true = nur Frühschicht sieht diese Kategorie
   createdAt: timestamp("created_at").defaultNow(),
 });
 

@@ -101,8 +101,10 @@ export default function EmployeeWorkflow() {
             updateState={updateState}
             goBack={goBack}
             onConfirmed={() => {
-              // After whiteboard confirmation, go to shift selection
-              updateState({ step: 'shift' });
+              // Shift is already selected (before area in new workflow)
+              const hasSubcats = state.selectedAreaHasSubcategories;
+              const needsPhase = state.selectedShift && state.selectedAreaUseShifts !== false;
+              updateState({ step: hasSubcats ? 'subcategory' : needsPhase ? 'shift-phase' : 'tasks' });
             }}
           />
         );

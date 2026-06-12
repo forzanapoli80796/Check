@@ -3,7 +3,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { db } from "./db";
 import { categories, tasks } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, like, or } from "drizzle-orm";
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
@@ -47,6 +47,21 @@ app.use((req, res, next) => {
       .where(eq(categories.name, 'Montagliste'));
   } catch (e) {
     console.error('[startup] Category rename failed (non-fatal):', e);
+  }
+
+  // Migration: set earlyShiftOnly=true for the 4 Sonderlisten
+  try {
+    await db.update(categories)
+      .set({ earlyShiftOnly: true })
+      .where(or(
+        like(categories.name, '%Montagsliste%'),
+        like(categories.name, '%Mittwochsliste%'),
+        like(categories.name, '%MHD-Check%'),
+        like(categories.name, '%Samstagsreinigung%'),
+      ));
+    log('[startup] earlyShiftOnly set for Sonderlisten');
+  } catch (e) {
+    console.error('[startup] earlyShiftOnly migration failed (non-fatal):', e);
   }
 
   // Seed: create Fahrer category + tasks if missing

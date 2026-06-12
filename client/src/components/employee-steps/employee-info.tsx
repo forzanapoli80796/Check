@@ -24,11 +24,9 @@ export default function EmployeeInfo({ state, updateState, goBack }: EmployeeInf
       return;
     }
 
-    // Update state with employee name - IMMER zu 'area' gehen!
-    // Whiteboard kommt NACH Area-Auswahl, nie vorher
     updateState({ 
       employeeName,
-      step: 'area'
+      step: 'shift'
     });
   };
 

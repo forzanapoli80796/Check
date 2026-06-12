@@ -20,8 +20,12 @@ export default function AreaSelection({ state, updateState, goBack }: AreaSelect
     queryKey: ["/api/categories"],
   });
 
-  // Filter out subcategories - only show main categories (those without parentId)
-  const categories = allCategories.filter(cat => !cat.parentId);
+  // Filter: no subcategories + hide earlyShiftOnly categories for Spätschicht
+  const categories = allCategories.filter(cat => {
+    if (cat.parentId) return false;
+    if (cat.earlyShiftOnly && state.selectedShift === 'spätschicht') return false;
+    return true;
+  });
 
   const selectArea = async (category: Category) => {
     // Check if this is a whiteboard category - go directly to whiteboard view
@@ -62,15 +66,7 @@ export default function AreaSelection({ state, updateState, goBack }: AreaSelect
       });
     } else {
       // Kein Whiteboard - normale Reihenfolge
-      const needsShift = category.useShifts !== false && !state.selectedShift;
-      
-      if (needsShift) {
-        // Go to shift selection
-        updateState({ 
-          ...areaUpdate,
-          step: 'shift' 
-        });
-      } else if (hasSubcategories || category.isSubcategoryParent) {
+      if (hasSubcategories || category.isSubcategoryParent) {
         // Go to subcategory selection
         updateState({ 
           ...areaUpdate,
@@ -205,7 +201,7 @@ export default function AreaSelection({ state, updateState, goBack }: AreaSelect
     <Card className="shadow-sm border border-gray-200">
       <CardContent className="pt-6">
         <div className="flex items-center mb-6">
-          <div className="step-indicator mr-3">2</div>
+          <div className="step-indicator mr-3">4</div>
           <h2 className="text-xl font-medium">{t.employee.areaSelection.title}</h2>
         </div>
         <div className="grid grid-cols-1 gap-3">

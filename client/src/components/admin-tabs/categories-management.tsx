@@ -112,6 +112,7 @@ export default function CategoriesManagement() {
     parentId: null as string | null,
     isSubcategoryParent: false,
     enforceReading: false,
+    earlyShiftOnly: false,
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -229,6 +230,7 @@ export default function CategoriesManagement() {
       parentId: null,
       isSubcategoryParent: false,
       enforceReading: false,
+      earlyShiftOnly: false,
     });
     setEditingCategory(null);
   };
@@ -245,6 +247,7 @@ export default function CategoriesManagement() {
       parentId: category.parentId || null,
       isSubcategoryParent: category.isSubcategoryParent || false,
       enforceReading: category.enforceReading || false,
+      earlyShiftOnly: category.earlyShiftOnly || false,
     });
     setIsDialogOpen(true);
   };
@@ -512,6 +515,28 @@ export default function CategoriesManagement() {
                       </SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+              )}
+
+              {/* Nur Frühschicht - nur für Schicht-Kategorien */}
+              {formData.categoryType === "shifts" && !formData.isSubcategoryParent && (
+                <div className="flex items-center justify-between p-4 border rounded-lg bg-amber-50 border-amber-200">
+                  <div className="flex-1 mr-4">
+                    <Label htmlFor="earlyShiftOnly" className="text-base font-medium cursor-pointer">
+                      Nur Frühschicht
+                    </Label>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Diese Kategorie wird Spätschicht-Mitarbeitern nicht angezeigt (z. B. Sonderlisten)
+                    </p>
+                  </div>
+                  <Checkbox
+                    id="earlyShiftOnly"
+                    checked={formData.earlyShiftOnly}
+                    onCheckedChange={(checked) => 
+                      setFormData(prev => ({ ...prev, earlyShiftOnly: checked as boolean }))
+                    }
+                    data-testid="checkbox-early-shift-only"
+                  />
                 </div>
               )}
 

@@ -20,14 +20,9 @@ export default function ShiftSelection({ state, updateState, goBack }: ShiftSele
 
   const selectShift = (shift: 'frühschicht' | 'spätschicht') => {
     setSelectedShift(shift);
-    
-    // Nach Shift-Auswahl geht's weiter zu Subcategory (falls vorhanden) oder Shift-Phase
-    const nextStep = state.selectedAreaHasSubcategories ? 'subcategory' : 'shift-phase';
-    
-    // Update state and proceed to next step
     updateState({ 
       selectedShift: shift,
-      step: nextStep
+      step: 'area'
     });
   };
 
@@ -35,7 +30,7 @@ export default function ShiftSelection({ state, updateState, goBack }: ShiftSele
     <Card className="shadow-sm border border-gray-200">
       <CardContent className="pt-6">
         <div className="flex items-center mb-6">
-          <div className="step-indicator mr-3">4</div>
+          <div className="step-indicator mr-3">3</div>
           <h2 className="text-xl font-medium">
             Schicht wählen
           </h2>
