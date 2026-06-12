@@ -56,6 +56,7 @@ export const checklists = pgTable("checklists", {
   blackBags: integer("black_bags"), // Liefertaschen zählen: Pizza schwarze Taschen
   drinksBags: integer("drinks_bags"), // Liefertaschen zählen: Getränke/Dessert Taschen
   completionDate: date("completion_date"), // Betriebsleiter: When tasks were actually completed
+  signature: text("signature"), // Digital signature as base64 PNG (touch devices only)
   submittedAt: timestamp("submitted_at").defaultNow(),
 });
 

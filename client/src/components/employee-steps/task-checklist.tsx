@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { ArrowLeft, Check, CalendarDays } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { ArrowLeft, Check, CalendarDays, PenLine, Trash2 } from "lucide-react";
 import * as Icons from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,16 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
   const [redBags, setRedBags] = useState<string>("");
   const [blackBags, setBlackBags] = useState<string>("");
   const [drinksBags, setDrinksBags] = useState<string>("");
+  const [signature, setSignature] = useState<string>("");
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isDrawingRef = useRef(false);
+
+  useEffect(() => {
+    setIsTouchDevice(
+      window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0
+    );
+  }, []);
 
   const { toast } = useToast();
 
@@ -88,6 +98,10 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
         submissionData.redBags = redBags !== "" ? parseInt(redBags) : null;
         submissionData.blackBags = blackBags !== "" ? parseInt(blackBags) : null;
         submissionData.drinksBags = drinksBags !== "" ? parseInt(drinksBags) : null;
+      }
+
+      if (signature) {
+        submissionData.signature = signature;
       }
       
       const response = await apiRequest("POST", "/api/checklists", submissionData);
@@ -162,6 +176,78 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
     submitMutation.mutate();
   };
 
+  // Signature pad helpers
+  const isKuecheChecklist =
+    areaName === 'Küche Frühschicht – Checkliste & Mengenformular' ||
+    areaName === 'Küche Spätschicht – Checkliste & Mengenformular';
+  const needsSignature = isKuecheChecklist && isTouchDevice;
+
+  const getCanvasPos = (canvas: HTMLCanvasElement, e: TouchEvent | MouseEvent) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    if ('touches' in e && e.touches.length > 0) {
+      return {
+        x: (e.touches[0].clientX - rect.left) * scaleX,
+        y: (e.touches[0].clientY - rect.top) * scaleY,
+      };
+    }
+    return {
+      x: ((e as MouseEvent).clientX - rect.left) * scaleX,
+      y: ((e as MouseEvent).clientY - rect.top) * scaleY,
+    };
+  };
+
+  const initCanvas = (canvas: HTMLCanvasElement) => {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.strokeStyle = '#1a1a1a';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+  };
+
+  const handleSignatureStart = (e: React.TouchEvent<HTMLCanvasElement> | React.MouseEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    initCanvas(canvas);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    isDrawingRef.current = true;
+    const pos = getCanvasPos(canvas, e.nativeEvent as any);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+  };
+
+  const handleSignatureMove = (e: React.TouchEvent<HTMLCanvasElement> | React.MouseEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    if (!isDrawingRef.current) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const pos = getCanvasPos(canvas, e.nativeEvent as any);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+  };
+
+  const handleSignatureEnd = () => {
+    isDrawingRef.current = false;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    setSignature(canvas.toDataURL('image/png'));
+  };
+
+  const clearSignature = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setSignature('');
+  };
+
   const getIcon = (iconName: string) => {
     const iconMap: Record<string, any> = {
       desktop: Icons.Monitor,
@@ -182,7 +268,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
     return <IconComponent className="text-primary" size={20} />;
   };
 
-  const canSubmit = filteredTasks.length > 0; // Allow submission even if not all tasks are completed
+  const canSubmit = filteredTasks.length > 0 && (!needsSignature || !!signature);
 
   if (isLoading) {
     return (
@@ -435,6 +521,70 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
                 placeholder={language === 'de' ? 'Anzahl eingeben...' : 'Enter amount...'}
                 className="w-full"
               />
+            </div>
+          </div>
+        )}
+
+        {/* Digital Signature – only on touch devices for Küche checklists */}
+        {needsSignature && (
+          <div className="mb-6 p-4 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl">
+            <div className="flex items-center gap-2 mb-2">
+              <PenLine size={18} className="text-gray-600" />
+              <h3 className="font-semibold text-sm text-gray-700 uppercase tracking-wide">
+                {language === 'de' ? 'Digitale Unterschrift' : 'Digital Signature'}
+                <span className="text-red-500 ml-1">*</span>
+              </h3>
+            </div>
+            <p className="text-xs text-gray-500 mb-3">
+              {language === 'de'
+                ? 'Bitte im Feld unten unterschreiben, bevor du absendest.'
+                : 'Please sign in the field below before submitting.'}
+            </p>
+            <div className="relative rounded-lg overflow-hidden border border-gray-300 bg-white">
+              <canvas
+                ref={canvasRef}
+                width={800}
+                height={200}
+                className="w-full touch-none block"
+                style={{ cursor: 'crosshair' }}
+                onTouchStart={handleSignatureStart}
+                onTouchMove={handleSignatureMove}
+                onTouchEnd={handleSignatureEnd}
+                onMouseDown={handleSignatureStart}
+                onMouseMove={handleSignatureMove}
+                onMouseUp={handleSignatureEnd}
+                onMouseLeave={handleSignatureEnd}
+              />
+              {!signature && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <span className="text-gray-300 text-sm select-none">
+                    {language === 'de' ? '✍ Hier unterschreiben' : '✍ Sign here'}
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="flex items-center justify-between mt-2">
+              {signature ? (
+                <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+                  <Check size={12} /> {language === 'de' ? 'Unterschrift vorhanden' : 'Signature captured'}
+                </span>
+              ) : (
+                <span className="text-xs text-red-500">
+                  {language === 'de' ? 'Unterschrift erforderlich' : 'Signature required'}
+                </span>
+              )}
+              {signature && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearSignature}
+                  className="text-xs text-gray-500 hover:text-red-500 h-7 px-2"
+                >
+                  <Trash2 size={12} className="mr-1" />
+                  {language === 'de' ? 'Löschen' : 'Clear'}
+                </Button>
+              )}
             </div>
           </div>
         )}

@@ -463,6 +463,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         blackBags,
         drinksBags,
         completionDate,
+        signature,
         ...baseData 
       } = req.body;
       
@@ -482,7 +483,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         redBags: redBags != null ? redBags : null,
         blackBags: blackBags != null ? blackBags : null,
         drinksBags: drinksBags != null ? drinksBags : null,
-        completionDate: completionDate || null
+        completionDate: completionDate || null,
+        signature: signature || null,
       };
       
       const checklist = await storage.createChecklist(checklistData);
