@@ -157,7 +157,7 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
       'Küche Checkliste': t.employee.subcategorySelection?.kitchenChecklist || 'Küchen-Checkliste',
       'MHD-Check': t.employee.subcategorySelection?.mhdCheck || 'MHD-Check',
       'Mengenformular Spätschicht': t.employee.subcategorySelection?.lateShiftForm || 'Mengenformular Spätschicht',
-      'Mengenformular Mittagsschicht': t.employee.subcategorySelection?.lunchShiftForm || 'Mengenformular Mittagsschicht',
+      'Mengenformular Frühschicht': t.employee.subcategorySelection?.lunchShiftForm || 'Mengenformular Frühschicht',
     };
     return translations[subcategoryName] || subcategoryName;
   };

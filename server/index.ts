@@ -49,6 +49,16 @@ app.use((req, res, next) => {
     console.error('[startup] Category rename failed (non-fatal):', e);
   }
 
+  // One-time migration: rename "Mengenformular Mittagsschicht" → "Mengenformular Frühschicht"
+  try {
+    await db.update(categories)
+      .set({ name: 'Mengenformular Frühschicht' })
+      .where(eq(categories.name, 'Mengenformular Mittagsschicht'));
+    log('[startup] Mengenformular Mittagsschicht → Frühschicht renamed');
+  } catch (e) {
+    console.error('[startup] Mengenformular rename failed (non-fatal):', e);
+  }
+
   // Migration: set earlyShiftOnly=true for the 4 Sonderlisten
   try {
     await db.update(categories)
