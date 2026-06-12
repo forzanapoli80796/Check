@@ -208,8 +208,39 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
     return restrictedDay === undefined || restrictedDay === todayJS;
   });
 
+  if (pendingSubcategory) {
+    return (
+      <div className="space-y-4">
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="pt-4 pb-4">
+            <p className="text-sm text-blue-900 font-medium text-center leading-relaxed">
+              ✓ Ich bestätige, zuerst die Küchen-Checkliste und anschließend das Mengenformular auszufüllen. Mir ist bewusst, dass bei Nichteinhaltung arbeitsrechtliche Konsequenzen drohen können.
+            </p>
+          </CardContent>
+        </Card>
+
+        <SlideToUnlock
+          onUnlock={() => {
+            const sub = pendingSubcategory;
+            setPendingSubcategory(null);
+            selectSubcategory(sub);
+          }}
+          text="Zum Bestätigen schieben"
+        />
+
+        <Button
+          variant="outline"
+          className="w-full h-12 text-base"
+          onClick={() => setPendingSubcategory(null)}
+        >
+          <ArrowLeft size={16} className="mr-2" />
+          Zurück zur Startseite
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <>
     <Card className="shadow-sm border border-gray-200">
       <CardContent className="pt-6">
         <div className="flex items-center mb-6">
@@ -256,43 +287,5 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
         </Button>
       </CardContent>
     </Card>
-
-    {pendingSubcategory && (
-      <Card className="shadow-sm border border-gray-200 mt-4">
-        <CardContent className="pt-6 space-y-5">
-          <div className="flex items-center mb-2">
-            <div className="step-indicator mr-3">2</div>
-            <h2 className="text-xl font-medium">Bestätigung erforderlich</h2>
-          </div>
-
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="pt-4 pb-4">
-              <p className="text-sm text-blue-900 font-medium text-center leading-relaxed">
-                Ich bestätige, zuerst die Küchen-Checkliste und anschließend das Mengenformular auszufüllen. Mir ist bewusst, dass bei Nichteinhaltung arbeitsrechtliche Konsequenzen drohen können.
-              </p>
-            </CardContent>
-          </Card>
-
-          <SlideToUnlock
-            onUnlock={() => {
-              const sub = pendingSubcategory;
-              setPendingSubcategory(null);
-              selectSubcategory(sub);
-            }}
-            text="Zum Bestätigen schieben"
-          />
-
-          <Button
-            variant="ghost"
-            className="w-full"
-            onClick={() => setPendingSubcategory(null)}
-          >
-            <ArrowLeft size={16} className="mr-2" />
-            Abbrechen
-          </Button>
-        </CardContent>
-      </Card>
-    )}
-    </>
   );
 }
