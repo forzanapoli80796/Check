@@ -275,7 +275,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
   const mengenformularDone = !isKuecheChecklist || (
     areaName === 'Küche Frühschicht – Checkliste & Mengenformular'
       ? !!ballsForToday
-      : !!ballsForTomorrow && !!newBalls
+      : ballsForTomorrow !== "" && newBalls !== ""
   );
 
   const signatureDone = !needsSignature || !!signature;
@@ -483,30 +483,49 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
             <h3 className="font-bold text-sm tracking-widest text-blue-800 uppercase">
               Mengenformular Spätschicht
             </h3>
+
+            {/* Frage 1: Ja/Nein */}
             <div>
-              <Label htmlFor="balls-tomorrow" className="text-sm font-medium mb-2 block">
-                {language === 'de' ? 'Wie viele Kugeln haben wir für morgen?' : 'How many dough balls do we have for tomorrow?'}
+              <Label className="text-sm font-medium mb-3 block">
+                {language === 'de' ? 'Habe ich Kugeln von morgen verwendet?' : 'Did I use dough balls from tomorrow?'}
+              </Label>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setNewBalls("1")}
+                  className={`flex-1 py-2 rounded-lg border-2 font-semibold text-sm transition-all ${
+                    newBalls === "1"
+                      ? "border-blue-600 bg-blue-600 text-white"
+                      : "border-gray-300 bg-white text-gray-700 hover:border-blue-400"
+                  }`}
+                >
+                  {language === 'de' ? 'Ja' : 'Yes'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setNewBalls("0")}
+                  className={`flex-1 py-2 rounded-lg border-2 font-semibold text-sm transition-all ${
+                    newBalls === "0"
+                      ? "border-blue-600 bg-blue-600 text-white"
+                      : "border-gray-300 bg-white text-gray-700 hover:border-blue-400"
+                  }`}
+                >
+                  {language === 'de' ? 'Nein' : 'No'}
+                </button>
+              </div>
+            </div>
+
+            {/* Frage 2: Zahl */}
+            <div>
+              <Label htmlFor="balls-leftover" className="text-sm font-medium mb-2 block">
+                {language === 'de' ? 'Wie viele Kugeln sind heute übrig geblieben?' : 'How many dough balls are left over today?'}
               </Label>
               <Input
-                id="balls-tomorrow"
+                id="balls-leftover"
                 type="number"
                 min="0"
                 value={ballsForTomorrow}
                 onChange={(e) => setBallsForTomorrow(e.target.value)}
-                placeholder={language === 'de' ? 'Anzahl eingeben...' : 'Enter amount...'}
-                className="w-full"
-              />
-            </div>
-            <div>
-              <Label htmlFor="new-balls" className="text-sm font-medium mb-2 block">
-                {language === 'de' ? 'Wie viele davon sind neu?' : 'How many of them are new?'}
-              </Label>
-              <Input
-                id="new-balls"
-                type="number"
-                min="0"
-                value={newBalls}
-                onChange={(e) => setNewBalls(e.target.value)}
                 placeholder={language === 'de' ? 'Anzahl eingeben...' : 'Enter amount...'}
                 className="w-full"
               />
