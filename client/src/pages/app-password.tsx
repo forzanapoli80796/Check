@@ -72,7 +72,7 @@ export default function AppPassword() {
           </p>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
+          <div className="space-y-4">
             <div className="relative">
               <Input
                 type={showPassword ? "text" : "password"}
@@ -80,6 +80,7 @@ export default function AppPassword() {
                 autoComplete="off"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(e as any); }}
                 placeholder="Passwort eingeben"
                 className="pr-10 text-lg"
                 autoFocus
@@ -96,14 +97,15 @@ export default function AppPassword() {
             </div>
             
             <Button 
-              type="submit" 
+              type="button"
+              onClick={handleSubmit as any}
               className="w-full h-12 text-lg"
               disabled={!password || isLoading}
               data-testid="button-submit-password"
             >
               {isLoading ? "Lade..." : "Anmelden"}
             </Button>
-          </form>
+          </div>
         </CardContent>
       </Card>
       

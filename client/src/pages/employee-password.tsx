@@ -72,7 +72,7 @@ export default function EmployeePassword() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
+          <div className="space-y-4">
             <div className="relative">
               <Input
                 type={showPassword ? "text" : "password"}
@@ -80,6 +80,7 @@ export default function EmployeePassword() {
                 autoComplete="off"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(e as any); }}
                 placeholder="Passwort eingeben"
                 className="pr-10"
                 autoFocus
@@ -111,14 +112,15 @@ export default function EmployeePassword() {
                 Zurück
               </Button>
               <Button 
-                type="submit"
+                type="button"
+                onClick={handleSubmit as any}
                 className="flex-1"
                 data-testid="button-submit"
               >
                 Bestätigen
               </Button>
             </div>
-          </form>
+          </div>
         </CardContent>
       </Card>
     </div>

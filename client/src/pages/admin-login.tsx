@@ -50,7 +50,7 @@ export default function AdminLogin() {
           <Card className="shadow-lg border border-gray-100">
             <CardContent className="pt-6 space-y-4">
               <h2 className="text-2xl font-medium text-center mb-6">Admin-Code eingeben</h2>
-              <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
+              <div className="space-y-4">
                 <Input
                   type="password"
                   name="forzacheck-admin"
@@ -58,16 +58,18 @@ export default function AdminLogin() {
                   placeholder="Code eingeben"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleSubmit(e as any); } }}
                   className="w-full"
                 />
                 <Button 
-                  type="submit" 
+                  type="button"
+                  onClick={handleSubmit as any}
                   className="w-full" 
                   disabled={verifyMutation.isPending}
                 >
                   {verifyMutation.isPending ? "Überprüfung..." : "Bestätigen"}
                 </Button>
-              </form>
+              </div>
               {error && (
                 <Alert className="mt-4 border-destructive">
                   <AlertDescription className="text-destructive">
