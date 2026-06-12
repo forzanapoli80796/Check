@@ -473,6 +473,27 @@ export default function SubmittedLists() {
               )}
 
 
+              {/* Liefertaschen zählen */}
+              {((selectedChecklist as any).redBags != null || (selectedChecklist as any).blackBags != null) && (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-2">
+                  <h4 className="font-medium text-sm text-gray-800 mb-2">
+                    {language === 'de' ? 'Liefertaschen' : 'Delivery Bags'}
+                  </h4>
+                  {(selectedChecklist as any).redBags != null && (
+                    <div>
+                      <span className="text-sm font-medium text-gray-600">🔴 {language === 'de' ? 'Rote Taschen:' : 'Red bags:'}</span>
+                      <span className="ml-2 text-sm font-bold">{(selectedChecklist as any).redBags}</span>
+                    </div>
+                  )}
+                  {(selectedChecklist as any).blackBags != null && (
+                    <div>
+                      <span className="text-sm font-medium text-gray-600">⚫ {language === 'de' ? 'Schwarze Taschen:' : 'Black bags:'}</span>
+                      <span className="ml-2 text-sm font-bold">{(selectedChecklist as any).blackBags}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Completed Tasks */}
               <div>
                 <h4 className="font-medium mb-3">

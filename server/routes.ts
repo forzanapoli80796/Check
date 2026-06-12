@@ -459,6 +459,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         newBalls,
         lunchShiftDate,
         ballsForToday,
+        redBags,
+        blackBags,
         completionDate,
         ...baseData 
       } = req.body;
@@ -476,6 +478,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         newBalls: newBalls || null,
         lunchShiftDate: lunchShiftDate || null,
         ballsForToday: ballsForToday || null,
+        redBags: redBags != null ? redBags : null,
+        blackBags: blackBags != null ? blackBags : null,
         completionDate: completionDate || null
       };
       

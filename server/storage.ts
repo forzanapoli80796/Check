@@ -285,6 +285,8 @@ export class DatabaseStorage implements IStorage {
         newBalls: (insertChecklist as any).newBalls || null,
         lunchShiftDate: (insertChecklist as any).lunchShiftDate || null,
         ballsForToday: (insertChecklist as any).ballsForToday || null,
+        redBags: (insertChecklist as any).redBags ?? null,
+        blackBags: (insertChecklist as any).blackBags ?? null,
       })
       .returning();
     return checklist;
@@ -835,6 +837,8 @@ export class MemStorage implements IStorage {
       newBalls: insertChecklist.newBalls || null,
       lunchShiftDate: insertChecklist.lunchShiftDate || null,
       ballsForToday: insertChecklist.ballsForToday || null,
+      redBags: (insertChecklist as any).redBags ?? null,
+      blackBags: (insertChecklist as any).blackBags ?? null,
       completionDate: insertChecklist.completionDate || null,
       submittedAt: new Date(),
     };

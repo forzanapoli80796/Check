@@ -31,6 +31,8 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
   const [newBalls, setNewBalls] = useState<string>("");
   const [lunchShiftDate, setLunchShiftDate] = useState<string>("");
   const [ballsForToday, setBallsForToday] = useState<string>("");
+  const [redBags, setRedBags] = useState<string>("");
+  const [blackBags, setBlackBags] = useState<string>("");
 
   const { toast } = useToast();
 
@@ -74,6 +76,10 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
       } else if (currentCategory?.name === 'Mengenformular Frühschicht') {
         submissionData.lunchShiftDate = lunchShiftDate || null;
         submissionData.ballsForToday = ballsForToday ? parseInt(ballsForToday) : null;
+      }
+      if (redBags !== "" || blackBags !== "") {
+        submissionData.redBags = redBags !== "" ? parseInt(redBags) : null;
+        submissionData.blackBags = blackBags !== "" ? parseInt(blackBags) : null;
       }
       
       const response = await apiRequest("POST", "/api/checklists", submissionData);
@@ -228,6 +234,66 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
                 ...task,
                 description: task.description || undefined
               }, language);
+              const isLiefertaschen = task.title === 'Liefertaschen zählen';
+
+              if (isLiefertaschen) {
+                const bothFilled = redBags !== "" && blackBags !== "";
+                return (
+                  <div key={task.id} className={`task-item ${bothFilled ? 'completed' : ''}`} onClick={undefined}>
+                    <div className="flex-1">
+                      <div className="flex items-center mb-3">
+                        <div className="mr-3">
+                          {bothFilled ? (
+                            <Check className="text-secondary" size={20} />
+                          ) : (
+                            <div className="w-5 h-5 border-2 border-gray-400 rounded"></div>
+                          )}
+                        </div>
+                        <h4 className="font-medium text-gray-800">{language === 'de' ? 'Liefertaschen zählen' : 'Count delivery bags'}</h4>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 ml-8">
+                        <div>
+                          <Label htmlFor="red-bags" className="text-sm font-medium mb-1 block text-red-700">
+                            🔴 {language === 'de' ? 'Rote Taschen' : 'Red bags'}
+                          </Label>
+                          <Input
+                            id="red-bags"
+                            type="number"
+                            min="0"
+                            value={redBags}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              setRedBags(e.target.value);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            placeholder="0"
+                            className="w-full"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="black-bags" className="text-sm font-medium mb-1 block text-gray-800">
+                            ⚫ {language === 'de' ? 'Schwarze Taschen' : 'Black bags'}
+                          </Label>
+                          <Input
+                            id="black-bags"
+                            type="number"
+                            min="0"
+                            value={blackBags}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              setBlackBags(e.target.value);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            placeholder="0"
+                            className="w-full"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
               return (
                 <div
                 key={task.id}
