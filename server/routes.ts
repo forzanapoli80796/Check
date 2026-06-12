@@ -94,6 +94,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/categories/:id/subcategories", async (req, res) => {
+    res.set('Cache-Control', 'no-store');
     const storage = await getStorage();
     const subcategories = await storage.getSubcategories(req.params.id);
     res.json(subcategories);
