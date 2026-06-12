@@ -173,15 +173,23 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
   };
   const todayJS = new Date().getDay();
   const selectedStore = state.selectedStore;
-  // Sonderlisten identified by name (day-restricted) or DB flag
-  const isSonderliste = (sub: Category) =>
+  // isEarlyShiftOnly: used for VISIBILITY filtering (hide for Spätschicht)
+  const isEarlyShiftOnly = (sub: Category) =>
     sub.earlyShiftOnly === true ||
     Object.prototype.hasOwnProperty.call(DAY_RESTRICTED, sub.name) ||
     sub.name.startsWith('Montagsliste');
 
+  // isSonderliste: used for RED BORDER + "NICHT VERGESSEN" badge styling only
+  // Excludes Mengenformular Frühschicht which is earlyShiftOnly but not a Sonderliste
+  const SONDERLISTE_NAMES = ['MHD-Check', 'Mittwochsliste', 'Sonder/Samstagsreinigung'];
+  const isSonderliste = (sub: Category) =>
+    SONDERLISTE_NAMES.includes(sub.name) ||
+    Object.prototype.hasOwnProperty.call(DAY_RESTRICTED, sub.name) ||
+    sub.name.startsWith('Montagsliste');
+
   const visibleSubcategories = subcategories.filter(sub => {
-    // Sonderlisten: nur Frühschicht
-    if (state.selectedShift === 'spätschicht' && isSonderliste(sub)) return false;
+    // earlyShiftOnly: nur Frühschicht
+    if (state.selectedShift === 'spätschicht' && isEarlyShiftOnly(sub)) return false;
     // Special: TS17 does Montagsliste on Tuesday (closed Monday)
     if (sub.name === 'Montagsliste (Dienstag TS17)') {
       return selectedStore === 'TS17' ? todayJS === 2 : todayJS === 1;
