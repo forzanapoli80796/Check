@@ -410,57 +410,57 @@ export default function SubmittedLists() {
                 </div>
               )}
 
-              {/* Mengenformular Spätschicht Details */}
-              {categories?.find(c => c.id === selectedChecklist.categoryId)?.name === 'Mengenformular Spätschicht' && (
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 space-y-3">
-                  <h4 className="font-medium text-sm text-purple-800 mb-2">
-                    {language === 'de' ? 'Mengenformular Details' : 'Quantity Form Details'}
+              {/* Mengenformular Spätschicht Details – zeigt für alle Spätschicht-Checklisten */}
+              {(selectedChecklist as any).lateShiftDate && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+                  <h4 className="font-medium text-sm text-blue-800 mb-2">
+                    {language === 'de' ? 'Mengenformular Spätschicht' : 'Late Shift Quantity Form'}
                   </h4>
-                  {(selectedChecklist as any).lateShiftDate && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">
+                      {language === 'de' ? 'Datum:' : 'Date:'}
+                    </span>
+                    <span className="ml-2 text-sm font-bold">
+                      {new Date((selectedChecklist as any).lateShiftDate).toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US')}
+                    </span>
+                  </div>
+                  {(selectedChecklist as any).newBalls !== null && (
                     <div>
                       <span className="text-sm font-medium text-gray-600">
-                        {language === 'de' ? 'Datum:' : 'Date:'}
+                        {language === 'de' ? 'Kugeln von morgen verwendet:' : 'Used balls from tomorrow:'}
                       </span>
                       <span className="ml-2 text-sm font-bold">
-                        {new Date((selectedChecklist as any).lateShiftDate).toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US')}
+                        {(selectedChecklist as any).newBalls > 0
+                          ? `${language === 'de' ? 'Ja' : 'Yes'} (${(selectedChecklist as any).newBalls})`
+                          : (language === 'de' ? 'Nein' : 'No')}
                       </span>
                     </div>
                   )}
                   {(selectedChecklist as any).ballsForTomorrow !== null && (
                     <div>
                       <span className="text-sm font-medium text-gray-600">
-                        {language === 'de' ? 'Kugeln für morgen:' : 'Balls for tomorrow:'}
+                        {language === 'de' ? 'Kugeln heute übrig geblieben:' : 'Balls left over today:'}
                       </span>
                       <span className="ml-2 text-sm font-bold">{(selectedChecklist as any).ballsForTomorrow}</span>
-                    </div>
-                  )}
-                  {(selectedChecklist as any).newBalls !== null && (
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">
-                        {language === 'de' ? 'Neue Kugeln:' : 'New balls:'}
-                      </span>
-                      <span className="ml-2 text-sm font-bold">{(selectedChecklist as any).newBalls}</span>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Mengenformular Frühschicht Details */}
-              {categories?.find(c => c.id === selectedChecklist.categoryId)?.name === 'Mengenformular Frühschicht' && (
+              {/* Mengenformular Frühschicht Details – zeigt für alle Frühschicht-Checklisten */}
+              {(selectedChecklist as any).lunchShiftDate && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
                   <h4 className="font-medium text-sm text-green-800 mb-2">
-                    {language === 'de' ? 'Frühschicht Mengenformular Details' : 'Early Shift Quantity Form Details'}
+                    {language === 'de' ? 'Mengenformular Frühschicht' : 'Early Shift Quantity Form'}
                   </h4>
-                  {(selectedChecklist as any).lunchShiftDate && (
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">
-                        {language === 'de' ? 'Datum:' : 'Date:'}
-                      </span>
-                      <span className="ml-2 text-sm font-bold">
-                        {new Date((selectedChecklist as any).lunchShiftDate).toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US')}
-                      </span>
-                    </div>
-                  )}
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">
+                      {language === 'de' ? 'Datum:' : 'Date:'}
+                    </span>
+                    <span className="ml-2 text-sm font-bold">
+                      {new Date((selectedChecklist as any).lunchShiftDate).toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US')}
+                    </span>
+                  </div>
                   {(selectedChecklist as any).ballsForToday !== null && (
                     <div>
                       <span className="text-sm font-medium text-gray-600">
@@ -503,6 +503,21 @@ export default function SubmittedLists() {
                       </div>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Digitale Unterschrift */}
+              {(selectedChecklist as any).signature && (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-medium text-sm text-gray-800 mb-3">
+                    {language === 'de' ? 'Digitale Unterschrift' : 'Digital Signature'}
+                  </h4>
+                  <img
+                    src={(selectedChecklist as any).signature}
+                    alt={language === 'de' ? 'Unterschrift' : 'Signature'}
+                    className="border border-gray-300 rounded bg-white max-w-full"
+                    style={{ maxHeight: 120 }}
+                  />
                 </div>
               )}
 
