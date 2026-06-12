@@ -65,16 +65,15 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
         comments: null,
       };
       
-      // Add special fields based on category
-      const currentCategory = categories?.find(cat => cat.id === state.selectedArea);
-      if (currentCategory?.name === 'MHD-Check') {
+      // Add special fields based on category (areaName defined at component level)
+      if (areaName === 'MHD-Check') {
         submissionData.mhdExpiryDate = earliestExpiryDate || null;
         submissionData.mhdProductDetails = productDetails || null;
-      } else if (currentCategory?.name === 'Mengenformular Spätschicht') {
+      } else if (areaName === 'Mengenformular Spätschicht') {
         submissionData.lateShiftDate = lateShiftDate || null;
         submissionData.ballsForTomorrow = ballsForTomorrow ? parseInt(ballsForTomorrow) : null;
         submissionData.newBalls = newBalls ? parseInt(newBalls) : null;
-      } else if (currentCategory?.name === 'Mengenformular Frühschicht') {
+      } else if (areaName === 'Mengenformular Frühschicht' || areaName === 'Mengenformular Mittagsschicht') {
         submissionData.lunchShiftDate = lunchShiftDate || null;
         submissionData.ballsForToday = ballsForToday ? parseInt(ballsForToday) : null;
       }
@@ -101,6 +100,8 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
 
   // Kategorie direkt über ID finden
   const currentCategory = categories?.find(cat => cat.id === state.selectedArea);
+  // areaName: state.selectedAreaName (set at click time) is the most reliable source
+  const areaName = state.selectedAreaName || currentCategory?.name || '';
 
   const filteredTasks = tasks?.filter(task => {
     if (task.categoryId !== currentCategory?.id) return false;
@@ -342,7 +343,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
         )}
 
         {/* MHD-Check specific fields */}
-        {currentCategory?.name === 'MHD-Check' && (
+        {areaName === 'MHD-Check' && (
           <div className="space-y-4 mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <div>
               <Label className="text-sm font-medium mb-2 block">
@@ -354,7 +355,6 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
                 value={earliestExpiryDate}
                 onChange={(e) => setEarliestExpiryDate(e.target.value)}
                 className="w-full"
-                required={currentCategory?.name === 'MHD-Check'}
               />
             </div>
             <div>
@@ -367,14 +367,13 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
                 onChange={(e) => setProductDetails(e.target.value)}
                 placeholder={language === 'de' ? 'Gib hier das Produkt ein...' : 'Enter the product here...'}
                 className="w-full min-h-[80px]"
-                required={currentCategory?.name === 'MHD-Check'}
               />
             </div>
           </div>
         )}
 
         {/* Mengenformular Spätschicht specific fields */}
-        {currentCategory?.name === 'Mengenformular Spätschicht' && (
+        {areaName === 'Mengenformular Spätschicht' && (
           <div className="space-y-4 mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div>
               <Label className="text-sm font-medium mb-2 block">
@@ -386,7 +385,6 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
                 value={lateShiftDate}
                 onChange={(e) => setLateShiftDate(e.target.value)}
                 className="w-full"
-                required={currentCategory?.name === 'Mengenformular Spätschicht'}
               />
             </div>
             <div>
@@ -401,7 +399,6 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
                 onChange={(e) => setBallsForTomorrow(e.target.value)}
                 placeholder={language === 'de' ? 'Anzahl eingeben...' : 'Enter amount...'}
                 className="w-full"
-                required={currentCategory?.name === 'Mengenformular Spätschicht'}
               />
             </div>
             <div>
@@ -416,14 +413,13 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
                 onChange={(e) => setNewBalls(e.target.value)}
                 placeholder={language === 'de' ? 'Anzahl eingeben...' : 'Enter amount...'}
                 className="w-full"
-                required={currentCategory?.name === 'Mengenformular Spätschicht'}
               />
             </div>
           </div>
         )}
 
         {/* Mengenformular Frühschicht specific fields */}
-        {currentCategory?.name === 'Mengenformular Frühschicht' && (
+        {(areaName === 'Mengenformular Frühschicht' || areaName === 'Mengenformular Mittagsschicht') && (
           <div className="space-y-4 mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
             <div>
               <Label className="text-sm font-medium mb-2 block">
@@ -435,7 +431,6 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
                 value={lunchShiftDate}
                 onChange={(e) => setLunchShiftDate(e.target.value)}
                 className="w-full"
-                required={currentCategory?.name === 'Mengenformular Frühschicht'}
               />
             </div>
             <div>
@@ -450,7 +445,6 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
                 onChange={(e) => setBallsForToday(e.target.value)}
                 placeholder={language === 'de' ? 'Anzahl eingeben...' : 'Enter amount...'}
                 className="w-full"
-                required={currentCategory?.name === 'Mengenformular Frühschicht'}
               />
             </div>
           </div>
