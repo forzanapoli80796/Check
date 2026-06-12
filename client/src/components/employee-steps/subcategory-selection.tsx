@@ -270,11 +270,11 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
                       selectSubcategory(subcategory);
                     }
                   }}
-                  className={`selection-button justify-start ${sonderliste ? 'border-2 border-red-500 text-red-700 hover:border-red-600 hover:text-red-800' : ''}`}
+                  className={`selection-button justify-start h-auto whitespace-normal ${sonderliste ? 'border-2 border-red-500 text-red-700 hover:border-red-600 hover:text-red-800' : ''}`}
                   data-testid={`button-subcategory-${subcategory.id}`}
                 >
                   {getIcon(subcategory.icon, sonderliste ? '#dc2626' : (subcategory.iconColor || undefined))}
-                  <span className="font-medium">{getTranslatedSubcategoryName(getKuecheDisplayName(subcategory.name))}</span>
+                  <span className="font-medium text-left leading-snug">{getTranslatedSubcategoryName(getKuecheDisplayName(subcategory.name))}</span>
                   {sonderliste && (
                     <span className="ml-auto text-xs font-bold text-red-600 animate-pulse bg-red-50 border border-red-300 rounded px-2 py-0.5 shrink-0">
                       NICHT VERGESSEN
