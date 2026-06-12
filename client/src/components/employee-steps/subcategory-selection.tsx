@@ -34,10 +34,11 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
       return;
     }
     
-    // Store subcategory selection
+    // Store subcategory selection – save parent area before overwriting
     const needsShiftPhase = subcategory.useShifts !== false && state.selectedShift;
     
     updateState({ 
+      selectedParentArea: state.selectedArea, // remember parent (e.g. Küche) for back navigation
       selectedArea: subcategory.id, 
       selectedAreaName: subcategory.name,
       selectedAreaUseShifts: subcategory.useShifts !== false,

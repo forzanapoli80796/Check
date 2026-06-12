@@ -10,6 +10,7 @@ export interface EmployeeWorkflowState {
   selectedAreaUseShifts?: boolean; // Whether the selected category uses shifts
   selectedAreaType?: 'shifts' | 'simple' | 'inventory' | 'whiteboard'; // The category type (Option 1: shifts, Option 2: simple, Option 3: inventory, Option 4: whiteboard)
   selectedAreaHasSubcategories?: boolean; // Whether the selected area has subcategories
+  selectedParentArea?: string | null; // The parent area ID (Küche/Terminal) before subcategory overwrites selectedArea
   employeeName: string;
   selectedShift: 'frühschicht' | 'spätschicht' | null;
   selectedShiftPhase: 'schichtanfang' | 'schichtende' | null;
