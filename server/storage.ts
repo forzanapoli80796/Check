@@ -624,6 +624,7 @@ export class MemStorage implements IStorage {
         parentId: null,
         enforceReading: false,
         excludedShiftCombos: null,
+        earlyShiftOnly: false,
         createdAt: new Date(),
       };
       this.categories.set(id, category);
@@ -649,6 +650,7 @@ export class MemStorage implements IStorage {
         isSubcategoryParent: false,
         enforceReading: false,
         excludedShiftCombos: null,
+        earlyShiftOnly: false,
         createdAt: new Date(),
       };
       this.categories.set(id, category);
@@ -737,6 +739,7 @@ export class MemStorage implements IStorage {
       isSubcategoryParent: insertCategory.isSubcategoryParent || false,
       enforceReading: insertCategory.enforceReading ?? false,
       excludedShiftCombos: insertCategory.excludedShiftCombos ?? null,
+      earlyShiftOnly: insertCategory.earlyShiftOnly ?? false,
       createdAt: new Date(),
     };
     this.categories.set(id, category);
