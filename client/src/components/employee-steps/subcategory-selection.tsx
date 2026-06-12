@@ -197,18 +197,27 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
           <h2 className="text-xl font-medium">{t.employee.subcategorySelection?.title || 'Kategorie auswählen'}</h2>
         </div>
         <div className="grid grid-cols-1 gap-3">
-          {visibleSubcategories.map((subcategory) => (
-            <Button
-              key={subcategory.id}
-              variant="outline"
-              onClick={() => selectSubcategory(subcategory)}
-              className="selection-button justify-start"
-              data-testid={`button-subcategory-${subcategory.id}`}
-            >
-              {getIcon(subcategory.icon, subcategory.iconColor || undefined)}
-              <span className="font-medium">{getTranslatedSubcategoryName(subcategory.name)}</span>
-            </Button>
-          ))}
+          {visibleSubcategories.map((subcategory) => {
+            const sonderliste = isSonderliste(subcategory);
+            return (
+              <div key={subcategory.id} className="flex flex-col gap-1">
+                <Button
+                  variant="outline"
+                  onClick={() => selectSubcategory(subcategory)}
+                  className={`selection-button justify-start ${sonderliste ? 'border-2 border-red-500 text-red-700 hover:border-red-600 hover:text-red-800' : ''}`}
+                  data-testid={`button-subcategory-${subcategory.id}`}
+                >
+                  {getIcon(subcategory.icon, sonderliste ? '#dc2626' : (subcategory.iconColor || undefined))}
+                  <span className="font-medium">{getTranslatedSubcategoryName(subcategory.name)}</span>
+                  {sonderliste && (
+                    <span className="ml-auto text-xs font-bold text-red-600 animate-pulse bg-red-50 border border-red-300 rounded px-2 py-0.5 shrink-0">
+                      NICHT VERGESSEN
+                    </span>
+                  )}
+                </Button>
+              </div>
+            );
+          })}
         </div>
         <Button
           variant="ghost"
