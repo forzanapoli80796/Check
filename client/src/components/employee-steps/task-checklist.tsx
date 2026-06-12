@@ -525,14 +525,17 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
           </div>
         )}
 
-        {/* Digital Signature – only on touch devices for Küche checklists */}
-        {needsSignature && (
+        {/* Digital Signature – always shown for Küche checklists, required on touch devices */}
+        {isKuecheChecklist && (
           <div className="mb-6 p-4 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl">
             <div className="flex items-center gap-2 mb-2">
               <PenLine size={18} className="text-gray-600" />
               <h3 className="font-semibold text-sm text-gray-700 uppercase tracking-wide">
                 {language === 'de' ? 'Digitale Unterschrift' : 'Digital Signature'}
-                <span className="text-red-500 ml-1">*</span>
+                {needsSignature
+                  ? <span className="text-red-500 ml-1">*</span>
+                  : <span className="text-gray-400 ml-1 normal-case text-xs font-normal">({language === 'de' ? 'optional' : 'optional'})</span>
+                }
               </h3>
             </div>
             <p className="text-xs text-gray-500 mb-3">
