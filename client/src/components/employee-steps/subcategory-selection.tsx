@@ -187,9 +187,14 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
     Object.prototype.hasOwnProperty.call(DAY_RESTRICTED, sub.name) ||
     sub.name.startsWith('Montagsliste');
 
+  const isLateShiftOnly = (sub: Category) =>
+    sub.name === 'Mengenformular Spätschicht';
+
   const visibleSubcategories = subcategories.filter(sub => {
     // earlyShiftOnly: nur Frühschicht
     if (state.selectedShift === 'spätschicht' && isEarlyShiftOnly(sub)) return false;
+    // lateShiftOnly: nur Spätschicht
+    if (state.selectedShift === 'frühschicht' && isLateShiftOnly(sub)) return false;
     // Special: TS17 does Montagsliste on Tuesday (closed Monday)
     if (sub.name === 'Montagsliste (Dienstag TS17)') {
       return selectedStore === 'TS17' ? todayJS === 2 : todayJS === 1;
