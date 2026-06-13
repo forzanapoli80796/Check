@@ -89,6 +89,19 @@ app.use((req, res, next) => {
     console.error('[startup] earlyShiftOnly migration failed (non-fatal):', e);
   }
 
+  // Migration: move Sonder/Samstagsreinigung under Küche (was incorrectly under Terminal)
+  try {
+    const [kueche] = await db.select().from(categories).where(eq(categories.name, 'Küche'));
+    if (kueche) {
+      await db.update(categories)
+        .set({ parentId: kueche.id })
+        .where(like(categories.name, '%Samstagsreinigung%'));
+      log('[startup] Sonder/Samstagsreinigung moved under Küche');
+    }
+  } catch (e) {
+    console.error('[startup] Samstagsreinigung parent migration failed (non-fatal):', e);
+  }
+
   // Seed: create Fahrer category + tasks if missing
   try {
     const existing = await db.select().from(categories).where(eq(categories.name, 'Fahrer'));
