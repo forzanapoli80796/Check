@@ -77,7 +77,7 @@ export default function AppPassword() {
               <Input
                 type={showPassword ? "text" : "password"}
                 name="forzacheck-access"
-                autoComplete="off"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(e as any); }}

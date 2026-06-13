@@ -54,7 +54,7 @@ export default function AdminLogin() {
                 <Input
                   type="password"
                   name="forzacheck-admin"
-                  autoComplete="off"
+                  autoComplete="new-password"
                   placeholder="Code eingeben"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}

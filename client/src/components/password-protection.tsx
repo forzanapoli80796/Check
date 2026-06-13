@@ -88,7 +88,7 @@ export function PasswordProtection({ children }: PasswordProtectionProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium">
                 Bitte gib das Passwort ein
@@ -97,6 +97,8 @@ export function PasswordProtection({ children }: PasswordProtectionProps) {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
+                  name="forzacheck-access"
+                  autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Passwort eingeben"
