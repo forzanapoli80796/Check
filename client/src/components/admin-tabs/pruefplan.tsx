@@ -1,104 +1,165 @@
-export default function Pruefplan() {
-  const today = new Date();
-  const todayDow = today.getDay(); // 0=So,1=Mo,2=Di,3=Mi,4=Do,5=Fr,6=Sa
+import { AlertTriangle, Eye, ShieldAlert, Store } from "lucide-react";
 
-  const rows = [
-    {
-      adminTag: "Montag",    dow: 1, ausgewaehlt: "Sonntag",    tagnr: "0", liste: null,                             filialen: null,               einreichTag: null },
-    { adminTag: "Dienstag",  dow: 2, ausgewaehlt: "Montag",     tagnr: "1", liste: "Montagsliste",                   filialen: "JP23, KP5",        einreichTag: "Montag" },
-    { adminTag: "Mittwoch",  dow: 3, ausgewaehlt: "Dienstag",   tagnr: "2", liste: "Montagsliste",                   filialen: "TS17",             einreichTag: "Dienstag" },
-    { adminTag: "Donnerstag",dow: 4, ausgewaehlt: "Mittwoch",   tagnr: "3", liste: "Mittwochsliste",                 filialen: "JP23, KP5, TS17",  einreichTag: "Mittwoch" },
-    { adminTag: "Freitag",   dow: 5, ausgewaehlt: "Donnerstag", tagnr: "4", liste: null,                             filialen: null,               einreichTag: null },
-    { adminTag: "Samstag",   dow: 6, ausgewaehlt: "Freitag",    tagnr: "5", liste: "MHD-Check",                      filialen: "JP23, KP5, TS17",  einreichTag: "Freitag" },
-    { adminTag: "Sonntag",   dow: 0, ausgewaehlt: "Samstag",    tagnr: "6", liste: "Sonder/Samstagsreinigung",       filialen: "JP23, KP5, TS17",  einreichTag: "Samstag" },
-  ];
+const SONDERLISTEN = [
+  {
+    name: "Montagsliste",
+    icon: "📋",
+    filialen: [
+      { stores: "JP23, KP5", mitarbeiterTag: "Montag", adminWarnTag: "Dienstag", dow: 1 },
+      { stores: "TS17",       mitarbeiterTag: "Dienstag", adminWarnTag: "Mittwoch", dow: 2 },
+    ],
+    hinweis: "TS17 ist montags geschlossen – reicht deshalb dienstags ein.",
+  },
+  {
+    name: "Mittwochsliste",
+    icon: "🧹",
+    filialen: [
+      { stores: "JP23, KP5, TS17", mitarbeiterTag: "Mittwoch", adminWarnTag: "Donnerstag", dow: 3 },
+    ],
+    hinweis: null,
+  },
+  {
+    name: "MHD-Check",
+    icon: "📅",
+    filialen: [
+      { stores: "JP23, KP5, TS17", mitarbeiterTag: "Freitag", adminWarnTag: "Samstag", dow: 5 },
+    ],
+    hinweis: null,
+  },
+  {
+    name: "Sonder/Samstagsreinigung",
+    icon: "🧽",
+    filialen: [
+      { stores: "JP23, KP5, TS17", mitarbeiterTag: "Samstag", adminWarnTag: "Sonntag", dow: 6 },
+    ],
+    hinweis: null,
+  },
+];
+
+const DOW_LABELS = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
+
+export default function Pruefplan() {
+  const todayDow = new Date().getDay();
+  const todayName = DOW_LABELS[todayDow];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+
+      {/* Header */}
       <div>
         <h2 className="text-lg font-semibold text-gray-900">Prüfplan Sonderlisten</h2>
         <p className="text-sm text-gray-500 mt-1">
-          Regeln für: Montagsliste, Mittwochsliste, MHD-Check, Sonder/Samstagsreinigung.<br />
-          Wenn eine Liste nicht ausgefüllt wurde, erscheint die Meldung <strong>nur am Folgetag</strong> im Admin.
+          Alle 4 Sonderlisten mit Sichtbarkeit für Mitarbeiter und Fehlermeldung im Admin.
+          Heute ist <strong>{todayName}</strong>.
         </p>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
-        <table className="w-full text-sm border-collapse">
-          <thead>
-            <tr className="bg-gray-900 text-white">
-              <th className="text-left px-5 py-4 font-semibold border border-gray-700">Admin geöffnet am</th>
-              <th className="text-left px-5 py-4 font-semibold border border-gray-700">Ausgewähltes Datum (gestern)</th>
-              <th className="text-left px-5 py-4 font-semibold border border-gray-700">Liste</th>
-              <th className="text-left px-5 py-4 font-semibold border border-gray-700">Filialen</th>
-              <th className="text-left px-5 py-4 font-semibold border border-gray-700">Einreichtag</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, i) => {
-              const isToday = row.dow === todayDow;
-              const hasCheck = row.liste !== null;
-              return (
-                <tr
-                  key={i}
-                  className={`border-b border-gray-200 last:border-0 ${
-                    isToday && hasCheck
-                      ? "bg-gray-800 text-white font-semibold"
-                      : isToday
-                      ? "bg-amber-50 font-semibold"
-                      : hasCheck
-                      ? "bg-gray-100 text-gray-900 font-medium"
-                      : "bg-white text-gray-500"
-                  }`}
-                >
-                  <td className={`px-5 py-4 border border-gray-200 ${isToday && hasCheck ? "border-gray-600" : ""}`}>
-                    <span className="flex items-center gap-2">
-                      {row.adminTag}
-                      {isToday && (
-                        <span className="text-xs bg-amber-400 text-gray-900 px-1.5 py-0.5 rounded font-semibold">Heute</span>
-                      )}
+      {/* Cards für jede Sonderliste */}
+      <div className="grid grid-cols-1 gap-4">
+        {SONDERLISTEN.map((liste) => {
+          const isActiveToday = liste.filialen.some(f => f.dow === todayDow);
+          const isWarnToday = liste.filialen.some(f => {
+            const warnDow = (f.dow + 1) % 7;
+            return warnDow === todayDow;
+          });
+
+          return (
+            <div
+              key={liste.name}
+              className={`rounded-xl border-2 p-5 transition-all ${
+                isActiveToday
+                  ? "border-blue-400 bg-blue-50"
+                  : isWarnToday
+                  ? "border-orange-400 bg-orange-50"
+                  : "border-gray-200 bg-white"
+              }`}
+            >
+              {/* Listenname + Badges */}
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-2xl">{liste.icon}</span>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900 text-base">{liste.name}</h3>
+                  {liste.hinweis && (
+                    <p className="text-xs text-gray-500 mt-0.5">{liste.hinweis}</p>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  {isActiveToday && (
+                    <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded-full font-semibold">
+                      Heute sichtbar
                     </span>
-                  </td>
-                  <td className={`px-5 py-4 border border-gray-200 ${isToday && hasCheck ? "border-gray-600" : ""}`}>
-                    {row.ausgewaehlt}
-                  </td>
-                  <td className={`px-5 py-4 border border-gray-200 ${isToday && hasCheck ? "border-gray-600" : ""}`}>
-                    {hasCheck ? (
-                      <span className="flex items-center gap-1.5">
-                        <span className="text-green-400">✅</span>
-                        {row.liste}
-                      </span>
-                    ) : (
-                      <span className="text-gray-400 italic">Kein Sondercheck</span>
-                    )}
-                  </td>
-                  <td className={`px-5 py-4 border border-gray-200 ${isToday && hasCheck ? "border-gray-600" : ""}`}>
-                    {row.filialen ?? <span className="text-gray-400">–</span>}
-                  </td>
-                  <td className={`px-5 py-4 border border-gray-200 ${isToday && hasCheck ? "border-gray-600" : ""}`}>
-                    {row.einreichTag ?? <span className="text-gray-400">–</span>}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                  )}
+                  {isWarnToday && (
+                    <span className="text-xs bg-orange-500 text-white px-2 py-1 rounded-full font-semibold">
+                      Heute Admin-Check
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Tabelle pro Filialgruppe */}
+              <div className="space-y-3">
+                {liste.filialen.map((f, fi) => (
+                  <div
+                    key={fi}
+                    className="grid grid-cols-3 gap-3 bg-white rounded-lg border border-gray-200 p-3"
+                  >
+                    {/* Filialen */}
+                    <div>
+                      <div className="flex items-center gap-1 text-xs font-semibold text-gray-500 uppercase mb-1">
+                        <Store size={11} />
+                        Filialen
+                      </div>
+                      <p className="text-sm font-medium text-gray-900">{f.stores}</p>
+                    </div>
+
+                    {/* Mitarbeiter sieht die Liste am */}
+                    <div>
+                      <div className="flex items-center gap-1 text-xs font-semibold text-blue-600 uppercase mb-1">
+                        <Eye size={11} />
+                        Mitarbeiter sieht Liste
+                      </div>
+                      <p className={`text-sm font-semibold ${f.dow === todayDow ? "text-blue-600" : "text-gray-900"}`}>
+                        {f.mitarbeiterTag}
+                        {f.dow === todayDow && " ✦ Heute"}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5">nur Frühschicht</p>
+                    </div>
+
+                    {/* Admin-Warnung bei Fehlen */}
+                    <div>
+                      <div className="flex items-center gap-1 text-xs font-semibold text-orange-600 uppercase mb-1">
+                        <ShieldAlert size={11} />
+                        Admin-Warnung wenn fehlend
+                      </div>
+                      <p className={`text-sm font-semibold ${((f.dow + 1) % 7) === todayDow ? "text-orange-600" : "text-gray-900"}`}>
+                        {f.adminWarnTag}
+                        {((f.dow + 1) % 7) === todayDow && " ✦ Heute"}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5">am Folgetag sichtbar</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-600 space-y-3">
-        <div>
-          <p className="font-semibold text-gray-800 mb-1">Sonderlisten – Regeln:</p>
-          <ul className="space-y-1 list-disc list-inside">
-            <li><strong>Montagsliste</strong> – JP23 & KP5 reichen montags ein → Meldung dienstags</li>
-            <li><strong>Montagsliste</strong> – TS17 reicht dienstags ein (montags geschlossen) → Meldung mittwochs</li>
-            <li><strong>Mittwochsliste</strong> – alle Filialen reichen mittwochs ein → Meldung donnerstags</li>
-            <li><strong>MHD-Check</strong> – alle Filialen reichen freitags ein → Meldung samstags</li>
-            <li><strong>Sonder/Samstagsreinigung</strong> – alle Filialen reichen samstags ein → Meldung sonntags</li>
-          </ul>
+      {/* Legende */}
+      <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2 text-sm text-gray-600">
+        <p className="font-semibold text-gray-800 mb-2">Legende</p>
+        <div className="flex items-start gap-2">
+          <span className="inline-block w-3 h-3 mt-0.5 rounded bg-blue-400 flex-shrink-0" />
+          <span><strong>Mitarbeiter sieht Liste:</strong> Die Sonderliste erscheint in der Auswahl. Nur für Frühschicht – Spätschicht sieht sie nicht.</span>
         </div>
-        <div className="border-t border-gray-200 pt-3">
-          <p className="font-semibold text-gray-800 mb-1">Alle anderen Listen (Terminal, Küche, etc.):</p>
-          <p>Werden <strong>täglich</strong> geprüft. Wenn eine Liste am Vortag nicht ausgefüllt wurde, erscheint sie ohne Ausnahme als fehlend im Admin.</p>
+        <div className="flex items-start gap-2">
+          <span className="inline-block w-3 h-3 mt-0.5 rounded bg-orange-400 flex-shrink-0" />
+          <span><strong>Admin-Warnung:</strong> Wenn die Liste am Einreichtag nicht abgegeben wurde, erscheint am nächsten Tag im Admin ein roter Hinweis.</span>
+        </div>
+        <div className="flex items-start gap-2">
+          <AlertTriangle size={13} className="text-gray-400 mt-0.5 flex-shrink-0" />
+          <span><strong>Alle anderen Listen</strong> (Terminal, Küche, Fahrer etc.) werden täglich geprüft – Fehlmeldung erscheint immer am Folgetag.</span>
         </div>
       </div>
     </div>
