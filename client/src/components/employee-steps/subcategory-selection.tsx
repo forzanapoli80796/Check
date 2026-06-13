@@ -278,7 +278,7 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
                     <span className="font-medium text-left leading-snug flex-1">{getTranslatedSubcategoryName(getKuecheDisplayName(subcategory.name))}</span>
                   </div>
                   {sonderliste && (
-                    <div className="flex justify-end w-full mt-1.5">
+                    <div className="flex justify-center w-full mt-1.5">
                       <span className="text-xs font-bold text-red-600 animate-pulse bg-red-50 border border-red-300 rounded-full px-3 py-0.5">
                         ⚠️ NICHT VERGESSEN
                       </span>
