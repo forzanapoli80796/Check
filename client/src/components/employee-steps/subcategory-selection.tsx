@@ -260,7 +260,7 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
           {visibleSubcategories.map((subcategory) => {
             const sonderliste = isSonderliste(subcategory);
             return (
-              <div key={subcategory.id} className="flex flex-col gap-0">
+              <div key={subcategory.id}>
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -270,17 +270,21 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
                       selectSubcategory(subcategory);
                     }
                   }}
-                  className={`selection-button justify-start h-auto whitespace-normal ${sonderliste ? 'border-2 border-red-500 text-red-700 hover:border-red-600 hover:text-red-800 rounded-b-none border-b-0' : ''}`}
+                  className={`selection-button w-full h-auto whitespace-normal flex-col items-stretch py-3 ${sonderliste ? 'border-2 border-red-500 text-red-700 hover:border-red-600 hover:text-red-800' : ''}`}
                   data-testid={`button-subcategory-${subcategory.id}`}
                 >
-                  {getIcon(subcategory.icon, sonderliste ? '#dc2626' : (subcategory.iconColor || undefined))}
-                  <span className="font-medium text-left leading-snug">{getTranslatedSubcategoryName(getKuecheDisplayName(subcategory.name))}</span>
-                </Button>
-                {sonderliste && (
-                  <div className="flex justify-center items-center gap-1 bg-red-50 border-2 border-red-500 border-t-0 rounded-b-lg py-1 animate-pulse">
-                    <span className="text-xs font-bold text-red-600 tracking-wide">⚠️ NICHT VERGESSEN</span>
+                  <div className="flex items-center gap-2 w-full">
+                    {getIcon(subcategory.icon, sonderliste ? '#dc2626' : (subcategory.iconColor || undefined))}
+                    <span className="font-medium text-left leading-snug flex-1">{getTranslatedSubcategoryName(getKuecheDisplayName(subcategory.name))}</span>
                   </div>
-                )}
+                  {sonderliste && (
+                    <div className="flex justify-end w-full mt-1.5">
+                      <span className="text-xs font-bold text-red-600 animate-pulse bg-red-50 border border-red-300 rounded-full px-3 py-0.5">
+                        ⚠️ NICHT VERGESSEN
+                      </span>
+                    </div>
+                  )}
+                </Button>
               </div>
             );
           })}
