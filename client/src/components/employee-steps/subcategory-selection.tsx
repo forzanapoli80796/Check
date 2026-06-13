@@ -260,7 +260,7 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
           {visibleSubcategories.map((subcategory) => {
             const sonderliste = isSonderliste(subcategory);
             return (
-              <div key={subcategory.id} className="flex flex-col gap-1">
+              <div key={subcategory.id} className="relative flex flex-col gap-1">
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -270,17 +270,17 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
                       selectSubcategory(subcategory);
                     }
                   }}
-                  className={`selection-button justify-start h-auto whitespace-normal ${sonderliste ? 'border-2 border-red-500 text-red-700 hover:border-red-600 hover:text-red-800' : ''}`}
+                  className={`selection-button justify-start h-auto whitespace-normal ${sonderliste ? 'border-2 border-red-500 text-red-700 hover:border-red-600 hover:text-red-800 pr-36' : ''}`}
                   data-testid={`button-subcategory-${subcategory.id}`}
                 >
                   {getIcon(subcategory.icon, sonderliste ? '#dc2626' : (subcategory.iconColor || undefined))}
                   <span className="font-medium text-left leading-snug">{getTranslatedSubcategoryName(getKuecheDisplayName(subcategory.name))}</span>
-                  {sonderliste && (
-                    <span className="ml-auto text-xs font-bold text-red-600 animate-pulse bg-red-50 border border-red-300 rounded px-2 py-0.5 shrink-0">
-                      NICHT VERGESSEN
-                    </span>
-                  )}
                 </Button>
+                {sonderliste && (
+                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-red-600 animate-pulse bg-red-50 border border-red-300 rounded px-2 py-0.5 pointer-events-none whitespace-nowrap">
+                    NICHT VERGESSEN
+                  </span>
+                )}
               </div>
             );
           })}
