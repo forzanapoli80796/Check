@@ -123,7 +123,7 @@ export default function Pruefplan() {
                         {f.mitarbeiterTag}
                         {f.dow === todayDow && " ✦ Heute"}
                       </p>
-                      <p className="text-xs text-gray-400 mt-0.5">nur Frühschicht</p>
+                      <p className="text-xs text-gray-400 mt-0.5">⚠️ nur Frühschicht – bei Spätschicht nicht sichtbar</p>
                     </div>
 
                     {/* Admin-Warnung bei Fehlen */}
