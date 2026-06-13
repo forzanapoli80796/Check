@@ -37,7 +37,7 @@ export default function ShiftSelection({ state, updateState, goBack }: ShiftSele
         </div>
         
         <p className="text-gray-600 mb-4">
-          Der Arbeitsbereich "{state.selectedAreaName}" arbeitet in Schichten.
+          Der Arbeitsbereich {state.selectedAreaName} arbeitet in Schichten.
           Bitte wähle deine aktuelle Schicht:
         </p>
 
