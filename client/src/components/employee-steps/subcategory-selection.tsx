@@ -270,16 +270,16 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
                       selectSubcategory(subcategory);
                     }
                   }}
-                  className={`selection-button w-full h-auto whitespace-normal flex-col items-stretch py-3 ${sonderliste ? 'border-2 border-red-500 text-red-700 hover:border-red-600 hover:text-red-800' : ''}`}
+                  className={`selection-button w-full h-auto whitespace-normal flex-col items-stretch py-3 ${sonderliste ? 'border-2 border-red-600 bg-red-600 text-white hover:bg-red-700 hover:border-red-700 hover:text-white' : ''}`}
                   data-testid={`button-subcategory-${subcategory.id}`}
                 >
                   <div className="flex items-center gap-2 w-full">
-                    {getIcon(subcategory.icon, sonderliste ? '#dc2626' : (subcategory.iconColor || undefined))}
+                    {getIcon(subcategory.icon, sonderliste ? '#ffffff' : (subcategory.iconColor || undefined))}
                     <span className="font-medium text-left leading-snug flex-1">{getTranslatedSubcategoryName(getKuecheDisplayName(subcategory.name))}</span>
                   </div>
                   {sonderliste && (
                     <div className="flex justify-center w-full mt-1.5">
-                      <span className="text-xs font-bold text-red-600 animate-pulse bg-red-50 border border-red-300 rounded-full px-3 py-0.5">
+                      <span className="text-xs font-bold text-red-600 animate-pulse bg-white border border-white rounded-full px-3 py-0.5">
                         ⚠️ NICHT VERGESSEN
                       </span>
                     </div>
