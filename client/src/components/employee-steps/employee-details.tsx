@@ -71,6 +71,7 @@ export default function EmployeeDetails({ state, updateState, goBack }: Employee
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="mt-2"
+              autoComplete="off"
             />
           </div>
           {/* Only show shift selection if category uses shifts */}

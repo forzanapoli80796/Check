@@ -55,6 +55,7 @@ export default function EmployeeInfo({ state, updateState, goBack }: EmployeeInf
               placeholder={t.employee.detailsEntry.enterName}
               className="text-lg"
               autoFocus
+              autoComplete="off"
               data-testid="input-employee-name"
             />
           </div>
