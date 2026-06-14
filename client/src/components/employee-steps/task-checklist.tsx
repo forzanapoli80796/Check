@@ -163,6 +163,19 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
     });
   };
 
+  // Automatically add/remove "Liefertaschen zählen" from completedTasks when bags fields change
+  useEffect(() => {
+    const liefertaschenTask = filteredTasks.find(t => t.title === 'Liefertaschen zählen');
+    if (!liefertaschenTask) return;
+    const allFilled = redBags !== "" && blackBags !== "" && drinksBags !== "";
+    setCompletedTasks(prev => {
+      const alreadyIn = prev.includes(liefertaschenTask.id);
+      if (allFilled && !alreadyIn) return [...prev, liefertaschenTask.id];
+      if (!allFilled && alreadyIn) return prev.filter(id => id !== liefertaschenTask.id);
+      return prev;
+    });
+  }, [redBags, blackBags, drinksBags]);
+
   const submitChecklist = () => {
     if (!currentCategory) {
       console.error('No category found - checking if we need to create one');
