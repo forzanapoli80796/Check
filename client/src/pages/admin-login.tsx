@@ -52,14 +52,15 @@ export default function AdminLogin() {
               <h2 className="text-2xl font-medium text-center mb-6">Admin-Code eingeben</h2>
               <div className="space-y-4">
                 <Input
-                  type="password"
+                  type="text"
                   name="forzacheck-admin"
-                  autoComplete="new-password"
+                  autoComplete="off"
                   placeholder="Code eingeben"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleSubmit(e as any); } }}
                   className="w-full"
+                  style={{ WebkitTextSecurity: 'disc' } as React.CSSProperties}
                 />
                 <Button 
                   type="button"

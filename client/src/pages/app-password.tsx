@@ -75,9 +75,9 @@ export default function AppPassword() {
           <div className="space-y-4">
             <div className="relative">
               <Input
-                type={showPassword ? "text" : "password"}
+                type="text"
                 name="forzacheck-access"
-                autoComplete="new-password"
+                autoComplete="off"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(e as any); }}
@@ -85,6 +85,7 @@ export default function AppPassword() {
                 className="pr-10 text-lg"
                 autoFocus
                 data-testid="input-app-password"
+                style={{ WebkitTextSecurity: showPassword ? 'none' : 'disc' } as React.CSSProperties}
               />
               <button
                 type="button"

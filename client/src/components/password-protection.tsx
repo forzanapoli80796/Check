@@ -96,15 +96,16 @@ export function PasswordProtection({ children }: PasswordProtectionProps) {
               <div className="relative">
                 <Input
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type="text"
                   name="forzacheck-access"
-                  autoComplete="new-password"
+                  autoComplete="off"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Passwort eingeben"
                   className="pr-10"
                   autoFocus
                   data-testid="input-password"
+                  style={{ WebkitTextSecurity: showPassword ? 'none' : 'disc' } as React.CSSProperties}
                 />
                 <button
                   type="button"
