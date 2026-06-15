@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, Check, CalendarDays, PenLine, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, CalendarDays, PenLine, Trash2, Clock } from "lucide-react";
 import * as Icons from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
   const [drinksBags, setDrinksBags] = useState<string>("");
   const [signature, setSignature] = useState<string>("");
   const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [showTimeError, setShowTimeError] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawingRef = useRef(false);
 
@@ -176,6 +177,25 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
     });
   }, [redBags, blackBags, drinksBags]);
 
+  const isWithinTimeWindow = (): boolean => {
+    const shift = state.selectedShift;
+    // No restriction for categories without shifts
+    if (!shift || shift === null) return true;
+    const now = new Date();
+    const h = now.getHours();
+    const m = now.getMinutes();
+    const minutes = h * 60 + m;
+    if (shift === 'frühschicht') {
+      // 11:00 – 18:00
+      return minutes >= 11 * 60 && minutes < 18 * 60;
+    }
+    if (shift === 'spätschicht') {
+      // 20:00 – 22:00
+      return minutes >= 20 * 60 && minutes < 22 * 60;
+    }
+    return true;
+  };
+
   const submitChecklist = () => {
     if (!currentCategory) {
       console.error('No category found - checking if we need to create one');
@@ -186,7 +206,13 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
       });
       return;
     }
-    
+
+    if (!isWithinTimeWindow()) {
+      setShowTimeError(true);
+      return;
+    }
+
+    setShowTimeError(false);
     submitMutation.mutate();
   };
 
@@ -644,6 +670,29 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
                   {language === 'de' ? 'Löschen' : 'Clear'}
                 </Button>
               )}
+            </div>
+          </div>
+        )}
+
+        {showTimeError && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-300 rounded-xl flex gap-3">
+            <Clock className="text-red-500 mt-0.5 shrink-0" size={20} />
+            <div>
+              <p className="font-semibold text-red-700 mb-1">
+                Du kannst die Liste aktuell nicht absenden.
+              </p>
+              <p className="text-sm text-red-600 mb-2">
+                Die Übermittlung ist nur innerhalb der vorgesehenen Zeitfenster möglich:
+              </p>
+              <p className="text-sm text-red-700 font-medium">
+                ☀️ Frühschicht: 11:00 bis 18:00 Uhr
+              </p>
+              <p className="text-sm text-red-700 font-medium">
+                🌙 Spätschicht: 20:00 bis 22:00 Uhr
+              </p>
+              <p className="text-sm text-red-600 mt-2">
+                Bitte sende die Liste innerhalb des entsprechenden Zeitfensters ab.
+              </p>
             </div>
           </div>
         )}
