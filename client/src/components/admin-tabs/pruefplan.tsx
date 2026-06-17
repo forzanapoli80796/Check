@@ -14,9 +14,9 @@ const SONDERLISTEN = [
     name: "Mittwochsliste",
     icon: "🧹",
     filialen: [
-      { stores: "JP23, KP5, TS17", mitarbeiterTag: "Mittwoch", adminWarnTag: "Donnerstag", dow: 3 },
+      { stores: "JP23", mitarbeiterTag: "Mittwoch", adminWarnTag: "Donnerstag", dow: 3 },
     ],
-    hinweis: null,
+    hinweis: "Nur JP23 – Frühschicht (Küche). KP5 und TS17 erhalten diese Liste nicht.",
   },
   {
     name: "MHD-Check",

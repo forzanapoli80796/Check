@@ -213,6 +213,8 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
     if (sub.name === 'Montagsliste (Dienstag TS17)') {
       return selectedStore === 'TS17' ? todayJS === 2 : todayJS === 1;
     }
+    // Mittwochsliste: nur JP23, nur Frühschicht (Küche)
+    if (sub.name === 'Mittwochsliste' && selectedStore !== 'JP23') return false;
     const restrictedDay = DAY_RESTRICTED[sub.name];
     return restrictedDay === undefined || restrictedDay === todayJS;
   });
