@@ -186,8 +186,8 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
     const m = now.getMinutes();
     const minutes = h * 60 + m;
     if (shift === 'frühschicht') {
-      // 11:00 – 17:00
-      return minutes >= 11 * 60 && minutes < 17 * 60;
+      // 10:00 – 17:00
+      return minutes >= 10 * 60 && minutes < 17 * 60;
     }
     if (shift === 'spätschicht') {
       // 17:00 – 22:00
@@ -685,7 +685,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
                 Die Übermittlung ist nur innerhalb der vorgesehenen Zeitfenster möglich:
               </p>
               <p className="text-sm text-red-700 font-medium">
-                ☀️ Frühschicht: 11:00 bis 17:00 Uhr
+                ☀️ Frühschicht: 10:00 bis 17:00 Uhr
               </p>
               <p className="text-sm text-red-700 font-medium">
                 🌙 Spätschicht: 17:00 bis 22:00 Uhr
