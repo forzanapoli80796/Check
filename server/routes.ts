@@ -398,14 +398,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // ── WEDNESDAY selected (admin opened Thursday): Mittwochsliste ──────────
+      // Nur JP23 – Frühschicht (Küche). KP5 und TS17 sind nicht betroffen.
       if (targetDayOfWeek === 3) {
         const dayChecklists = checklistsForLocalDate(dy);
         const cat = allCategories.find(c => c.name === 'Mittwochsliste');
         if (cat) {
-          for (const store of STORES) {
-            const submitted = dayChecklists.some(c => c.categoryId === cat.id && c.store === store);
-            if (!submitted) filteredMissing.push({ categoryId: cat.id, categoryName: cat.name, store, shiftType: 'keine_schicht' });
-          }
+          const submitted = dayChecklists.some(c => c.categoryId === cat.id && c.store === 'JP23');
+          if (!submitted) filteredMissing.push({ categoryId: cat.id, categoryName: cat.name, store: 'JP23', shiftType: 'keine_schicht' });
         }
       }
 
