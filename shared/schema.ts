@@ -47,6 +47,7 @@ export const checklists = pgTable("checklists", {
   comments: text("comments"), // General comments from employee at the end of checklist
   mhdExpiryDate: date("mhd_expiry_date"), // MHD-Check specific: earliest expiry date
   mhdProductDetails: text("mhd_product_details"), // MHD-Check specific: product details
+  mhdStockCount: text("mhd_stock_count"), // MHD-Check specific: how much is in stock
   lateShiftDate: date("late_shift_date"), // Spätschicht Mengenformular: selected date
   ballsForTomorrow: integer("balls_for_tomorrow"), // Spätschicht: How many balls for tomorrow
   newBalls: integer("new_balls"), // Spätschicht: How many are new

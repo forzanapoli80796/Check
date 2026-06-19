@@ -26,6 +26,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
   const [completedTasks, setCompletedTasks] = useState<string[]>(state.completedTasks);
   const [earliestExpiryDate, setEarliestExpiryDate] = useState<string>("");
   const [productDetails, setProductDetails] = useState<string>("");
+  const [mhdStockCount, setMhdStockCount] = useState<string>("");
   const [lateShiftDate, setLateShiftDate] = useState<string>("");
   const [ballsForTomorrow, setBallsForTomorrow] = useState<string>("");
   const [newBalls, setNewBalls] = useState<string>("");
@@ -81,6 +82,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
       if (areaName === 'MHD-Check') {
         submissionData.mhdExpiryDate = earliestExpiryDate || null;
         submissionData.mhdProductDetails = productDetails || null;
+        submissionData.mhdStockCount = mhdStockCount || null;
       } else if (
         areaName === 'Mengenformular Spätschicht' ||
         areaName === 'Küche Spätschicht – Checkliste & Mengenformular'
@@ -512,6 +514,19 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
                 onChange={(e) => setProductDetails(e.target.value)}
                 placeholder={language === 'de' ? 'Gib hier das Produkt ein...' : 'Enter the product here...'}
                 className="w-full min-h-[80px]"
+              />
+            </div>
+            <div>
+              <Label htmlFor="mhd-stock-count" className="text-sm font-medium mb-2 block">
+                {language === 'de' ? 'Wie viel ist davon auf Lager?' : 'How much is in stock?'}
+              </Label>
+              <Input
+                id="mhd-stock-count"
+                type="text"
+                value={mhdStockCount}
+                onChange={(e) => setMhdStockCount(e.target.value)}
+                placeholder={language === 'de' ? 'Menge eingeben...' : 'Enter quantity...'}
+                className="w-full"
               />
             </div>
           </div>

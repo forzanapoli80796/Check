@@ -407,6 +407,14 @@ export default function SubmittedLists() {
                       <p className="text-sm mt-1">{(selectedChecklist as any).mhdProductDetails}</p>
                     </div>
                   )}
+                  {(selectedChecklist as any).mhdStockCount && (
+                    <div>
+                      <span className="text-sm font-medium text-gray-600">
+                        {language === 'de' ? 'Menge auf Lager:' : 'Stock quantity:'}
+                      </span>
+                      <p className="text-sm mt-1">{(selectedChecklist as any).mhdStockCount}</p>
+                    </div>
+                  )}
                 </div>
               )}
 

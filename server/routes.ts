@@ -452,7 +452,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Extract special fields before validation
       const { 
         mhdExpiryDate, 
-        mhdProductDetails, 
+        mhdProductDetails,
+        mhdStockCount,
         lateShiftDate,
         ballsForTomorrow,
         newBalls,
@@ -474,6 +475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...validatedData,
         mhdExpiryDate: mhdExpiryDate || null,
         mhdProductDetails: mhdProductDetails || null,
+        mhdStockCount: mhdStockCount || null,
         lateShiftDate: lateShiftDate || null,
         ballsForTomorrow: ballsForTomorrow || null,
         newBalls: newBalls || null,
