@@ -1,4 +1,5 @@
 import { Switch, Route, useLocation } from "wouter";
+import { useEffect } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -80,6 +81,22 @@ function App() {
   if (typeof window !== 'undefined' && window.localStorage) {
     localStorage.removeItem('designSettings');
   }
+
+  // Daily auto-reload at 09:00 to ensure latest version
+  useEffect(() => {
+    const checkAndReload = () => {
+      const now = new Date();
+      if (now.getHours() === 9 && now.getMinutes() === 0) {
+        const todayKey = `daily-reload-${now.toISOString().split('T')[0]}`;
+        if (!localStorage.getItem(todayKey)) {
+          localStorage.setItem(todayKey, '1');
+          window.location.reload();
+        }
+      }
+    };
+    const interval = setInterval(checkAndReload, 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <ErrorBoundary>
