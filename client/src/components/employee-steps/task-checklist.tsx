@@ -322,7 +322,9 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
 
   const signatureDone = !needsSignature || !!signature;
 
-  const canSubmit = allTasksDone && mengenformularDone && signatureDone;
+  const mhdDone = areaName !== 'MHD-Check' || (!!earliestExpiryDate && !!productDetails && !!mhdStockCount);
+
+  const canSubmit = allTasksDone && mengenformularDone && signatureDone && mhdDone;
 
   if (isLoading) {
     return (
@@ -496,29 +498,32 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
               <Label className="text-sm font-medium mb-2 block">
                 <CalendarDays className="inline mr-2" size={16} />
                 {language === 'de' ? 'Welches MHD ist das jüngste und läuft zuerst ab?' : 'Which expiry date is the earliest and expires first?'}
+                <span className="text-red-500 ml-1">*</span>
               </Label>
               <Input
                 type="date"
                 value={earliestExpiryDate}
                 onChange={(e) => setEarliestExpiryDate(e.target.value)}
-                className="w-full"
+                className={`w-full ${!earliestExpiryDate ? 'border-red-300' : ''}`}
               />
             </div>
             <div>
               <Label htmlFor="product-details" className="text-sm font-medium mb-2 block">
                 {language === 'de' ? 'Welches Produkt?' : 'Which product?'}
+                <span className="text-red-500 ml-1">*</span>
               </Label>
               <Textarea
                 id="product-details"
                 value={productDetails}
                 onChange={(e) => setProductDetails(e.target.value)}
                 placeholder={language === 'de' ? 'Gib hier das Produkt ein...' : 'Enter the product here...'}
-                className="w-full min-h-[80px]"
+                className={`w-full min-h-[80px] ${!productDetails ? 'border-red-300' : ''}`}
               />
             </div>
             <div>
               <Label htmlFor="mhd-stock-count" className="text-sm font-medium mb-2 block">
                 {language === 'de' ? 'Wie viel ist davon auf Lager?' : 'How much is in stock?'}
+                <span className="text-red-500 ml-1">*</span>
               </Label>
               <Input
                 id="mhd-stock-count"
@@ -526,7 +531,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
                 value={mhdStockCount}
                 onChange={(e) => setMhdStockCount(e.target.value)}
                 placeholder={language === 'de' ? 'Menge eingeben...' : 'Enter quantity...'}
-                className="w-full"
+                className={`w-full ${!mhdStockCount ? 'border-red-300' : ''}`}
               />
             </div>
           </div>
