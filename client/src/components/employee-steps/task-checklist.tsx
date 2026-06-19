@@ -192,8 +192,8 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
       return minutes >= 10 * 60 && minutes < 17 * 60;
     }
     if (shift === 'spätschicht') {
-      // 16:00 – 22:00
-      return minutes >= 16 * 60 && minutes < 22 * 60;
+      // 16:00 – 22:30
+      return minutes >= 16 * 60 && minutes < 22 * 60 + 30;
     }
     return true;
   };
@@ -708,7 +708,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
                 ☀️ Frühschicht: 10:00 bis 17:00 Uhr
               </p>
               <p className="text-sm text-red-700 font-medium">
-                🌙 Spätschicht: 16:00 bis 22:00 Uhr
+                🌙 Spätschicht: 16:00 bis 22:30 Uhr
               </p>
               <p className="text-sm text-red-600 mt-2">
                 Bitte sende die Liste innerhalb des entsprechenden Zeitfensters ab.
