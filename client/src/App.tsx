@@ -82,20 +82,13 @@ function App() {
     localStorage.removeItem('designSettings');
   }
 
-  // Daily auto-reload at 09:00 to ensure latest version
+  // Daily auto-reload: once per day when the page is opened, reload to get the latest version
   useEffect(() => {
-    const checkAndReload = () => {
-      const now = new Date();
-      if (now.getHours() === 9 && now.getMinutes() === 0) {
-        const todayKey = `daily-reload-${now.toISOString().split('T')[0]}`;
-        if (!localStorage.getItem(todayKey)) {
-          localStorage.setItem(todayKey, '1');
-          window.location.reload();
-        }
-      }
-    };
-    const interval = setInterval(checkAndReload, 60 * 1000);
-    return () => clearInterval(interval);
+    const todayKey = `daily-reload-${new Date().toISOString().split('T')[0]}`;
+    if (!localStorage.getItem(todayKey)) {
+      localStorage.setItem(todayKey, '1');
+      window.location.reload();
+    }
   }, []);
 
   return (
