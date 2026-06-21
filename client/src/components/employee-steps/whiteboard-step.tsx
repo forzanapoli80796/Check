@@ -226,7 +226,8 @@ export default function WhiteboardStep({ state, updateState, goBack }: Whiteboar
     });
   };
 
-  const getColorClasses = (color: string | null) => {
+  const getColorClasses = (color: string | null, isAdminNote?: boolean) => {
+    if (isAdminNote) return { bgClass: "bg-red-600", borderClass: "border-red-700" };
     const colorObj = NOTE_COLORS.find(c => c.value === color) || NOTE_COLORS[0];
     return { bgClass: colorObj.bgClass, borderClass: colorObj.borderClass };
   };
@@ -450,7 +451,8 @@ export default function WhiteboardStep({ state, updateState, goBack }: Whiteboar
         ) : (
           <div className="space-y-3">
             {notes.map((note) => {
-              const { bgClass, borderClass } = getColorClasses(note.color);
+              const isAdminNote = (note as any).isAdminNote === true;
+              const { bgClass, borderClass } = getColorClasses(note.color, isAdminNote);
               const expiryText = getExpiryText((note as any).expiresAt);
               const editHistory = (note.editedBy as any[]) || [];
               
@@ -463,14 +465,20 @@ export default function WhiteboardStep({ state, updateState, goBack }: Whiteboar
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <p className="font-semibold text-gray-900">{note.employeeName}</p>
-                        <p className="text-xs text-gray-600">{formatDate(note.createdAt)}</p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className={`font-semibold ${isAdminNote ? "text-white" : "text-gray-900"}`}>{note.employeeName}</p>
+                          {isAdminNote && (
+                            <span className="text-xs font-bold bg-white text-red-600 px-2 py-0.5 rounded-full shrink-0">ADMIN</span>
+                          )}
+                        </div>
+                        <p className={`text-xs ${isAdminNote ? "text-red-100" : "text-gray-600"}`}>{formatDate(note.createdAt)}</p>
                         {expiryText && (
-                          <p className="text-xs text-orange-600 flex items-center gap-1 mt-1">
+                          <p className={`text-xs flex items-center gap-1 mt-1 ${isAdminNote ? "text-red-200" : "text-orange-600"}`}>
                             <Clock size={12} /> {expiryText}
                           </p>
                         )}
                       </div>
+                      {!isAdminNote && (
                       <div className="flex gap-1">
                         <Button
                           variant="ghost"
@@ -491,21 +499,22 @@ export default function WhiteboardStep({ state, updateState, goBack }: Whiteboar
                           <Trash2 size={16} className="text-red-600" />
                         </Button>
                       </div>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    <p className="text-gray-800 whitespace-pre-wrap">{note.message}</p>
+                    <p className={`whitespace-pre-wrap ${isAdminNote ? "text-white font-medium" : "text-gray-800"}`}>{note.message}</p>
                     {note.imageUrl && (
                       <img src={`/api/whiteboard-image?path=${encodeURIComponent(note.imageUrl)}`} alt="Notiz Bild" className="max-h-60 rounded-lg mt-2" />
                     )}
                     {editHistory.length > 0 && (
-                      <div className="mt-3 pt-3 border-t border-gray-300">
-                        <p className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+                      <div className={`mt-3 pt-3 border-t ${isAdminNote ? "border-red-500" : "border-gray-300"}`}>
+                        <p className={`text-xs font-semibold flex items-center gap-1 ${isAdminNote ? "text-red-100" : "text-gray-700"}`}>
                           <User size={12} /> Bearbeitungsverlauf:
                         </p>
                         <div className="mt-1 space-y-1">
                           {editHistory.map((edit: any, idx: number) => (
-                            <p key={idx} className="text-xs text-gray-600">
+                            <p key={idx} className={`text-xs ${isAdminNote ? "text-red-200" : "text-gray-600"}`}>
                               {edit.name} • {formatDate(edit.editedAt)}
                             </p>
                           ))}
