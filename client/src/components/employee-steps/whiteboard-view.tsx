@@ -30,7 +30,8 @@ export function WhiteboardView({ state, updateState }: WhiteboardViewProps) {
     enabled: !!state.selectedStore,
   });
 
-  const getColorClass = (color: string) => {
+  const getColorClass = (color: string, isAdminNote?: boolean) => {
+    if (isAdminNote) return "bg-red-600 border-red-700";
     switch (color) {
       case "yellow":
         return "bg-yellow-100 border-yellow-300";
@@ -95,25 +96,32 @@ export function WhiteboardView({ state, updateState }: WhiteboardViewProps) {
           {entries && entries.length > 0 ? (
             <ScrollArea className="h-[500px] pr-4">
               <div className="grid gap-4 md:grid-cols-2">
-                {entries.map((entry) => (
+                {entries.map((entry) => {
+                  const isAdminNote = (entry as any).isAdminNote === true;
+                  return (
                   <Card
                     key={entry.id}
-                    className={`border-2 shadow-md hover:shadow-lg transition-all ${getColorClass(entry.color || "yellow")}`}
+                    className={`border-2 shadow-md hover:shadow-lg transition-all ${getColorClass(entry.color || "yellow", isAdminNote)}`}
                     data-testid={`whiteboard-entry-${entry.id}`}
                   >
                     <CardContent className="p-4 space-y-3">
                       <div className="space-y-3">
                         <div className="flex justify-between items-start">
-                          <p className="text-sm font-semibold text-gray-600">
-                            {entry.employeeName}
-                          </p>
-                          <p className="text-xs text-gray-500">
+                          <div className="flex items-center gap-2">
+                            <p className={`text-sm font-semibold ${isAdminNote ? "text-white" : "text-gray-600"}`}>
+                              {entry.employeeName}
+                            </p>
+                            {isAdminNote && (
+                              <span className="text-xs font-bold bg-white text-red-600 px-2 py-0.5 rounded-full">ADMIN</span>
+                            )}
+                          </div>
+                          <p className={`text-xs ${isAdminNote ? "text-red-100" : "text-gray-500"}`}>
                             {format(new Date(entry.createdAt!), "dd.MM.yyyy HH:mm", { locale: de })}
                           </p>
                         </div>
 
-                        <div className="bg-white/50 rounded p-3">
-                          <p className="whitespace-pre-wrap text-gray-800">
+                        <div className={`rounded p-3 ${isAdminNote ? "bg-white/20" : "bg-white/50"}`}>
+                          <p className={`whitespace-pre-wrap ${isAdminNote ? "text-white font-medium" : "text-gray-800"}`}>
                             {entry.message}
                           </p>
                         </div>
@@ -133,20 +141,21 @@ export function WhiteboardView({ state, updateState }: WhiteboardViewProps) {
                         )}
 
                         {(entry as any).expiresAt && (
-                          <div className="text-xs text-gray-500">
+                          <div className={`text-xs ${isAdminNote ? "text-red-200" : "text-gray-500"}`}>
                             Gültig bis: {format(new Date((entry as any).expiresAt), "dd.MM.yyyy", { locale: de })}
                           </div>
                         )}
 
                         {entry.lastEditedAt && (
-                          <div className="text-xs text-gray-400">
+                          <div className={`text-xs ${isAdminNote ? "text-red-200" : "text-gray-400"}`}>
                             Zuletzt bearbeitet: {format(new Date(entry.lastEditedAt), "dd.MM.yyyy HH:mm", { locale: de })}
                           </div>
                         )}
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                  );
+                })}
               </div>
             </ScrollArea>
           ) : (

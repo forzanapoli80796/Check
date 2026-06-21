@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { StickyNote, Plus, Edit2, Trash2, Clock, User, Image as ImageIcon, Store, RotateCcw, Loader2 as Loader } from "lucide-react";
+import { StickyNote, Plus, Edit2, Trash2, Clock, User, Image as ImageIcon, Store, RotateCcw, Loader2 as Loader, ShieldAlert } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { StoreWhiteboard, InsertStoreWhiteboard } from "@shared/schema";
@@ -122,19 +122,25 @@ interface NoteCardProps {
 }
 
 function NoteCard({ note, storeName, onEdit, onDelete, isDeleting }: NoteCardProps) {
+  const isAdmin = (note as any).isAdminNote === true;
   const colors = getColorClasses(note.color);
   const expiryText = getExpiryText((note as any).expiresAt ?? null);
   const editHistory: any[] = (note.editedBy as any[]) ?? [];
 
   return (
-    <Card className={`${colors.bgClass} border-2 ${colors.borderClass}`}>
+    <Card className={isAdmin ? "bg-red-600 border-2 border-red-700" : `${colors.bgClass} border-2 ${colors.borderClass}`}>
       <CardHeader className="pb-2 pt-3 px-4">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-900 truncate">{note.employeeName}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{formatDateTime(note.createdAt)}</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className={`font-semibold truncate ${isAdmin ? "text-white" : "text-gray-900"}`}>{note.employeeName}</p>
+              {isAdmin && (
+                <span className="text-xs font-bold bg-white text-red-600 px-2 py-0.5 rounded-full shrink-0">ADMIN</span>
+              )}
+            </div>
+            <p className={`text-xs mt-0.5 ${isAdmin ? "text-red-100" : "text-gray-500"}`}>{formatDateTime(note.createdAt)}</p>
             {expiryText && (
-              <p className="text-xs text-orange-600 flex items-center gap-1 mt-1">
+              <p className={`text-xs flex items-center gap-1 mt-1 ${isAdmin ? "text-red-200" : "text-orange-600"}`}>
                 <Clock size={11} /> {expiryText}
               </p>
             )}
@@ -144,24 +150,24 @@ function NoteCard({ note, storeName, onEdit, onDelete, isDeleting }: NoteCardPro
               variant="ghost"
               size="sm"
               onClick={() => onEdit(note)}
-              className="h-8 w-8 p-0 hover:bg-blue-100"
+              className={`h-8 w-8 p-0 ${isAdmin ? "hover:bg-red-500" : "hover:bg-blue-100"}`}
             >
-              <Edit2 size={15} className="text-blue-600" />
+              <Edit2 size={15} className={isAdmin ? "text-white" : "text-blue-600"} />
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onDelete(note.id, storeName)}
               disabled={isDeleting}
-              className="h-8 w-8 p-0 hover:bg-red-100"
+              className={`h-8 w-8 p-0 ${isAdmin ? "hover:bg-red-500" : "hover:bg-red-100"}`}
             >
-              <Trash2 size={15} className="text-red-600" />
+              <Trash2 size={15} className={isAdmin ? "text-white" : "text-red-600"} />
             </Button>
           </div>
         </div>
       </CardHeader>
       <CardContent className="px-4 pb-3 space-y-2">
-        <p className="text-gray-800 text-sm whitespace-pre-wrap">{note.message}</p>
+        <p className={`text-sm whitespace-pre-wrap ${isAdmin ? "text-white" : "text-gray-800"}`}>{note.message}</p>
         {note.imageUrl && (
           <img
             src={`/api/whiteboard-image?path=${encodeURIComponent(note.imageUrl)}`}
@@ -170,12 +176,12 @@ function NoteCard({ note, storeName, onEdit, onDelete, isDeleting }: NoteCardPro
           />
         )}
         {editHistory.length > 0 && (
-          <div className="pt-2 border-t border-gray-300">
-            <p className="text-xs font-semibold text-gray-600 flex items-center gap-1">
+          <div className={`pt-2 border-t ${isAdmin ? "border-red-500" : "border-gray-300"}`}>
+            <p className={`text-xs font-semibold flex items-center gap-1 ${isAdmin ? "text-red-100" : "text-gray-600"}`}>
               <User size={11} /> Bearbeitungsverlauf:
             </p>
             {editHistory.map((edit: any, idx: number) => (
-              <p key={idx} className="text-xs text-gray-500 mt-0.5">
+              <p key={idx} className={`text-xs mt-0.5 ${isAdmin ? "text-red-200" : "text-gray-500"}`}>
                 {edit.name} · {formatDateTime(edit.editedAt)}
               </p>
             ))}
@@ -260,6 +266,7 @@ export default function WhiteboardManagement() {
   const [addExpiry, setAddExpiry] = useState("none");
   const [addImageUrl, setAddImageUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [addIsAdminNote, setAddIsAdminNote] = useState(false);
 
   // Edit form state
   const [editName, setEditName] = useState("");
@@ -271,6 +278,7 @@ export default function WhiteboardManagement() {
     setAddColor("yellow");
     setAddExpiry("none");
     setAddImageUrl(null);
+    setAddIsAdminNote(false);
     setAddDialogStore(null);
   };
 
@@ -363,8 +371,9 @@ export default function WhiteboardManagement() {
       storeName: addDialogStore,
       employeeName: addName.trim(),
       message: addMessage.trim(),
-      color: addColor,
+      color: addIsAdminNote ? "red" : addColor,
       imageUrl: addImageUrl,
+      isAdminNote: addIsAdminNote,
       ...(expiresAt ? { expiresAt } : {}),
     } as any);
   };
@@ -418,6 +427,29 @@ export default function WhiteboardManagement() {
             <DialogTitle>Neue Info hinzufügen – {addDialogStore}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2">
+            {/* Admin-Info Toggle */}
+            <div
+              onClick={() => setAddIsAdminNote(v => !v)}
+              className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all select-none ${
+                addIsAdminNote
+                  ? "bg-red-600 border-red-700 text-white"
+                  : "bg-gray-50 border-gray-200 text-gray-700 hover:border-red-300"
+              }`}
+            >
+              <ShieldAlert size={20} className={addIsAdminNote ? "text-white" : "text-red-500"} />
+              <div className="flex-1">
+                <p className="font-semibold text-sm">Als Admin-Info veröffentlichen</p>
+                <p className={`text-xs ${addIsAdminNote ? "text-red-100" : "text-gray-500"}`}>
+                  Roter Hintergrund · Weiße Schrift · Nur Admin kann löschen/bearbeiten
+                </p>
+              </div>
+              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${
+                addIsAdminNote ? "bg-white border-white" : "border-gray-400"
+              }`}>
+                {addIsAdminNote && <span className="text-red-600 font-bold text-xs">✓</span>}
+              </div>
+            </div>
+
             <div>
               <Label htmlFor="add-name">Name</Label>
               <Input
@@ -439,6 +471,7 @@ export default function WhiteboardManagement() {
                 className="mt-1"
               />
             </div>
+            {!addIsAdminNote && (
             <div>
               <Label>Farbe</Label>
               <div className="flex gap-2 mt-2">
@@ -457,6 +490,7 @@ export default function WhiteboardManagement() {
                 ))}
               </div>
             </div>
+            )}
             <div>
               <Label htmlFor="add-expiry">Ablaufdatum (optional)</Label>
               <Select value={addExpiry} onValueChange={setAddExpiry}>

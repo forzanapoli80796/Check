@@ -122,6 +122,7 @@ export const storeWhiteboard = pgTable("store_whiteboard", {
   imageUrl: text("image_url"), // Optional: URL zum hochgeladenen Bild
   editedBy: jsonb("edited_by").default('[]'), // Array von Bearbeitern [{name, editedAt}]
   lastEditedAt: timestamp("last_edited_at"), // Zeitstempel der letzten Bearbeitung
+  isAdminNote: boolean("is_admin_note").default(false), // Admin-Infos: rot, nur Admin kann löschen/bearbeiten
   createdAt: timestamp("created_at").defaultNow(),
 });
 
