@@ -289,13 +289,17 @@ export default function WhiteboardConfirmation({ state, updateState, goBack, onC
       {hasNotes ? (
         <div className="space-y-3">
           {notes.map((note) => {
-            const bgColorClass = {
-              yellow: 'bg-yellow-50 border-yellow-200',
-              blue: 'bg-blue-50 border-blue-200',
-              green: 'bg-green-50 border-green-200',
-              pink: 'bg-pink-50 border-pink-200',
-              orange: 'bg-orange-50 border-orange-200',
-            }[note.color || 'yellow'] || 'bg-yellow-50 border-yellow-200';
+            const isAdminNote = (note as any).isAdminNote === true;
+
+            const bgColorClass = isAdminNote
+              ? 'bg-red-600 border-red-700'
+              : ({
+                  yellow: 'bg-yellow-50 border-yellow-200',
+                  blue: 'bg-blue-50 border-blue-200',
+                  green: 'bg-green-50 border-green-200',
+                  pink: 'bg-pink-50 border-pink-200',
+                  orange: 'bg-orange-50 border-orange-200',
+                }[note.color || 'yellow'] || 'bg-yellow-50 border-yellow-200');
 
             const isTask = (note as any).entryType === 'task';
 
@@ -307,7 +311,7 @@ export default function WhiteboardConfirmation({ state, updateState, goBack, onC
               >
                 {/* Icon für Eintragstyp */}
                 <div className="flex items-start gap-3">
-                  <div className={`mt-1 ${isTask ? 'text-blue-600' : 'text-gray-600'}`}>
+                  <div className={`mt-1 ${isAdminNote ? 'text-white' : isTask ? 'text-blue-600' : 'text-gray-600'}`}>
                     {isTask ? <CheckSquare size={20} /> : <Info size={20} />}
                   </div>
                   <div className="flex-1">
@@ -320,19 +324,25 @@ export default function WhiteboardConfirmation({ state, updateState, goBack, onC
                         />
                       </div>
                     )}
-                    <p className="text-gray-900 whitespace-pre-wrap leading-relaxed mb-3">
+                    <p className={`whitespace-pre-wrap leading-relaxed mb-3 font-medium ${isAdminNote ? 'text-white' : 'text-gray-900'}`}>
                       {note.message}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-300">
-                  <span>Von: {note.employeeName}</span>
+                <div className={`flex items-center justify-between text-xs pt-2 border-t ${isAdminNote ? 'text-red-100 border-red-500' : 'text-gray-500 border-gray-300'}`}>
+                  <span className="flex items-center gap-2">
+                    Von: {note.employeeName}
+                    {isAdminNote && (
+                      <span className="text-xs font-bold bg-white text-red-600 px-2 py-0.5 rounded-full">ADMIN</span>
+                    )}
+                  </span>
                   <span>
                     {format(new Date(note.createdAt!), 'dd.MM.yyyy HH:mm', { locale: de })}
                   </span>
                 </div>
                 
-                {/* Action Buttons */}
+                {/* Action Buttons — nur für Nicht-Admin-Notizen */}
+                {!isAdminNote && (
                 <div className="flex gap-2 mt-3">
                   <Button
                     variant="outline"
@@ -353,6 +363,7 @@ export default function WhiteboardConfirmation({ state, updateState, goBack, onC
                     Löschen
                   </Button>
                 </div>
+                )}
               </div>
             );
           })}
