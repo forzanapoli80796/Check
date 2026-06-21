@@ -201,8 +201,7 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
     sub.name.startsWith('Montagsliste');
 
   const isLateShiftOnly = (sub: Category) =>
-    sub.name === 'Mengenformular Spätschicht' ||
-    sub.name === 'Sonder/Samstagsreinigung';
+    sub.name === 'Mengenformular Spätschicht';
 
   const visibleSubcategories = subcategories.filter(sub => {
     // Hide archived categories (merged into other lists)
@@ -211,6 +210,11 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
     if (state.selectedShift === 'spätschicht' && isEarlyShiftOnly(sub)) return false;
     // lateShiftOnly: nur Spätschicht
     if (state.selectedShift === 'frühschicht' && isLateShiftOnly(sub)) return false;
+    // Sonder/Samstagsreinigung: JP23+KP5 → Frühschicht, TS17 → Spätschicht
+    if (sub.name === 'Sonder/Samstagsreinigung') {
+      if (selectedStore === 'TS17' && state.selectedShift === 'frühschicht') return false;
+      if (selectedStore !== 'TS17' && state.selectedShift === 'spätschicht') return false;
+    }
     // Special: TS17 does Montagsliste on Tuesday (closed Monday)
     if (sub.name === 'Montagsliste (Dienstag TS17)') {
       return selectedStore === 'TS17' ? todayJS === 2 : todayJS === 1;
