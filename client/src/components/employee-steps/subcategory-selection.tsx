@@ -186,9 +186,10 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
   const todayJS = new Date().getDay();
   const selectedStore = state.selectedStore;
   // isEarlyShiftOnly: used for VISIBILITY filtering (hide for Spätschicht)
+  // Sonder/Samstagsreinigung is excluded here – it belongs to Spätschicht
   const isEarlyShiftOnly = (sub: Category) =>
-    sub.earlyShiftOnly === true ||
-    Object.prototype.hasOwnProperty.call(DAY_RESTRICTED, sub.name) ||
+    (sub.earlyShiftOnly === true && sub.name !== 'Sonder/Samstagsreinigung') ||
+    (Object.prototype.hasOwnProperty.call(DAY_RESTRICTED, sub.name) && sub.name !== 'Sonder/Samstagsreinigung') ||
     sub.name.startsWith('Montagsliste');
 
   // isSonderliste: used for RED BORDER + "NICHT VERGESSEN" badge styling only
@@ -200,7 +201,8 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
     sub.name.startsWith('Montagsliste');
 
   const isLateShiftOnly = (sub: Category) =>
-    sub.name === 'Mengenformular Spätschicht';
+    sub.name === 'Mengenformular Spätschicht' ||
+    sub.name === 'Sonder/Samstagsreinigung';
 
   const visibleSubcategories = subcategories.filter(sub => {
     // Hide archived categories (merged into other lists)

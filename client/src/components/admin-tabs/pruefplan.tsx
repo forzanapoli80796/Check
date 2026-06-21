@@ -32,7 +32,7 @@ const SONDERLISTEN = [
     filialen: [
       { stores: "JP23, KP5, TS17", mitarbeiterTag: "Samstag", adminWarnTag: "Sonntag", dow: 6 },
     ],
-    hinweis: "Nur Terminal Frühschicht – erscheint samstags unter dem Bereich Terminal.",
+    hinweis: "Nur Terminal Spätschicht – erscheint samstags unter dem Bereich Terminal.",
   },
 ];
 

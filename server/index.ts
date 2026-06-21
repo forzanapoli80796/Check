@@ -73,7 +73,7 @@ app.use((req, res, next) => {
     console.error('[startup] Mengenformular archive failed (non-fatal):', e);
   }
 
-  // Migration: set earlyShiftOnly=true for the Sonderlisten
+  // Migration: set earlyShiftOnly=true for the Sonderlisten (excl. Samstagsreinigung → Spätschicht)
   try {
     await db.update(categories)
       .set({ earlyShiftOnly: true })
@@ -81,10 +81,13 @@ app.use((req, res, next) => {
         like(categories.name, '%Montagsliste%'),
         like(categories.name, '%Mittwochsliste%'),
         like(categories.name, '%MHD-Check%'),
-        like(categories.name, '%Samstagsreinigung%'),
         like(categories.name, '%Frühschicht%'),
       ));
-    log('[startup] earlyShiftOnly set for Sonderlisten');
+    // Sonder/Samstagsreinigung gehört zur Spätschicht → earlyShiftOnly=false
+    await db.update(categories)
+      .set({ earlyShiftOnly: false })
+      .where(like(categories.name, '%Samstagsreinigung%'));
+    log('[startup] earlyShiftOnly set for Sonderlisten (Samstagsreinigung → Spätschicht)');
   } catch (e) {
     console.error('[startup] earlyShiftOnly migration failed (non-fatal):', e);
   }
