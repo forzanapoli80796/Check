@@ -206,6 +206,20 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
   const visibleSubcategories = subcategories.filter(sub => {
     // Hide archived categories (merged into other lists)
     if (sub.name.startsWith('[Archiv]')) return false;
+
+    // MHD-Check: JP23+KP5 → Frühschicht, TS17 → Spätschicht (beide nur freitags)
+    if (sub.name === 'MHD-Check') {
+      if (todayJS !== 5) return false;
+      if (selectedStore === 'TS17') return state.selectedShift === 'spätschicht';
+      return state.selectedShift === 'frühschicht';
+    }
+
+    // Montagsliste: JP23+KP5 → Montag + Frühschicht; TS17 → Dienstag + Spätschicht
+    if (sub.name === 'Montagsliste (Dienstag TS17)') {
+      if (selectedStore === 'TS17') return todayJS === 2 && state.selectedShift === 'spätschicht';
+      return todayJS === 1 && state.selectedShift === 'frühschicht';
+    }
+
     // earlyShiftOnly: nur Frühschicht
     if (state.selectedShift === 'spätschicht' && isEarlyShiftOnly(sub)) return false;
     // lateShiftOnly: nur Spätschicht
@@ -214,10 +228,6 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
     if (sub.name === 'Sonder/Samstagsreinigung') {
       if (selectedStore === 'TS17' && state.selectedShift === 'frühschicht') return false;
       if (selectedStore !== 'TS17' && state.selectedShift === 'spätschicht') return false;
-    }
-    // Special: TS17 does Montagsliste on Tuesday (closed Monday)
-    if (sub.name === 'Montagsliste (Dienstag TS17)') {
-      return selectedStore === 'TS17' ? todayJS === 2 : todayJS === 1;
     }
     // Mittwochsliste: nur JP23, nur Frühschicht (Küche)
     if (sub.name === 'Mittwochsliste' && selectedStore !== 'JP23') return false;

@@ -8,7 +8,7 @@ const SONDERLISTEN = [
       { stores: "JP23, KP5", mitarbeiterTag: "Montag", adminWarnTag: "Dienstag", dow: 1 },
       { stores: "TS17",       mitarbeiterTag: "Dienstag", adminWarnTag: "Mittwoch", dow: 2 },
     ],
-    hinweis: "TS17 ist montags geschlossen – reicht deshalb dienstags ein.",
+    hinweis: "TS17 ist montags geschlossen – reicht deshalb dienstags (Spätschicht) ein. JP23 & KP5: Montag Frühschicht.",
   },
   {
     name: "Mittwochsliste",
@@ -22,9 +22,10 @@ const SONDERLISTEN = [
     name: "MHD-Check",
     icon: "📅",
     filialen: [
-      { stores: "JP23, KP5, TS17", mitarbeiterTag: "Freitag", adminWarnTag: "Samstag", dow: 5 },
+      { stores: "JP23, KP5", mitarbeiterTag: "Freitag", adminWarnTag: "Samstag", dow: 5 },
+      { stores: "TS17",      mitarbeiterTag: "Freitag", adminWarnTag: "Samstag", dow: 5 },
     ],
-    hinweis: null,
+    hinweis: "JP23 & KP5: Frühschicht – TS17: Spätschicht.",
   },
   {
     name: "Sonder/Samstagsreinigung",
