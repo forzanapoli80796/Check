@@ -126,6 +126,8 @@ export default function Pruefplan() {
                       </p>
                       {liste.name === 'Sonder/Samstagsreinigung' ? (
                         <p className="text-xs text-gray-400 mt-0.5">⚠️ JP23 & KP5: Frühschicht – TS17: Spätschicht</p>
+                      ) : f.stores === 'TS17' ? (
+                        <p className="text-xs text-gray-400 mt-0.5">⚠️ nur Spätschicht – bei Frühschicht nicht sichtbar</p>
                       ) : (
                         <p className="text-xs text-gray-400 mt-0.5">⚠️ nur Frühschicht – bei Spätschicht nicht sichtbar</p>
                       )}
