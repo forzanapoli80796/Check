@@ -19,7 +19,9 @@ export default function EmployeeDetails({ state, updateState, goBack }: Employee
   const [selectedShift, setSelectedShift] = useState(state.selectedShift);
   // Skip shift selection for categories without shifts
   const useShifts = state.selectedAreaUseShifts !== false;
-  const isComplete = name.trim() && (!useShifts || selectedShift);
+  // TS17 has no Frühschicht — shift is chosen via START/ENDE in next step
+  const isTS17 = state.selectedStore === 'TS17';
+  const isComplete = name.trim() && (!useShifts || selectedShift || isTS17);
 
   const selectShift = (shift: 'frühschicht' | 'spätschicht') => {
     setSelectedShift(shift);
@@ -74,8 +76,8 @@ export default function EmployeeDetails({ state, updateState, goBack }: Employee
               autoComplete="off"
             />
           </div>
-          {/* Only show shift selection if category uses shifts */}
-          {useShifts && (
+          {/* Shift selection — not shown for TS17 (only START/ENDE in next step) */}
+          {useShifts && !isTS17 && (
             <div>
               <Label className="block mb-3">{t.employee.detailsEntry.shift}</Label>
               <div className="grid grid-cols-2 gap-3">
@@ -96,6 +98,15 @@ export default function EmployeeDetails({ state, updateState, goBack }: Employee
                   {t.employee.detailsEntry.lateShift}
                 </Button>
               </div>
+            </div>
+          )}
+
+          {/* TS17: no Frühschicht/Spätschicht — will select START or ENDE in next step */}
+          {useShifts && isTS17 && (
+            <div className="bg-blue-50 p-3 rounded-lg">
+              <p className="text-sm text-blue-800 font-medium">
+                Im nächsten Schritt wählst du: <strong>START</strong> oder <strong>ENDE</strong> der Schicht.
+              </p>
             </div>
           )}
 

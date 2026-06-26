@@ -16,6 +16,8 @@ interface ShiftPhaseSelectionProps {
 export default function ShiftPhaseSelection({ state, updateState, goBack }: ShiftPhaseSelectionProps) {
   const { t } = useLanguage();
 
+  const isTS17 = state.selectedStore === 'TS17';
+
   const { data: categories } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
@@ -30,25 +32,92 @@ export default function ShiftPhaseSelection({ state, updateState, goBack }: Shif
   const showAnfang = !excluded.includes(anfangCombo);
   const showEnde = !excluded.includes(endeCombo);
 
-  // If only one phase is valid, auto-select and proceed
+  // If only one phase is valid (non-TS17), auto-select and proceed
   useEffect(() => {
+    if (isTS17) return;
     if (!categories) return;
     if (showAnfang && !showEnde) {
       updateState({ selectedShiftPhase: 'schichtanfang', step: 'tasks' });
     } else if (!showAnfang && showEnde) {
       updateState({ selectedShiftPhase: 'schichtende', step: 'tasks' });
     }
-  }, [categories, showAnfang, showEnde]);
+  }, [categories, showAnfang, showEnde, isTS17]);
 
   const selectPhase = (phase: 'schichtanfang' | 'schichtende') => {
     updateState({ selectedShiftPhase: phase, step: 'tasks' });
   };
 
+  // TS17: START = Frühschicht-Listen, ENDE = Spätschicht-Listen
+  const selectTS17Phase = (phase: 'start' | 'ende') => {
+    if (phase === 'start') {
+      updateState({ selectedShift: 'frühschicht', selectedShiftPhase: 'schichtanfang', step: 'tasks' });
+    } else {
+      updateState({ selectedShift: 'spätschicht', selectedShiftPhase: 'schichtende', step: 'tasks' });
+    }
+  };
+
   const shiftLabel = shift === 'frühschicht' ? t.employee.detailsEntry.earlyShift : t.employee.detailsEntry.lateShift;
 
-  // If auto-selecting, show nothing while redirecting
-  if (categories && (!showAnfang || !showEnde) && !(showAnfang && showEnde)) {
+  // If auto-selecting (non-TS17), show nothing while redirecting
+  if (!isTS17 && categories && (!showAnfang || !showEnde) && !(showAnfang && showEnde)) {
     return null;
+  }
+
+  // TS17-specific view: just START or ENDE
+  if (isTS17) {
+    return (
+      <Card className="shadow-sm border border-gray-200">
+        <CardContent className="pt-6">
+          <div className="flex items-center mb-6">
+            <div className="step-indicator mr-3">4</div>
+            <h2 className="text-xl font-medium">Schichtphase wählen</h2>
+          </div>
+
+          <div className="space-y-4">
+            <div className="text-center mb-4">
+              <p className="text-gray-600">
+                Bist du am <span className="font-semibold">START</span> oder am <span className="font-semibold">ENDE</span> der Schicht?
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                onClick={() => selectTS17Phase('start')}
+                className="p-4 h-auto selection-button"
+              >
+                <div className="flex flex-col items-center">
+                  <Play className="text-blue-600 mb-2" size={24} />
+                  <span className="font-medium text-lg">START</span>
+                </div>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => selectTS17Phase('ende')}
+                className="p-4 h-auto selection-button"
+              >
+                <div className="flex flex-col items-center">
+                  <Square className="text-purple-600 mb-2" size={24} />
+                  <span className="font-medium text-lg">ENDE</span>
+                </div>
+              </Button>
+            </div>
+
+            <div className="bg-blue-50 p-3 rounded-lg mt-4">
+              <p className="text-sm text-blue-800">
+                {t.employee.shiftPhase.differentTasks}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex space-x-3 mt-6">
+            <Button variant="outline" onClick={goBack} className="w-full">
+              {t.common.back}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (

@@ -183,6 +183,8 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
     const shift = state.selectedShift;
     // No restriction for categories without shifts
     if (!shift || shift === null) return true;
+    // TS17 has no time window restriction (single shift with START/ENDE)
+    if (state.selectedStore === 'TS17') return true;
     const now = new Date();
     const h = now.getHours();
     const m = now.getMinutes();
@@ -353,8 +355,10 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
               </p>
               {state.selectedAreaUseShifts !== false && (
                 <p className="text-xs text-gray-500 mt-1">
-                  {state.selectedShift === 'frühschicht' ? t.employee.detailsEntry.earlyShift : t.employee.detailsEntry.lateShift} - 
-                  {state.selectedShiftPhase === 'schichtanfang' ? ` ${t.employee.shiftPhase.start}` : ` ${t.employee.shiftPhase.end}`}
+                  {state.selectedStore === 'TS17'
+                    ? (state.selectedShiftPhase === 'schichtanfang' ? 'START' : 'ENDE')
+                    : `${state.selectedShift === 'frühschicht' ? t.employee.detailsEntry.earlyShift : t.employee.detailsEntry.lateShift} - ${state.selectedShiftPhase === 'schichtanfang' ? t.employee.shiftPhase.start : t.employee.shiftPhase.end}`
+                  }
                 </p>
               )}
             </div>
@@ -371,8 +375,10 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
           <div className="py-12 text-center">
             <p className="text-gray-500">{t.employee.taskCompletion.noTasks || 'Keine Aufgaben für diese Schichtphase gefunden.'}</p>
             <p className="text-sm text-gray-400 mt-2">
-              {state.selectedShift === 'frühschicht' ? t.employee.detailsEntry.earlyShift : t.employee.detailsEntry.lateShift} - 
-              {state.selectedShiftPhase === 'schichtanfang' ? ` ${t.employee.shiftPhase.start}` : ` ${t.employee.shiftPhase.end}`}
+              {state.selectedStore === 'TS17'
+                ? (state.selectedShiftPhase === 'schichtanfang' ? 'START' : 'ENDE')
+                : `${state.selectedShift === 'frühschicht' ? t.employee.detailsEntry.earlyShift : t.employee.detailsEntry.lateShift} - ${state.selectedShiftPhase === 'schichtanfang' ? t.employee.shiftPhase.start : t.employee.shiftPhase.end}`
+              }
             </p>
             <p className="text-sm text-gray-400 mt-1">
               {t.employee.taskCompletion.contactAdmin || 'Bitte wende dich an deinen Administrator.'}
