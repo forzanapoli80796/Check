@@ -224,10 +224,9 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
     if (state.selectedShift === 'spätschicht' && isEarlyShiftOnly(sub)) return false;
     // lateShiftOnly: nur Spätschicht
     if (state.selectedShift === 'frühschicht' && isLateShiftOnly(sub)) return false;
-    // Sonder/Samstagsreinigung: JP23+KP5 → Frühschicht, TS17 → Spätschicht
+    // Sonder/Samstagsreinigung: alle Stores → Frühschicht (TS17 = START)
     if (sub.name === 'Sonder/Samstagsreinigung') {
-      if (selectedStore === 'TS17' && state.selectedShift === 'frühschicht') return false;
-      if (selectedStore !== 'TS17' && state.selectedShift === 'spätschicht') return false;
+      if (state.selectedShift === 'spätschicht') return false;
     }
     // Mittwochsliste: nur JP23, nur Frühschicht (Küche)
     if (sub.name === 'Mittwochsliste' && selectedStore !== 'JP23') return false;

@@ -125,7 +125,7 @@ export default function Pruefplan() {
                         {f.dow === todayDow && " ✦ Heute"}
                       </p>
                       {liste.name === 'Sonder/Samstagsreinigung' ? (
-                        <p className="text-xs text-gray-400 mt-0.5">⚠️ JP23 & KP5: Frühschicht – TS17: Spätschicht</p>
+                        <p className="text-xs text-gray-400 mt-0.5">⚠️ alle Stores: nur Frühschicht / START</p>
                       ) : f.stores === 'TS17' ? (
                         <p className="text-xs text-gray-400 mt-0.5">⚠️ nur START – bei ENDE nicht sichtbar</p>
                       ) : (
