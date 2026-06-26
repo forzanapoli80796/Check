@@ -103,7 +103,7 @@ export default function EmployeeWorkflow() {
             onConfirmed={() => {
               // Shift is already selected (before area in new workflow)
               const hasSubcats = state.selectedAreaHasSubcategories;
-              const needsPhase = state.selectedShift && state.selectedAreaUseShifts !== false;
+              const needsPhase = state.selectedShift && state.selectedAreaUseShifts !== false && !state.selectedShiftPhase;
               updateState({ step: hasSubcats ? 'subcategory' : needsPhase ? 'shift-phase' : 'tasks' });
             }}
           />

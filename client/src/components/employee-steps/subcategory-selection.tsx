@@ -48,7 +48,8 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
     }
     
     // Store subcategory selection – save parent area before overwriting
-    const needsShiftPhase = subcategory.useShifts !== false && state.selectedShift;
+    // For TS17, selectedShiftPhase is already set in shift-selection → skip shift-phase
+    const needsShiftPhase = subcategory.useShifts !== false && state.selectedShift && !state.selectedShiftPhase;
     
     updateState({ 
       selectedParentArea: state.selectedArea,

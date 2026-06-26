@@ -74,8 +74,9 @@ export default function AreaSelection({ state, updateState, goBack }: AreaSelect
         });
       } else {
         // No subcategories
-        // If area needs shift phase (has shift selected and uses shifts), go to shift-phase, otherwise tasks
-        const needsShiftPhase = state.selectedShift && category.useShifts !== false;
+        // If area needs shift phase (has shift selected, uses shifts, and phase not already set)
+        // For TS17, selectedShiftPhase is already set in the shift-selection step → skip shift-phase
+        const needsShiftPhase = state.selectedShift && category.useShifts !== false && !state.selectedShiftPhase;
         
         updateState({ 
           ...areaUpdate,
