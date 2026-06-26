@@ -208,16 +208,15 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
     // Hide archived categories (merged into other lists)
     if (sub.name.startsWith('[Archiv]')) return false;
 
-    // MHD-Check: JP23+KP5 → Frühschicht, TS17 → Spätschicht (beide nur freitags)
+    // MHD-Check: JP23+KP5 → Frühschicht, TS17 → START (=Frühschicht) freitags
     if (sub.name === 'MHD-Check') {
       if (todayJS !== 5) return false;
-      if (selectedStore === 'TS17') return state.selectedShift === 'spätschicht';
       return state.selectedShift === 'frühschicht';
     }
 
-    // Montagsliste: JP23+KP5 → Montag + Frühschicht; TS17 → Dienstag + Spätschicht
+    // Montagsliste: JP23+KP5 → Montag + Frühschicht; TS17 → Dienstag + START (=Frühschicht)
     if (sub.name === 'Montagsliste (Dienstag TS17)') {
-      if (selectedStore === 'TS17') return todayJS === 2 && state.selectedShift === 'spätschicht';
+      if (selectedStore === 'TS17') return todayJS === 2 && state.selectedShift === 'frühschicht';
       return todayJS === 1 && state.selectedShift === 'frühschicht';
     }
 
