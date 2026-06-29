@@ -60,3 +60,46 @@ Dein Forza Check`;
     console.error("[E-Mail] Fehler beim Senden der Warn-E-Mail:", err);
   }
 }
+
+export async function sendKugelnLeftoverWarningEmail(params: {
+  store: string;
+  leftover: number;
+  employeeName: string;
+}) {
+  const { store, leftover, employeeName } = params;
+  const transporter = createTransporter();
+
+  const today = new Date().toLocaleDateString("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+
+  const body = `Achtung!
+
+${store} hat heute, am ${today}, nur noch ${leftover} Kugeln übrig. Das liegt unter dem Mindestwert von 30. Bitte prüfe die Situation und leite bei Bedarf eine Nachproduktion ein.
+
+Erfasst von: ${employeeName}
+
+Dein Forza Check`;
+
+  if (!transporter) {
+    console.warn(
+      "[E-Mail] SMTP nicht konfiguriert (SMTP_USER / SMTP_PASS fehlen). E-Mail würde gesendet werden:\n" +
+        body
+    );
+    return;
+  }
+
+  try {
+    await transporter.sendMail({
+      from: `"Forza Check" <${process.env.SMTP_USER}>`,
+      to: "bestellung@forzanapoli.de",
+      subject: `⚠️ Wenige Kugeln übrig (${leftover}) – ${store}`,
+      text: body,
+    });
+    console.log(`[E-Mail] Leftover-Warn-E-Mail erfolgreich gesendet für Store ${store}`);
+  } catch (err) {
+    console.error("[E-Mail] Fehler beim Senden der Leftover-Warn-E-Mail:", err);
+  }
+}

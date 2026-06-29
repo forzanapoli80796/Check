@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { getStorage } from "./storage";
-import { sendKugelnWarningEmail } from "./email";
+import { sendKugelnWarningEmail, sendKugelnLeftoverWarningEmail } from "./email";
 import { insertCategorySchema, insertTaskSchema, insertChecklistSchema, insertTeigProductionSchema, insertInventoryItemSchema } from "@shared/schema";
 import { z } from "zod";
 import {
@@ -496,6 +496,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sendKugelnWarningEmail({
           store: checklist.store,
           quantity: checklistData.newBalls,
+          employeeName: checklist.employeeName,
+        });
+      }
+      // Fire-and-forget: warn if übrige Kugeln heute < 30
+      if (checklistData.ballsForTomorrow !== null && checklistData.ballsForTomorrow !== undefined && checklistData.ballsForTomorrow < 30) {
+        sendKugelnLeftoverWarningEmail({
+          store: checklist.store,
+          leftover: checklistData.ballsForTomorrow,
           employeeName: checklist.employeeName,
         });
       }
