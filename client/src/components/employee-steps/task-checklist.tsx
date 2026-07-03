@@ -629,6 +629,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
             <div>
               <Label htmlFor="balls-today" className="text-sm font-medium mb-2 block">
                 {language === 'de' ? 'Wie viele Kugeln haben wir für heute?' : 'How many dough balls do we have for today?'}
+                <span className="text-red-500 ml-1">*</span>
               </Label>
               <Input
                 id="balls-today"
