@@ -316,11 +316,19 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
     filteredTasks.length > 0 &&
     filteredTasks.every(t => completedTasks.includes(t.id));
 
-  const mengenformularDone = !isKuecheChecklist || (
-    areaName === 'Küche Frühschicht – Checkliste & Mengenformular'
+  const isSpaetschichtMengenformular =
+    areaName === 'Mengenformular Spätschicht' || areaName === 'Küche Spätschicht – Checkliste & Mengenformular';
+
+  const isFruehschichtMengenformular =
+    areaName === 'Mengenformular Frühschicht' ||
+    areaName === 'Mengenformular Mittagsschicht' ||
+    areaName === 'Küche Frühschicht – Checkliste & Mengenformular';
+
+  const mengenformularDone = isSpaetschichtMengenformular
+    ? ballsForTomorrow !== "" && usedTomorrowBalls !== "" && (usedTomorrowBalls === "nein" || newBalls !== "")
+    : isFruehschichtMengenformular
       ? !!ballsForToday
-      : ballsForTomorrow !== "" && usedTomorrowBalls !== "" && (usedTomorrowBalls === "nein" || newBalls !== "")
-  );
+      : true;
 
   const signatureDone = !needsSignature || !!signature;
 
@@ -596,6 +604,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
             <div>
               <Label htmlFor="balls-leftover" className="text-sm font-medium mb-2 block">
                 {language === 'de' ? 'Wie viele Kugeln sind heute übrig geblieben?' : 'How many dough balls are left over today?'}
+                <span className="text-red-500 ml-1">*</span>
               </Label>
               <Input
                 id="balls-leftover"
