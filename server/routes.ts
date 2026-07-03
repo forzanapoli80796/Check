@@ -302,8 +302,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (cat.useShifts) {
             // Determine which shift combos are expected based on tasks
             const excluded = cat.excludedShiftCombos ?? [];
+            // TS17 only ever asks START/ENDE (no separate Frühschicht/Spätschicht selection):
+            // START submits as frühschicht_schichtanfang, ENDE submits as spätschicht_schichtende.
+            // The other two combos can never be submitted for TS17, so they must never be reported as missing.
+            const ts17Excluded = ['frühschicht_schichtende', 'spätschicht_schichtanfang'];
             const expectedCombos = SHIFT_COMBOS.filter(combo => {
               if (excluded.includes(combo)) return false;
+              if (store === 'TS17' && ts17Excluded.includes(combo)) return false;
               const [shift, phase] = combo.split('_') as [string, string];
               return storeTasks.some(t =>
                 (t.shift === shift || t.shift === 'both') &&
