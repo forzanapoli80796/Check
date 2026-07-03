@@ -562,6 +562,7 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
             <div>
               <Label className="text-sm font-medium mb-3 block">
                 {language === 'de' ? 'Habe ich Kugeln von morgen verwendet?' : 'Did I use dough balls from tomorrow?'}
+                <span className="text-red-500 ml-1">*</span>
               </Label>
               <div className="flex gap-3 mb-3">
                 <button
