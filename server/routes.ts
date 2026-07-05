@@ -1,7 +1,13 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { getStorage } from "./storage";
-import { sendKugelnWarningEmail, sendKugelnLeftoverWarningEmail } from "./email";
+import {
+  sendKugelnWarningEmail,
+  sendKugelnLeftoverWarningEmail,
+  getEmailNotificationsSettings,
+  saveEmailNotificationsSettings,
+  DEFAULT_EMAIL_NOTIFICATIONS_SETTINGS,
+} from "./email";
 import { insertCategorySchema, insertTaskSchema, insertChecklistSchema, insertTeigProductionSchema, insertInventoryItemSchema } from "@shared/schema";
 import { z } from "zod";
 import {
@@ -1386,6 +1392,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error updating app setting:', error);
       res.status(500).json({ message: "Failed to update app setting" });
+    }
+  });
+
+  // Email Notifications configuration
+  app.get("/api/email-notifications/settings", async (req, res) => {
+    try {
+      const settings = await getEmailNotificationsSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error('Error fetching email notification settings:', error);
+      res.status(500).json({ message: "Failed to fetch email notification settings" });
+    }
+  });
+
+  app.put("/api/email-notifications/settings", async (req, res) => {
+    try {
+      const { kugelnUsed, kugelnLeftover } = req.body || {};
+
+      const isValidConfig = (c: any) =>
+        c && typeof c.enabled === 'boolean' && typeof c.subject === 'string' && typeof c.body === 'string';
+
+      if (!isValidConfig(kugelnUsed) || !isValidConfig(kugelnLeftover)) {
+        return res.status(400).json({ message: "Invalid settings payload" });
+      }
+
+      await saveEmailNotificationsSettings({ kugelnUsed, kugelnLeftover });
+      const settings = await getEmailNotificationsSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error('Error saving email notification settings:', error);
+      res.status(500).json({ message: "Failed to save email notification settings" });
+    }
+  });
+
+  app.post("/api/email-notifications/settings/reset", async (req, res) => {
+    try {
+      await saveEmailNotificationsSettings(DEFAULT_EMAIL_NOTIFICATIONS_SETTINGS);
+      res.json(DEFAULT_EMAIL_NOTIFICATIONS_SETTINGS);
+    } catch (error) {
+      console.error('Error resetting email notification settings:', error);
+      res.status(500).json({ message: "Failed to reset email notification settings" });
+    }
+  });
+
+  app.post("/api/email-notifications/test/:type", async (req, res) => {
+    try {
+      const { type } = req.params;
+      const { store } = req.body || {};
+      const testStore = typeof store === 'string' && store ? store : 'JP23';
+
+      if (type === 'kugelnUsed') {
+        await sendKugelnWarningEmail({
+          store: testStore,
+          quantity: 5,
+          employeeName: 'Testlauf (Admin)',
+          forceSend: true,
+        });
+      } else if (type === 'kugelnLeftover') {
+        await sendKugelnLeftoverWarningEmail({
+          store: testStore,
+          leftover: 12,
+          employeeName: 'Testlauf (Admin)',
+          forceSend: true,
+        });
+      } else {
+        return res.status(400).json({ message: "Unknown notification type" });
+      }
+
+      res.json({ message: "Test-E-Mail wurde gesendet" });
+    } catch (error) {
+      console.error('Error sending test email:', error);
+      res.status(500).json({ message: "Failed to send test email" });
     }
   });
 

@@ -15,6 +15,7 @@ import TeigManagement from "@/components/teig-management";
 import MissingChecklists from "@/components/admin-tabs/missing-checklists";
 import WhiteboardManagement from "@/components/admin-tabs/whiteboard-management";
 import Pruefplan from "@/components/admin-tabs/pruefplan";
+import EmailNotifications from "@/components/admin-tabs/email-notifications";
 import { AdminTabState } from "@/lib/types";
 
 
@@ -28,6 +29,7 @@ export default function AdminDashboard() {
     { value: 'teig', label: 'Teig-Planung' },
     { value: 'whiteboard', label: 'Digitales Whiteboard' },
     { value: 'pruefplan', label: 'Prüfplan Sonderlisten' },
+    { value: 'email-notifications', label: 'E-Mail-Benachrichtigungen' },
     { value: 'settings', label: 'Einstellungen' },
   ];
 
@@ -61,6 +63,12 @@ export default function AdminDashboard() {
         return (
           <ErrorBoundary>
             <Pruefplan />
+          </ErrorBoundary>
+        );
+      case 'email-notifications':
+        return (
+          <ErrorBoundary>
+            <EmailNotifications />
           </ErrorBoundary>
         );
       case 'settings':
