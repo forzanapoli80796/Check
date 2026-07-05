@@ -8,6 +8,14 @@ export interface EmailNotificationConfig {
   enabled: boolean;
   subject: string;
   body: string;
+  storeEnabled?: Record<string, boolean>;
+}
+
+const ALL_STORES = ["JP23", "KP5", "TS17"];
+
+function isStoreEnabled(config: EmailNotificationConfig, store: string): boolean {
+  if (!config.storeEnabled) return true;
+  return config.storeEnabled[store] !== false;
 }
 
 export interface EmailNotificationsSettings {
@@ -37,6 +45,7 @@ Dein Forza Check`,
 Erfasst von: {{employeeName}}
 
 Dein Forza Check`,
+    storeEnabled: { JP23: true, KP5: true, TS17: true },
   },
 };
 
@@ -151,6 +160,11 @@ export async function sendKugelnLeftoverWarningEmail(params: {
 
   if (!config.enabled && !forceSend) {
     console.log(`[E-Mail] Benachrichtigung "Wenige Kugeln übrig" ist deaktiviert – kein Versand für ${store}.`);
+    return;
+  }
+
+  if (!isStoreEnabled(config, store) && !forceSend) {
+    console.log(`[E-Mail] Benachrichtigung "Wenige Kugeln übrig" ist für Store ${store} deaktiviert – kein Versand.`);
     return;
   }
 

@@ -1411,7 +1411,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { kugelnUsed, kugelnLeftover } = req.body || {};
 
       const isValidConfig = (c: any) =>
-        c && typeof c.enabled === 'boolean' && typeof c.subject === 'string' && typeof c.body === 'string';
+        c && typeof c.enabled === 'boolean' && typeof c.subject === 'string' && typeof c.body === 'string' &&
+        (c.storeEnabled === undefined || (typeof c.storeEnabled === 'object' && c.storeEnabled !== null));
 
       if (!isValidConfig(kugelnUsed) || !isValidConfig(kugelnLeftover)) {
         return res.status(400).json({ message: "Invalid settings payload" });

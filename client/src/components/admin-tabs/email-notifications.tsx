@@ -18,6 +18,7 @@ interface EmailNotificationConfig {
   enabled: boolean;
   subject: string;
   body: string;
+  storeEnabled?: Record<string, boolean>;
 }
 
 interface EmailNotificationsSettings {
@@ -26,6 +27,11 @@ interface EmailNotificationsSettings {
 }
 
 const EMPTY_CONFIG: EmailNotificationConfig = { enabled: true, subject: "", body: "" };
+
+function isStoreEnabled(config: EmailNotificationConfig, store: string): boolean {
+  if (!config.storeEnabled) return true;
+  return config.storeEnabled[store] !== false;
+}
 
 export default function EmailNotifications() {
   const { toast } = useToast();
@@ -78,6 +84,19 @@ export default function EmailNotifications() {
 
   const toggleEnabled = (key: keyof EmailNotificationsSettings, enabled: boolean) => {
     const updated = { ...settings, [key]: { ...settings[key], enabled } };
+    setSettings(updated);
+    saveMutation.mutate(updated);
+  };
+
+  const toggleStoreEnabled = (key: keyof EmailNotificationsSettings, store: string, enabled: boolean) => {
+    const currentStoreEnabled = settings[key].storeEnabled || { JP23: true, KP5: true, TS17: true };
+    const updated = {
+      ...settings,
+      [key]: {
+        ...settings[key],
+        storeEnabled: { ...currentStoreEnabled, [store]: enabled },
+      },
+    };
     setSettings(updated);
     saveMutation.mutate(updated);
   };
@@ -165,6 +184,7 @@ export default function EmailNotifications() {
         onTestSend={() => handleTestSend("kugelnLeftover")}
         isSaving={saveMutation.isPending}
         isSendingTest={sendingTest === "kugelnLeftover"}
+        onToggleStore={(store, enabled) => toggleStoreEnabled("kugelnLeftover", store, enabled)}
       />
 
       {/* Test send controls + reset */}
@@ -209,6 +229,7 @@ function NotificationCard({
   onTestSend,
   isSaving,
   isSendingTest,
+  onToggleStore,
 }: {
   title: string;
   description: string;
@@ -220,6 +241,7 @@ function NotificationCard({
   onTestSend: () => void;
   isSaving: boolean;
   isSendingTest: boolean;
+  onToggleStore?: (store: string, enabled: boolean) => void;
 }) {
   return (
     <Card className={config.enabled ? "border-green-200" : "border-gray-200 bg-gray-50"}>
@@ -228,7 +250,7 @@ function NotificationCard({
           <div>
             <CardTitle className="text-base flex items-center gap-2">
               {title}
-              <Badge variant="outline" className="text-xs">Alle Stores</Badge>
+              {!onToggleStore && <Badge variant="outline" className="text-xs">Alle Stores</Badge>}
             </CardTitle>
             <CardDescription className="mt-1">{description}</CardDescription>
           </div>
@@ -241,6 +263,28 @@ function NotificationCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
+        {onToggleStore && (
+          <div>
+            <Label className="text-sm font-medium mb-1.5 block">Für welche Stores soll diese Meldung erscheinen?</Label>
+            <div className="flex flex-wrap gap-3 rounded-md border bg-white p-3">
+              {STORES.map((store) => {
+                const enabled = isStoreEnabled(config, store);
+                return (
+                  <div key={store} className="flex items-center gap-2">
+                    <Switch
+                      checked={enabled}
+                      onCheckedChange={(checked) => onToggleStore(store, checked)}
+                      id={`store-toggle-${title}-${store}`}
+                    />
+                    <Label htmlFor={`store-toggle-${title}-${store}`} className={`text-sm ${enabled ? "text-gray-900" : "text-gray-400"}`}>
+                      {store}
+                    </Label>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
         <div>
           <Label className="text-sm font-medium mb-1 block">Betreff</Label>
           <Input
