@@ -366,7 +366,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Day-restricted category names — excluded from the general pool entirely
       const DAY_RESTRICTED_NAMES = new Set([
-        'Montagsliste (Dienstag TS17)',
+        'Montagsliste',
         'Mittwochsliste',
         'Sonder/Samstagsreinigung',
         'MHD-Check',
@@ -386,25 +386,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Each handler checks the selected day itself (dy), not dy-1.
       // 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat
 
-      // ── MONDAY selected (admin opened Tuesday): Montagsliste JP23 + KP5 ──────
+      // ── MONDAY selected (admin opened Tuesday): Montagsliste alle Stores ─────
       if (targetDayOfWeek === 1) {
         const dayChecklists = checklistsForLocalDate(dy);
-        const cat = allCategories.find(c => c.name === 'Montagsliste (Dienstag TS17)');
+        const cat = allCategories.find(c => c.name === 'Montagsliste');
         if (cat) {
-          for (const store of ['JP23', 'KP5']) {
+          for (const store of ['JP23', 'KP5', 'TS17']) {
             const submitted = dayChecklists.some(c => c.categoryId === cat.id && c.store === store);
             if (!submitted) filteredMissing.push({ categoryId: cat.id, categoryName: cat.name, store, shiftType: 'keine_schicht' });
           }
-        }
-      }
-
-      // ── TUESDAY selected (admin opened Wednesday): Montagsliste TS17 ─────────
-      if (targetDayOfWeek === 2) {
-        const dayChecklists = checklistsForLocalDate(dy);
-        const cat = allCategories.find(c => c.name === 'Montagsliste (Dienstag TS17)');
-        if (cat) {
-          const submitted = dayChecklists.some(c => c.categoryId === cat.id && c.store === 'TS17');
-          if (!submitted) filteredMissing.push({ categoryId: cat.id, categoryName: cat.name, store: 'TS17', shiftType: 'keine_schicht' });
         }
       }
 

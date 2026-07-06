@@ -40,13 +40,24 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // One-time data migration: rename "Montagliste" → "Montagsliste (Dienstag TS17)"
+  // One-time data migration: rename "Montagliste" → "Montagsliste"
   try {
     await db.update(categories)
-      .set({ name: 'Montagsliste (Dienstag TS17)' })
+      .set({ name: 'Montagsliste' })
       .where(eq(categories.name, 'Montagliste'));
   } catch (e) {
     console.error('[startup] Category rename failed (non-fatal):', e);
+  }
+
+  // One-time migration: rename "Montagsliste (Dienstag TS17)" → "Montagsliste"
+  // Montagsliste is now Monday for all stores including TS17 (no more Tuesday special-case)
+  try {
+    await db.update(categories)
+      .set({ name: 'Montagsliste' })
+      .where(eq(categories.name, 'Montagsliste (Dienstag TS17)'));
+    log('[startup] Montagsliste (Dienstag TS17) → Montagsliste renamed');
+  } catch (e) {
+    console.error('[startup] Montagsliste rename failed (non-fatal):', e);
   }
 
   // One-time migration: rename "Mengenformular Mittagsschicht" → "Mengenformular Frühschicht"

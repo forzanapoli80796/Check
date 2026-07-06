@@ -5,10 +5,9 @@ const SONDERLISTEN = [
     name: "Montagsliste",
     icon: "📋",
     filialen: [
-      { stores: "JP23, KP5", mitarbeiterTag: "Montag", adminWarnTag: "Dienstag", dow: 1 },
-      { stores: "TS17",       mitarbeiterTag: "Dienstag", adminWarnTag: "Mittwoch", dow: 2 },
+      { stores: "JP23, KP5, TS17", mitarbeiterTag: "Montag", adminWarnTag: "Dienstag", dow: 1 },
     ],
-    hinweis: "TS17 ist montags geschlossen – reicht deshalb dienstags (Spätschicht) ein. JP23 & KP5: Montag Frühschicht.",
+    hinweis: "Für alle Stores gleich – immer montags, Frühschicht (TS17: START).",
   },
   {
     name: "Mittwochsliste",

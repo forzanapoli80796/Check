@@ -179,7 +179,7 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
   // Day-restricted checklists: only shown on their designated weekday
   // JS: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
   const DAY_RESTRICTED: Record<string, number> = {
-    'Montagsliste (Dienstag TS17)': 1, // Monday (JP23/KP5); TS17 handled below (Tuesday)
+    'Montagsliste':             1, // Monday (alle Stores, inkl. TS17)
     'Mittwochsliste':           3, // Wednesday
     'Sonder/Samstagsreinigung': 6, // Saturday
     'MHD-Check':                5, // Friday
@@ -190,16 +190,14 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
   // Sonder/Samstagsreinigung is excluded here – it belongs to Spätschicht
   const isEarlyShiftOnly = (sub: Category) =>
     (sub.earlyShiftOnly === true && sub.name !== 'Sonder/Samstagsreinigung') ||
-    (Object.prototype.hasOwnProperty.call(DAY_RESTRICTED, sub.name) && sub.name !== 'Sonder/Samstagsreinigung') ||
-    sub.name.startsWith('Montagsliste');
+    (Object.prototype.hasOwnProperty.call(DAY_RESTRICTED, sub.name) && sub.name !== 'Sonder/Samstagsreinigung');
 
   // isSonderliste: used for RED BORDER + "NICHT VERGESSEN" badge styling only
   // Excludes Mengenformular Frühschicht which is earlyShiftOnly but not a Sonderliste
   const SONDERLISTE_NAMES = ['MHD-Check', 'Mittwochsliste', 'Sonder/Samstagsreinigung'];
   const isSonderliste = (sub: Category) =>
     SONDERLISTE_NAMES.includes(sub.name) ||
-    Object.prototype.hasOwnProperty.call(DAY_RESTRICTED, sub.name) ||
-    sub.name.startsWith('Montagsliste');
+    Object.prototype.hasOwnProperty.call(DAY_RESTRICTED, sub.name);
 
   const isLateShiftOnly = (sub: Category) =>
     sub.name === 'Mengenformular Spätschicht';
@@ -212,12 +210,6 @@ export default function SubcategorySelection({ state, updateState, goBack }: Sub
     if (sub.name === 'MHD-Check') {
       if (todayJS !== 5) return false;
       return state.selectedShift === 'frühschicht';
-    }
-
-    // Montagsliste: JP23+KP5 → Montag + Frühschicht; TS17 → Dienstag + START (=Frühschicht)
-    if (sub.name === 'Montagsliste (Dienstag TS17)') {
-      if (selectedStore === 'TS17') return todayJS === 2 && state.selectedShift === 'frühschicht';
-      return todayJS === 1 && state.selectedShift === 'frühschicht';
     }
 
     // earlyShiftOnly: nur Frühschicht
