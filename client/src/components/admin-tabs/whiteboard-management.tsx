@@ -5,10 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { StickyNote, Plus, Edit2, Trash2, Clock, User, Image as ImageIcon, Store, RotateCcw, Loader2 as Loader, ShieldAlert } from "lucide-react";
+import { StickyNote, Plus, Edit2, Trash2, User, Image as ImageIcon, Store, RotateCcw, Loader2 as Loader, ShieldAlert, DatabaseZap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { StoreWhiteboard, InsertStoreWhiteboard } from "@shared/schema";
@@ -73,15 +72,6 @@ const NOTE_COLORS = [
   { name: "Lila", value: "purple", bgClass: "bg-purple-100", borderClass: "border-purple-300", dotClass: "bg-purple-400" },
 ];
 
-const EXPIRY_OPTIONS = [
-  { label: "Kein Ablaufdatum", value: "none" },
-  { label: "1 Stunde", value: "1" },
-  { label: "4 Stunden", value: "4" },
-  { label: "8 Stunden", value: "8" },
-  { label: "1 Tag", value: "24" },
-  { label: "3 Tage", value: "72" },
-  { label: "1 Woche", value: "168" },
-];
 
 function formatDateTime(date: Date | string | null) {
   if (!date) return "—";
@@ -95,19 +85,6 @@ function formatDateTime(date: Date | string | null) {
   });
 }
 
-function getExpiryText(expiresAt: Date | string | null) {
-  if (!expiresAt) return null;
-  const now = new Date();
-  const expiry = new Date(expiresAt);
-  const diff = expiry.getTime() - now.getTime();
-  if (diff <= 0) return "Abgelaufen";
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const days = Math.floor(hours / 24);
-  if (days > 0) return `Läuft ab in ${days} Tag${days > 1 ? "en" : ""}`;
-  if (hours > 0) return `Läuft ab in ${hours} Stunde${hours > 1 ? "n" : ""}`;
-  const minutes = Math.floor(diff / (1000 * 60));
-  return `Läuft ab in ${minutes} Minute${minutes !== 1 ? "n" : ""}`;
-}
 
 function getColorClasses(color: string | null) {
   return NOTE_COLORS.find(c => c.value === color) ?? NOTE_COLORS[0];
@@ -124,7 +101,6 @@ interface NoteCardProps {
 function NoteCard({ note, storeName, onEdit, onDelete, isDeleting }: NoteCardProps) {
   const isAdmin = (note as any).isAdminNote === true;
   const colors = getColorClasses(note.color);
-  const expiryText = getExpiryText((note as any).expiresAt ?? null);
   const editHistory: any[] = (note.editedBy as any[]) ?? [];
 
   return (
@@ -139,11 +115,6 @@ function NoteCard({ note, storeName, onEdit, onDelete, isDeleting }: NoteCardPro
               )}
             </div>
             <p className={`text-xs mt-0.5 ${isAdmin ? "text-red-100" : "text-gray-500"}`}>{formatDateTime(note.createdAt)}</p>
-            {expiryText && (
-              <p className={`text-xs flex items-center gap-1 mt-1 ${isAdmin ? "text-red-200" : "text-orange-600"}`}>
-                <Clock size={11} /> {expiryText}
-              </p>
-            )}
           </div>
           <div className="flex gap-1 shrink-0">
             <Button
@@ -263,7 +234,6 @@ export default function WhiteboardManagement() {
   const [addName, setAddName] = useState("");
   const [addMessage, setAddMessage] = useState("");
   const [addColor, setAddColor] = useState("yellow");
-  const [addExpiry, setAddExpiry] = useState("none");
   const [addImageUrl, setAddImageUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [addIsAdminNote, setAddIsAdminNote] = useState(false);
@@ -276,7 +246,6 @@ export default function WhiteboardManagement() {
     setAddName("");
     setAddMessage("");
     setAddColor("yellow");
-    setAddExpiry("none");
     setAddImageUrl(null);
     setAddIsAdminNote(false);
     setAddDialogStore(null);
@@ -362,11 +331,6 @@ export default function WhiteboardManagement() {
       toast({ title: "Fehler", description: "Bitte Name und Nachricht eingeben.", variant: "destructive" });
       return;
     }
-    let expiresAt: Date | undefined;
-    if (addExpiry !== "none") {
-      expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + parseInt(addExpiry));
-    }
     createMutation.mutate({
       storeName: addDialogStore,
       employeeName: addName.trim(),
@@ -374,7 +338,6 @@ export default function WhiteboardManagement() {
       color: addIsAdminNote ? "red" : addColor,
       imageUrl: addImageUrl,
       isAdminNote: addIsAdminNote,
-      ...(expiresAt ? { expiresAt } : {}),
     } as any);
   };
 
@@ -403,6 +366,17 @@ export default function WhiteboardManagement() {
         <div>
           <h2 className="text-xl font-bold text-gray-800">Digitales Whiteboard</h2>
           <p className="text-sm text-gray-500 mt-0.5">Übersicht aller Einträge pro Store – sekundengenau aktualisiert</p>
+        </div>
+      </div>
+
+      {/* Persistence info banner */}
+      <div className="flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
+        <DatabaseZap size={18} className="text-green-700 mt-0.5 shrink-0" />
+        <div>
+          <p className="text-sm font-semibold text-green-800">Alle Einträge werden dauerhaft gespeichert</p>
+          <p className="text-xs text-green-700 mt-0.5">
+            Die Daten liegen zentral in der Datenbank und bleiben nach jedem Update oder Neustart der App erhalten. Einträge verschwinden nur, wenn sie manuell gelöscht werden.
+          </p>
         </div>
       </div>
 
@@ -491,19 +465,6 @@ export default function WhiteboardManagement() {
               </div>
             </div>
             )}
-            <div>
-              <Label htmlFor="add-expiry">Ablaufdatum (optional)</Label>
-              <Select value={addExpiry} onValueChange={setAddExpiry}>
-                <SelectTrigger id="add-expiry" className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {EXPIRY_OPTIONS.map(opt => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
             <div>
               <Label>Bild (optional)</Label>
               <input

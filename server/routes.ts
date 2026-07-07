@@ -1070,16 +1070,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Store Whiteboard routes
   app.get("/api/whiteboard/:storeName", async (req, res) => {
     const storage = await getStorage();
-    const allNotes = await storage.getWhiteboardNotes(req.params.storeName);
-    
-    // Filter out expired notes
-    const now = new Date();
-    const activeNotes = allNotes.filter(note => {
-      if (!(note as any).expiresAt) return true;
-      return new Date((note as any).expiresAt) > now;
-    });
-    
-    res.json(activeNotes);
+    const notes = await storage.getWhiteboardNotes(req.params.storeName);
+    res.json(notes);
   });
 
   app.post("/api/whiteboard", async (req, res) => {
