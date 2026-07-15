@@ -51,6 +51,11 @@ export function SettingsManagement() {
     },
   });
 
+  const { data: jsonBackupData, refetch: refetchJsonBackup } = useQuery({
+    queryKey: ["/api/app-settings/json_backup_last"],
+    retry: false,
+  });
+
   const [isDownloading, setIsDownloading] = useState(false);
 
   const handleBackupDownload = async () => {
@@ -67,6 +72,7 @@ export function SettingsManagement() {
       a.click();
       URL.revokeObjectURL(url);
       toast({ title: "Backup heruntergeladen", description: "Die Datei wurde erfolgreich gespeichert." });
+      refetchJsonBackup();
     } catch {
       toast({ title: "Fehler", description: "Backup konnte nicht erstellt werden.", variant: "destructive" });
     } finally {
@@ -74,7 +80,7 @@ export function SettingsManagement() {
     }
   };
 
-  const { data: githubStatus, refetch: refetchGithubStatus } = useQuery<{ lastBackup: string | null; hasToken: boolean; isProduction: boolean }>({
+  const { data: githubStatus, refetch: refetchGithubStatus } = useQuery<{ lastBackup: string | null; hasToken: boolean }>({
     queryKey: ["/api/admin/github-backup/status"],
     retry: false,
   });
@@ -89,7 +95,8 @@ export function SettingsManagement() {
       const res = await fetch("/api/admin/github-backup", { method: "POST" });
       const data = await res.json();
       if (data.success) {
-        setGithubResult({ ok: true, msg: "Erfolgreich auf GitHub gesichert." });
+        const fileInfo = data.filesCount ? ` (${data.filesCount} Dateien)` : "";
+        setGithubResult({ ok: true, msg: `Quellcode erfolgreich auf GitHub gesichert${fileInfo}.` });
         refetchGithubStatus();
       } else {
         setGithubResult({ ok: false, msg: data.message || "Backup fehlgeschlagen." });
@@ -200,7 +207,20 @@ export function SettingsManagement() {
             Alle Daten als JSON-Datei herunterladen – Kategorien, Aufgaben, Checklisten, Teig-Daten, Whiteboard-Einträge, Inventar, Mitarbeiter-Nachrichten und Einstellungen.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
+          {(jsonBackupData as any)?.settingValue ? (
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Clock size={14} className="shrink-0" />
+              Letzter Backup: <span className="font-medium text-gray-800">
+                {new Date((jsonBackupData as any).settingValue).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" })}
+              </span>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500 flex items-center gap-2">
+              <Clock size={14} />
+              Noch kein Backup durchgeführt
+            </p>
+          )}
           <Button
             onClick={handleBackupDownload}
             disabled={isDownloading}
@@ -223,26 +243,13 @@ export function SettingsManagement() {
             GitHub-Backup
           </CardTitle>
           <CardDescription>
-            Den aktuellen Stand des Codes auf GitHub sichern –{" "}
+            Den kompletten Webapp-Quellcode ins GitHub-Repo sichern –{" "}
             <span className="font-medium text-gray-700">github.com/forzanapoli80796/check</span>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Produktion-Hinweis */}
-          {githubStatus?.isProduction && (
-            <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
-              <Info size={16} className="text-blue-600 mt-0.5 shrink-0" />
-              <div className="text-sm text-blue-800">
-                <p className="font-semibold">Nur im Replit-Workspace verfügbar</p>
-                <p className="mt-0.5">
-                  Der GitHub-Backup sichert den Quellcode und kann nur aus dem Replit-Entwicklungsbereich ausgeführt werden — nicht aus der veröffentlichten App. Bitte öffne den Workspace in Replit und führe den Backup dort durch.
-                </p>
-              </div>
-            </div>
-          )}
-
           {/* Token-Status */}
-          {githubStatus && !githubStatus.isProduction && !githubStatus.hasToken && (
+          {githubStatus && !githubStatus.hasToken && (
             <div className="flex items-start gap-3 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3">
               <XCircle size={16} className="text-orange-600 mt-0.5 shrink-0" />
               <div className="text-sm text-orange-800">
@@ -283,7 +290,7 @@ export function SettingsManagement() {
           {/* Button */}
           <Button
             onClick={handleGithubBackup}
-            disabled={isGithubPushing || !!githubStatus?.isProduction}
+            disabled={isGithubPushing}
             className="bg-gray-900 hover:bg-gray-700 text-white"
           >
             {isGithubPushing ? (
@@ -293,21 +300,6 @@ export function SettingsManagement() {
             )}
           </Button>
 
-          {/* Anleitung Token */}
-          <details className="mt-2">
-            <summary className="text-xs text-gray-500 cursor-pointer select-none hover:text-gray-700">
-              Wie erstelle ich den GitHub-Token?
-            </summary>
-            <ol className="mt-2 text-xs text-gray-600 space-y-1 pl-4 list-decimal">
-              <li>Auf <strong>github.com</strong> einloggen → oben rechts Profilbild → <strong>Settings</strong></li>
-              <li>Links ganz unten: <strong>Developer settings</strong></li>
-              <li><strong>Personal access tokens → Tokens (classic)</strong></li>
-              <li><strong>Generate new token (classic)</strong> klicken</li>
-              <li>Note: <em>ForzaCheck Backup</em>, Expiration: <em>No expiration</em></li>
-              <li>Scope: <strong>repo</strong> anhaken (alle darunter werden aktiviert)</li>
-              <li>Token kopieren → in Replit links auf das <strong>Schloss-Symbol</strong> → neues Secret: <code>GITHUB_TOKEN</code></li>
-            </ol>
-          </details>
         </CardContent>
       </Card>
 

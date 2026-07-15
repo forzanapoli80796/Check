@@ -87,6 +87,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const date = new Date().toISOString().slice(0, 10);
       res.setHeader("Content-Type", "application/json");
       res.setHeader("Content-Disposition", `attachment; filename="forzacheck-backup-${date}.json"`);
+
+      // Store last backup timestamp
+      await storage.updateAppSetting("json_backup_last", backup.exportedAt);
+
       res.json(backup);
     } catch (error) {
       console.error("Backup error:", error);
@@ -99,45 +103,160 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const storage = await getStorage();
     const setting = await storage.getAppSetting("github_backup_last");
     const hasToken = !!process.env.GITHUB_TOKEN;
-    const isProduction = process.env.REPLIT_DEPLOYMENT === "1";
-    res.json({ lastBackup: setting?.settingValue || null, hasToken, isProduction });
+    res.json({ lastBackup: setting?.settingValue || null, hasToken });
   });
 
-  // GitHub Backup push
+  // GitHub Backup – pushes full webapp source code via GitHub Trees API
   app.post("/api/admin/github-backup", async (req, res) => {
-    // In production deployments there is no .git directory – git commands cannot run
-    if (process.env.REPLIT_DEPLOYMENT === "1") {
-      return res.status(400).json({
-        success: false,
-        productionOnly: true,
-        message: "GitHub-Backup ist nur aus dem Replit-Workspace verfügbar, nicht aus der veröffentlichten App.",
-      });
-    }
     const token = process.env.GITHUB_TOKEN;
     if (!token) {
       return res.status(400).json({ success: false, message: "GITHUB_TOKEN nicht konfiguriert. Bitte Token in den Replit Secrets hinzufügen." });
     }
-    try {
-      const { execSync } = await import("child_process");
-      const remoteUrl = `https://${token}@github.com/forzanapoli80796/check.git`;
-      const timestamp = new Date().toISOString();
-      const commitMsg = `ForzaCheck Backup ${timestamp.slice(0, 16).replace("T", " ")} Uhr`;
 
-      execSync("git add -A", { cwd: process.cwd(), stdio: "pipe" });
-      try {
-        execSync(`git commit -m "${commitMsg}" --allow-empty`, { cwd: process.cwd(), stdio: "pipe" });
-      } catch (_) { /* nothing new to commit is fine */ }
-      execSync(`git push "${remoteUrl}" HEAD:main --force`, { cwd: process.cwd(), stdio: "pipe" });
+    try {
+      const fsPromises = await import("fs/promises");
+      const pathMod = await import("path");
+      const { fileURLToPath } = await import("url");
+
+      const ROOT = process.cwd();
+      const EXCLUDE_DIRS = new Set(["node_modules", "dist", ".git", ".local", ".agents", ".cache", "attached_assets", ".upm", ".config", "migrations"]);
+      const INCLUDE_EXTS = new Set([".ts", ".tsx", ".js", ".jsx", ".css", ".html", ".md", ".json", ".txt"]);
+      const INCLUDE_NAMES = new Set([".gitignore", ".replit"]);
+
+      async function collectFiles(dir: string): Promise<Array<{ path: string; content: string }>> {
+        const results: Array<{ path: string; content: string }> = [];
+        let entries: any[];
+        try { entries = await fsPromises.readdir(dir, { withFileTypes: true }); } catch { return results; }
+        for (const entry of entries) {
+          const fullPath = pathMod.join(dir, entry.name);
+          const relPath = pathMod.relative(ROOT, fullPath);
+          if (entry.isDirectory()) {
+            if (EXCLUDE_DIRS.has(entry.name) || entry.name.startsWith(".")) continue;
+            results.push(...await collectFiles(fullPath));
+          } else if (entry.isFile()) {
+            const ext = pathMod.extname(entry.name);
+            if (!INCLUDE_EXTS.has(ext) && !INCLUDE_NAMES.has(entry.name)) continue;
+            try {
+              const content = await fsPromises.readFile(fullPath, "utf8");
+              results.push({ path: relPath, content });
+            } catch { /* skip unreadable */ }
+          }
+        }
+        return results;
+      }
+
+      const sourceFiles = await collectFiles(ROOT);
+
+      const owner = "forzanapoli80796";
+      const repo = "check";
+      const timestamp = new Date().toISOString();
+      const ghHeaders = {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "Content-Type": "application/json",
+        "User-Agent": "ForzaCheck-Backup",
+      };
+      const apiBase = `https://api.github.com/repos/${owner}/${repo}`;
+
+      // Get repo info (default branch)
+      const repoRes = await fetch(apiBase, { headers: ghHeaders });
+      if (!repoRes.ok) {
+        return res.status(500).json({ success: false, message: `Repo nicht erreichbar (${repoRes.status}). Token und Repo-Name prüfen.` });
+      }
+      const repoInfo = await repoRes.json() as any;
+      const branch = repoInfo.default_branch || "main";
+
+      // Get current HEAD (if branch exists)
+      let baseSha: string | null = null;
+      let baseTreeSha: string | null = null;
+      const refRes = await fetch(`${apiBase}/git/ref/heads/${branch}`, { headers: ghHeaders });
+      if (refRes.ok) {
+        const refData = await refRes.json() as any;
+        baseSha = refData.object?.sha || null;
+        if (baseSha) {
+          const commitRes = await fetch(`${apiBase}/git/commits/${baseSha}`, { headers: ghHeaders });
+          if (commitRes.ok) {
+            const commitData = await commitRes.json() as any;
+            baseTreeSha = commitData.tree?.sha || null;
+          }
+        }
+      }
+
+      // Build tree items (inline content, GitHub creates blobs)
+      const treeItems = sourceFiles.map(f => ({
+        path: f.path,
+        mode: "100644",
+        type: "blob",
+        content: f.content,
+      }));
+
+      // Create new tree
+      const treeBody: any = { tree: treeItems };
+      if (baseTreeSha) treeBody.base_tree = baseTreeSha;
+      const treeRes = await fetch(`${apiBase}/git/trees`, {
+        method: "POST",
+        headers: ghHeaders,
+        body: JSON.stringify(treeBody),
+      });
+      if (!treeRes.ok) {
+        const err = await treeRes.text();
+        console.error("GitHub tree error:", treeRes.status, err);
+        return res.status(500).json({ success: false, message: `GitHub Tree Fehler ${treeRes.status}.` });
+      }
+      const newTree = await treeRes.json() as any;
+
+      // Create commit
+      const commitBody: any = {
+        message: `ForzaCheck Quellcode-Backup ${timestamp.slice(0, 16).replace("T", " ")} Uhr`,
+        tree: newTree.sha,
+      };
+      if (baseSha) commitBody.parents = [baseSha];
+      const commitRes2 = await fetch(`${apiBase}/git/commits`, {
+        method: "POST",
+        headers: ghHeaders,
+        body: JSON.stringify(commitBody),
+      });
+      if (!commitRes2.ok) {
+        const err = await commitRes2.text();
+        console.error("GitHub commit error:", commitRes2.status, err);
+        return res.status(500).json({ success: false, message: `GitHub Commit Fehler ${commitRes2.status}.` });
+      }
+      const newCommit = await commitRes2.json() as any;
+
+      // Update or create branch ref
+      if (baseSha) {
+        // Update existing ref
+        const patchRes = await fetch(`${apiBase}/git/refs/heads/${branch}`, {
+          method: "PATCH",
+          headers: ghHeaders,
+          body: JSON.stringify({ sha: newCommit.sha, force: true }),
+        });
+        if (!patchRes.ok) {
+          const err = await patchRes.text();
+          console.error("GitHub ref update error:", patchRes.status, err);
+          return res.status(500).json({ success: false, message: `GitHub Ref-Update Fehler ${patchRes.status}.` });
+        }
+      } else {
+        // Create new ref
+        const createRes = await fetch(`${apiBase}/git/refs`, {
+          method: "POST",
+          headers: ghHeaders,
+          body: JSON.stringify({ ref: `refs/heads/${branch}`, sha: newCommit.sha }),
+        });
+        if (!createRes.ok) {
+          const err = await createRes.text();
+          console.error("GitHub ref create error:", createRes.status, err);
+          return res.status(500).json({ success: false, message: `GitHub Branch-Erstellung Fehler ${createRes.status}.` });
+        }
+      }
 
       const storage = await getStorage();
       await storage.updateAppSetting("github_backup_last", timestamp);
-
-      res.json({ success: true, timestamp });
+      res.json({ success: true, timestamp, filesCount: sourceFiles.length });
     } catch (error: any) {
-      const raw = error?.stderr?.toString() || error?.message || "";
-      const clean = raw.replace(process.env.GITHUB_TOKEN || "", "***");
-      console.error("GitHub backup error:", clean);
-      res.status(500).json({ success: false, message: "Push fehlgeschlagen. Bitte Token und Repo-Zugriff prüfen." });
+      console.error("GitHub backup error:", error?.message);
+      res.status(500).json({ success: false, message: "Backup fehlgeschlagen. Bitte Token und Netzwerkverbindung prüfen." });
     }
   });
 
