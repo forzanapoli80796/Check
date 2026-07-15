@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Settings as SettingsIcon, Save, Key, LogOut, Loader2, Download, Github, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Settings as SettingsIcon, Save, Key, LogOut, Loader2, Download, Github, CheckCircle2, XCircle, Clock, Info } from "lucide-react";
 
 export function SettingsManagement() {
   const { toast } = useToast();
@@ -74,7 +74,7 @@ export function SettingsManagement() {
     }
   };
 
-  const { data: githubStatus, refetch: refetchGithubStatus } = useQuery<{ lastBackup: string | null; hasToken: boolean }>({
+  const { data: githubStatus, refetch: refetchGithubStatus } = useQuery<{ lastBackup: string | null; hasToken: boolean; isProduction: boolean }>({
     queryKey: ["/api/admin/github-backup/status"],
     retry: false,
   });
@@ -228,8 +228,21 @@ export function SettingsManagement() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Produktion-Hinweis */}
+          {githubStatus?.isProduction && (
+            <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+              <Info size={16} className="text-blue-600 mt-0.5 shrink-0" />
+              <div className="text-sm text-blue-800">
+                <p className="font-semibold">Nur im Replit-Workspace verfügbar</p>
+                <p className="mt-0.5">
+                  Der GitHub-Backup sichert den Quellcode und kann nur aus dem Replit-Entwicklungsbereich ausgeführt werden — nicht aus der veröffentlichten App. Bitte öffne den Workspace in Replit und führe den Backup dort durch.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Token-Status */}
-          {githubStatus && !githubStatus.hasToken && (
+          {githubStatus && !githubStatus.isProduction && !githubStatus.hasToken && (
             <div className="flex items-start gap-3 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3">
               <XCircle size={16} className="text-orange-600 mt-0.5 shrink-0" />
               <div className="text-sm text-orange-800">
@@ -270,7 +283,7 @@ export function SettingsManagement() {
           {/* Button */}
           <Button
             onClick={handleGithubBackup}
-            disabled={isGithubPushing}
+            disabled={isGithubPushing || !!githubStatus?.isProduction}
             className="bg-gray-900 hover:bg-gray-700 text-white"
           >
             {isGithubPushing ? (

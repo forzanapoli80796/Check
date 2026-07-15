@@ -99,11 +99,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const storage = await getStorage();
     const setting = await storage.getAppSetting("github_backup_last");
     const hasToken = !!process.env.GITHUB_TOKEN;
-    res.json({ lastBackup: setting?.settingValue || null, hasToken });
+    const isProduction = process.env.REPLIT_DEPLOYMENT === "1";
+    res.json({ lastBackup: setting?.settingValue || null, hasToken, isProduction });
   });
 
   // GitHub Backup push
   app.post("/api/admin/github-backup", async (req, res) => {
+    // In production deployments there is no .git directory – git commands cannot run
+    if (process.env.REPLIT_DEPLOYMENT === "1") {
+      return res.status(400).json({
+        success: false,
+        productionOnly: true,
+        message: "GitHub-Backup ist nur aus dem Replit-Workspace verfügbar, nicht aus der veröffentlichten App.",
+      });
+    }
     const token = process.env.GITHUB_TOKEN;
     if (!token) {
       return res.status(400).json({ success: false, message: "GITHUB_TOKEN nicht konfiguriert. Bitte Token in den Replit Secrets hinzufügen." });
