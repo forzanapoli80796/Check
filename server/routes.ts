@@ -43,6 +43,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/admin/backup", async (req, res) => {
     try {
       const storage = await getStorage();
+      const STORES = ["JP23", "KP5", "TS17"];
       const [
         cats,
         taskList,
@@ -50,6 +51,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         teigProd,
         inventoryItems,
         employeeMessages,
+        boolSettings,
+        appSettingsList,
+        ...whiteboardPerStore
       ] = await Promise.all([
         storage.getCategories(),
         storage.getTasks(),
@@ -57,11 +61,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storage.getTeigProduction(),
         storage.getInventoryItems(),
         storage.getEmployeeMessages(),
+        storage.getSettings(),
+        storage.getAppSettings(),
+        ...STORES.map(s => storage.getWhiteboardNotes(s)),
       ]);
+
+      const whiteboardNotes = (whiteboardPerStore as any[]).flat();
 
       const backup = {
         exportedAt: new Date().toISOString(),
-        version: 1,
+        version: 2,
         data: {
           categories: cats,
           tasks: taskList,
@@ -69,6 +78,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           teigProduction: teigProd,
           inventoryItems,
           employeeMessages,
+          whiteboardNotes,
+          settings: boolSettings,
+          appSettings: appSettingsList,
         },
       };
 

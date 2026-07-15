@@ -164,7 +164,7 @@ export function SettingsManagement() {
             Datenbank-Backup
           </CardTitle>
           <CardDescription>
-            Alle Daten als JSON-Datei herunterladen – Kategorien, Aufgaben, Checklisten, Teig-Daten und mehr.
+            Alle Daten als JSON-Datei herunterladen – Kategorien, Aufgaben, Checklisten, Teig-Daten, Whiteboard-Einträge, Inventar, Mitarbeiter-Nachrichten und Einstellungen.
           </CardDescription>
         </CardHeader>
         <CardContent>

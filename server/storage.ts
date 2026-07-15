@@ -69,6 +69,7 @@ export interface IStorage {
   
   // App Settings (Passwords etc.)
   getAppSetting(key: string): Promise<AppSetting | undefined>;
+  getAppSettings(): Promise<AppSetting[]>;
   updateAppSetting(key: string, value: string): Promise<AppSetting>;
 }
 
@@ -550,6 +551,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   // App Settings methods
+  async getAppSettings(): Promise<AppSetting[]> {
+    return await db.select().from(appSettings);
+  }
+
   async getAppSetting(key: string): Promise<AppSetting | undefined> {
     const [setting] = await db.select().from(appSettings).where(eq(appSettings.settingKey, key));
     return setting || undefined;
@@ -1075,6 +1080,10 @@ export class MemStorage implements IStorage {
   }
 
   // App Settings methods
+  async getAppSettings(): Promise<AppSetting[]> {
+    return Array.from(this.appSettingsMap.values());
+  }
+
   async getAppSetting(key: string): Promise<AppSetting | undefined> {
     return this.appSettingsMap.get(key);
   }
