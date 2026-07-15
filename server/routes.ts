@@ -94,6 +94,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GitHub Backup status
+  app.get("/api/admin/github-backup/status", async (req, res) => {
+    const storage = await getStorage();
+    const setting = await storage.getAppSetting("github_backup_last");
+    const hasToken = !!process.env.GITHUB_TOKEN;
+    res.json({ lastBackup: setting?.settingValue || null, hasToken });
+  });
+
+  // GitHub Backup push
+  app.post("/api/admin/github-backup", async (req, res) => {
+    const token = process.env.GITHUB_TOKEN;
+    if (!token) {
+      return res.status(400).json({ success: false, message: "GITHUB_TOKEN nicht konfiguriert. Bitte Token in den Replit Secrets hinzufügen." });
+    }
+    try {
+      const { execSync } = await import("child_process");
+      const remoteUrl = `https://${token}@github.com/forzanapoli80796/check.git`;
+      const timestamp = new Date().toISOString();
+      const commitMsg = `ForzaCheck Backup ${timestamp.slice(0, 16).replace("T", " ")} Uhr`;
+
+      execSync("git add -A", { cwd: process.cwd(), stdio: "pipe" });
+      try {
+        execSync(`git commit -m "${commitMsg}" --allow-empty`, { cwd: process.cwd(), stdio: "pipe" });
+      } catch (_) { /* nothing new to commit is fine */ }
+      execSync(`git push "${remoteUrl}" HEAD:main --force`, { cwd: process.cwd(), stdio: "pipe" });
+
+      const storage = await getStorage();
+      await storage.updateAppSetting("github_backup_last", timestamp);
+
+      res.json({ success: true, timestamp });
+    } catch (error: any) {
+      const raw = error?.stderr?.toString() || error?.message || "";
+      const clean = raw.replace(process.env.GITHUB_TOKEN || "", "***");
+      console.error("GitHub backup error:", clean);
+      res.status(500).json({ success: false, message: "Push fehlgeschlagen. Bitte Token und Repo-Zugriff prüfen." });
+    }
+  });
+
   // Categories routes
   app.get("/api/categories", async (req, res) => {
     const storage = await getStorage();

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Settings as SettingsIcon, Save, Key, LogOut, Loader2, Download } from "lucide-react";
+import { Settings as SettingsIcon, Save, Key, LogOut, Loader2, Download, Github, CheckCircle2, XCircle, Clock } from "lucide-react";
 
 export function SettingsManagement() {
   const { toast } = useToast();
@@ -72,6 +72,39 @@ export function SettingsManagement() {
     } finally {
       setIsDownloading(false);
     }
+  };
+
+  const { data: githubStatus, refetch: refetchGithubStatus } = useQuery<{ lastBackup: string | null; hasToken: boolean }>({
+    queryKey: ["/api/admin/github-backup/status"],
+    retry: false,
+  });
+
+  const [isGithubPushing, setIsGithubPushing] = useState(false);
+  const [githubResult, setGithubResult] = useState<{ ok: boolean; msg: string } | null>(null);
+
+  const handleGithubBackup = async () => {
+    setIsGithubPushing(true);
+    setGithubResult(null);
+    try {
+      const res = await fetch("/api/admin/github-backup", { method: "POST" });
+      const data = await res.json();
+      if (data.success) {
+        setGithubResult({ ok: true, msg: "Erfolgreich auf GitHub gesichert." });
+        refetchGithubStatus();
+      } else {
+        setGithubResult({ ok: false, msg: data.message || "Backup fehlgeschlagen." });
+      }
+    } catch {
+      setGithubResult({ ok: false, msg: "Verbindungsfehler." });
+    } finally {
+      setIsGithubPushing(false);
+    }
+  };
+
+  const formatLastBackup = (iso: string | null) => {
+    if (!iso) return null;
+    const d = new Date(iso);
+    return d.toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
   };
 
   const handleLogout = () => {
@@ -179,6 +212,89 @@ export function SettingsManagement() {
               <><Download className="w-4 h-4 mr-2" />Backup herunterladen</>
             )}
           </Button>
+        </CardContent>
+      </Card>
+
+      {/* GitHub-Backup */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Github className="w-5 h-5 text-gray-800" />
+            GitHub-Backup
+          </CardTitle>
+          <CardDescription>
+            Den aktuellen Stand des Codes auf GitHub sichern –{" "}
+            <span className="font-medium text-gray-700">github.com/forzanapoli80796/check</span>
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Token-Status */}
+          {githubStatus && !githubStatus.hasToken && (
+            <div className="flex items-start gap-3 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3">
+              <XCircle size={16} className="text-orange-600 mt-0.5 shrink-0" />
+              <div className="text-sm text-orange-800">
+                <p className="font-semibold">GITHUB_TOKEN fehlt</p>
+                <p className="mt-0.5">Bitte Token in den Replit Secrets eintragen (Schlüssel-Symbol links in Replit). Anleitung unten.</p>
+              </div>
+            </div>
+          )}
+
+          {/* Letzter Backup */}
+          {githubStatus?.lastBackup && (
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Clock size={14} className="shrink-0" />
+              Letzter Backup: <span className="font-medium text-gray-800">{formatLastBackup(githubStatus.lastBackup)}</span>
+            </div>
+          )}
+          {githubStatus && !githubStatus.lastBackup && (
+            <p className="text-sm text-gray-500 flex items-center gap-2">
+              <Clock size={14} />
+              Noch kein Backup durchgeführt
+            </p>
+          )}
+
+          {/* Ergebnis nach Klick */}
+          {githubResult && (
+            <div className={`flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium ${
+              githubResult.ok
+                ? "bg-green-50 border border-green-200 text-green-800"
+                : "bg-red-50 border border-red-200 text-red-800"
+            }`}>
+              {githubResult.ok
+                ? <CheckCircle2 size={16} className="shrink-0" />
+                : <XCircle size={16} className="shrink-0" />}
+              {githubResult.msg}
+            </div>
+          )}
+
+          {/* Button */}
+          <Button
+            onClick={handleGithubBackup}
+            disabled={isGithubPushing}
+            className="bg-gray-900 hover:bg-gray-700 text-white"
+          >
+            {isGithubPushing ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Wird gesichert…</>
+            ) : (
+              <><Github className="w-4 h-4 mr-2" />Jetzt auf GitHub sichern</>
+            )}
+          </Button>
+
+          {/* Anleitung Token */}
+          <details className="mt-2">
+            <summary className="text-xs text-gray-500 cursor-pointer select-none hover:text-gray-700">
+              Wie erstelle ich den GitHub-Token?
+            </summary>
+            <ol className="mt-2 text-xs text-gray-600 space-y-1 pl-4 list-decimal">
+              <li>Auf <strong>github.com</strong> einloggen → oben rechts Profilbild → <strong>Settings</strong></li>
+              <li>Links ganz unten: <strong>Developer settings</strong></li>
+              <li><strong>Personal access tokens → Tokens (classic)</strong></li>
+              <li><strong>Generate new token (classic)</strong> klicken</li>
+              <li>Note: <em>ForzaCheck Backup</em>, Expiration: <em>No expiration</em></li>
+              <li>Scope: <strong>repo</strong> anhaken (alle darunter werden aktiviert)</li>
+              <li>Token kopieren → in Replit links auf das <strong>Schloss-Symbol</strong> → neues Secret: <code>GITHUB_TOKEN</code></li>
+            </ol>
+          </details>
         </CardContent>
       </Card>
 
