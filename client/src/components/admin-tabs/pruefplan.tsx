@@ -30,9 +30,9 @@ const SONDERLISTEN = [
     name: "Sonder/Samstagsreinigung",
     icon: "🧽",
     filialen: [
-      { stores: "JP23, KP5, TS17", mitarbeiterTag: "Samstag", adminWarnTag: "Sonntag", dow: 6 },
+      { stores: "JP23, KP5", mitarbeiterTag: "Samstag", adminWarnTag: "Sonntag", dow: 6 },
     ],
-    hinweis: "JP23 & KP5: Frühschicht – TS17: Spätschicht. Erscheint samstags unter Terminal.",
+    hinweis: "Nur JP23 & KP5: Frühschicht. TS17 erhält diese Liste nicht.",
   },
 ];
 
