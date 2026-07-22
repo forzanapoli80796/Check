@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -6,7 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Settings as SettingsIcon, Save, Key, LogOut, Loader2, Download, Github, CheckCircle2, XCircle, Clock, Info } from "lucide-react";
+import { Settings as SettingsIcon, Save, Key, LogOut, Loader2, Download, Github, CheckCircle2, XCircle, Clock, Info, Upload, AlertTriangle } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function SettingsManagement() {
   const { toast } = useToast();
@@ -57,6 +62,49 @@ export function SettingsManagement() {
   });
 
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
+  const [restoreFile, setRestoreFile] = useState<File | null>(null);
+  const [showRestoreConfirm, setShowRestoreConfirm] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.name.endsWith(".json")) {
+      toast({ title: "Ungültige Datei", description: "Bitte eine .json Backup-Datei auswählen.", variant: "destructive" });
+      return;
+    }
+    setRestoreFile(file);
+    setShowRestoreConfirm(true);
+    e.target.value = "";
+  };
+
+  const handleRestore = async () => {
+    if (!restoreFile) return;
+    setIsRestoring(true);
+    setShowRestoreConfirm(false);
+    try {
+      const text = await restoreFile.text();
+      const data = JSON.parse(text);
+      const res = await fetch("/api/admin/restore", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const result = await res.json();
+      if (result.success) {
+        toast({ title: "Wiederherstellung erfolgreich", description: "Alle Daten wurden aus dem Backup wiederhergestellt." });
+        queryClient.invalidateQueries();
+      } else {
+        toast({ title: "Fehler", description: result.message || "Wiederherstellung fehlgeschlagen.", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Fehler", description: "Datei konnte nicht gelesen werden.", variant: "destructive" });
+    } finally {
+      setIsRestoring(false);
+      setRestoreFile(null);
+    }
+  };
 
   const handleBackupDownload = async () => {
     setIsDownloading(true);
@@ -221,17 +269,38 @@ export function SettingsManagement() {
               Noch kein Backup durchgeführt
             </p>
           )}
-          <Button
-            onClick={handleBackupDownload}
-            disabled={isDownloading}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-          >
-            {isDownloading ? (
-              <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Wird erstellt...</>
-            ) : (
-              <><Download className="w-4 h-4 mr-2" />Backup herunterladen</>
-            )}
-          </Button>
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              onClick={handleBackupDownload}
+              disabled={isDownloading || isRestoring}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              {isDownloading ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Wird erstellt...</>
+              ) : (
+                <><Download className="w-4 h-4 mr-2" />Backup herunterladen</>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isRestoring || isDownloading}
+              className="border-orange-300 text-orange-700 hover:bg-orange-50"
+            >
+              {isRestoring ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Wird wiederhergestellt...</>
+              ) : (
+                <><Upload className="w-4 h-4 mr-2" />Backup einspielen</>
+              )}
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              className="hidden"
+              onChange={handleFileSelect}
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -318,6 +387,36 @@ export function SettingsManagement() {
           </Button>
         </CardContent>
       </Card>
+
+      {/* Restore confirmation dialog */}
+      <AlertDialog open={showRestoreConfirm} onOpenChange={setShowRestoreConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-orange-500" />
+              Backup einspielen?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <span className="block">
+                Datei: <strong>{restoreFile?.name}</strong>
+              </span>
+              <span className="block font-semibold text-red-700">
+                Achtung: Alle aktuellen Daten (Kategorien, Aufgaben, Checklisten, Whiteboard usw.) werden unwiderruflich durch die Backup-Daten ersetzt.
+              </span>
+              <span className="block">Bist du sicher?</span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setRestoreFile(null)}>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRestore}
+              className="bg-orange-600 hover:bg-orange-700 text-white"
+            >
+              Ja, jetzt wiederherstellen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -136,6 +136,18 @@ export const whiteboardReads = pgTable("whiteboard_reads", {
   readAt: timestamp("read_at").defaultNow(),
 });
 
+// Terminal Quiz Fragen
+export const terminalQuizQuestions = pgTable("terminal_quiz_questions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  question: text("question").notNull(),
+  answer1: text("answer1").notNull(),
+  answer2: text("answer2").notNull(),
+  answer3: text("answer3").notNull(),
+  correctAnswer: integer("correct_answer").notNull(), // 1, 2 oder 3
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Settings - System-weite Einstellungen
 export const settings = pgTable("settings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -227,3 +239,10 @@ export type Setting = typeof settings.$inferSelect;
 
 export type InsertAppSetting = z.infer<typeof insertAppSettingSchema>;
 export type AppSetting = typeof appSettings.$inferSelect;
+
+export const insertTerminalQuizQuestionSchema = createInsertSchema(terminalQuizQuestions).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertTerminalQuizQuestion = z.infer<typeof insertTerminalQuizQuestionSchema>;
+export type TerminalQuizQuestion = typeof terminalQuizQuestions.$inferSelect;

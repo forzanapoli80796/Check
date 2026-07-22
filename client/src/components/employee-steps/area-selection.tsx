@@ -59,10 +59,10 @@ export default function AreaSelection({ state, updateState, goBack }: AreaSelect
     // Reihenfolge: Area → Whiteboard (wenn enforceReading) → Shift → Subcategory → Tasks
     
     if (hasEnforcedWhiteboard) {
-      // Whiteboard muss gelesen werden BEVOR Shift gewählt wird
+      // Quiz kommt zuerst, dann Whiteboard
       updateState({ 
         ...areaUpdate,
-        step: 'whiteboard-confirmation'
+        step: 'quiz'
       });
     } else {
       // Kein Whiteboard - normale Reihenfolge

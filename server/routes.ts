@@ -8,7 +8,7 @@ import {
   saveEmailNotificationsSettings,
   DEFAULT_EMAIL_NOTIFICATIONS_SETTINGS,
 } from "./email";
-import { insertCategorySchema, insertTaskSchema, insertChecklistSchema, insertTeigProductionSchema, insertInventoryItemSchema } from "@shared/schema";
+import { insertCategorySchema, insertTaskSchema, insertChecklistSchema, insertTeigProductionSchema, insertInventoryItemSchema, insertTerminalQuizQuestionSchema } from "@shared/schema";
 import { z } from "zod";
 import {
   ObjectStorageService,
@@ -16,6 +16,19 @@ import {
 } from "./objectStorage";
 import path from "path";
 import { randomUUID } from "crypto";
+import { db } from "./db";
+import {
+  categories as categoriesTable,
+  tasks as tasksTable,
+  checklists as checklistsTable,
+  teigProduction as teigProductionTable,
+  inventoryItems as inventoryItemsTable,
+  employeeMessages as employeeMessagesTable,
+  storeWhiteboard as storeWhiteboardTable,
+  whiteboardReads as whiteboardReadsTable,
+  settings as settingsTable,
+  appSettings as appSettingsTable,
+} from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Admin verification
@@ -257,6 +270,163 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("GitHub backup error:", error?.message);
       res.status(500).json({ success: false, message: "Backup fehlgeschlagen. Bitte Token und Netzwerkverbindung prüfen." });
+    }
+  });
+
+  // Restore from JSON backup
+  app.post("/api/admin/restore", async (req, res) => {
+    const backup = req.body;
+    if (!backup?.data || typeof backup.version !== "number") {
+      return res.status(400).json({ success: false, message: "Ungültige Backup-Datei. Bitte eine gültige ForzaCheck-Backup-JSON verwenden." });
+    }
+
+    const { categories: cats, tasks: taskItems, checklists: checklistItems,
+            teigProduction: teigItems, inventoryItems: invItems,
+            employeeMessages: empMsgs, whiteboardNotes, settings: boolSettings,
+            appSettings: appSettingItems } = backup.data;
+
+    try {
+      // Helper: batch insert to avoid hitting PG param limits
+      async function batchInsert(table: any, rows: any[], batchSize = 100) {
+        if (!rows?.length) return;
+        for (let i = 0; i < rows.length; i += batchSize) {
+          await db.insert(table).values(rows.slice(i, i + batchSize)).onConflictDoNothing();
+        }
+      }
+
+      // Delete in child-first order to respect FK constraints
+      await db.delete(whiteboardReadsTable);
+      await db.delete(inventoryItemsTable);
+      await db.delete(employeeMessagesTable);
+      await db.delete(storeWhiteboardTable);
+      await db.delete(checklistsTable);
+      await db.delete(tasksTable);
+      await db.delete(categoriesTable);
+      await db.delete(teigProductionTable);
+      await db.delete(settingsTable);
+      // Preserve system app settings (passwords, backup timestamps); restore only custom ones
+      // Actually restore all – user is doing a full restore intentionally
+      await db.delete(appSettingsTable);
+
+      // Re-insert in parent-first order, sanitising each row
+      if (cats?.length) {
+        await batchInsert(categoriesTable, cats.map((c: any) => ({
+          id: c.id,
+          name: c.name,
+          description: c.description ?? null,
+          icon: c.icon ?? null,
+          iconColor: c.iconColor ?? null,
+          useShifts: c.useShifts ?? true,
+          categoryType: c.categoryType ?? "shifts",
+          parentId: c.parentId ?? null,
+          isSubcategoryParent: c.isSubcategoryParent ?? false,
+          enforceReading: c.enforceReading ?? false,
+          excludedShiftCombos: c.excludedShiftCombos ?? null,
+          earlyShiftOnly: c.earlyShiftOnly ?? false,
+          createdAt: c.createdAt ? new Date(c.createdAt) : new Date(),
+        })));
+      }
+
+      if (taskItems?.length) {
+        await batchInsert(tasksTable, taskItems.map((t: any) => ({
+          id: t.id,
+          categoryId: t.categoryId,
+          title: t.title,
+          description: t.description ?? null,
+          icon: t.icon ?? null,
+          priority: t.priority ?? "medium",
+          estimatedMinutes: t.estimatedMinutes ?? null,
+          shift: t.shift ?? "both",
+          shiftPhase: t.shiftPhase ?? "both",
+          stores: t.stores ?? ["JP23","KP5","TS17"],
+          createdAt: t.createdAt ? new Date(t.createdAt) : new Date(),
+        })));
+      }
+
+      if (checklistItems?.length) {
+        await batchInsert(checklistsTable, checklistItems.map((c: any) => ({
+          id: c.id,
+          employeeName: c.employeeName,
+          store: c.store,
+          shift: c.shift ?? null,
+          shiftPhase: c.shiftPhase ?? null,
+          categoryId: c.categoryId ?? null,
+          categoryName: c.categoryName ?? null,
+          completedTasks: c.completedTasks ?? [],
+          totalTasks: c.totalTasks ?? 0,
+          completionPercentage: c.completionPercentage ?? 0,
+          submittedAt: c.submittedAt ? new Date(c.submittedAt) : new Date(),
+          isManagerChecklist: c.isManagerChecklist ?? false,
+        })));
+      }
+
+      if (invItems?.length) {
+        await batchInsert(inventoryItemsTable, invItems.map((i: any) => ({
+          id: i.id,
+          checklistId: i.checklistId,
+          itemName: i.itemName,
+          quantity: i.quantity ?? 0,
+          unit: i.unit ?? null,
+          notes: i.notes ?? null,
+          createdAt: i.createdAt ? new Date(i.createdAt) : new Date(),
+        })));
+      }
+
+      if (teigItems?.length) {
+        await batchInsert(teigProductionTable, teigItems.map((t: any) => ({
+          id: t.id,
+          weekday: t.weekday,
+          store: t.store,
+          kugelMenge: t.kugelMenge ?? 0,
+          updatedAt: t.updatedAt ? new Date(t.updatedAt) : new Date(),
+        })));
+      }
+
+      if (whiteboardNotes?.length) {
+        await batchInsert(storeWhiteboardTable, whiteboardNotes.map((w: any) => ({
+          id: w.id,
+          storeName: w.storeName,
+          message: w.message,
+          editorName: w.editorName ?? null,
+          createdAt: w.createdAt ? new Date(w.createdAt) : new Date(),
+          updatedAt: w.updatedAt ? new Date(w.updatedAt) : new Date(),
+        })));
+      }
+
+      if (empMsgs?.length) {
+        await batchInsert(employeeMessagesTable, empMsgs.map((m: any) => ({
+          id: m.id,
+          employeeName: m.employeeName,
+          store: m.store,
+          message: m.message,
+          category: m.category ?? null,
+          isRead: m.isRead ?? false,
+          createdAt: m.createdAt ? new Date(m.createdAt) : new Date(),
+        })));
+      }
+
+      if (boolSettings?.length) {
+        await batchInsert(settingsTable, boolSettings.map((s: any) => ({
+          id: s.id,
+          key: s.key,
+          value: s.value ?? false,
+          description: s.description ?? null,
+        })));
+      }
+
+      if (appSettingItems?.length) {
+        await batchInsert(appSettingsTable, appSettingItems.map((a: any) => ({
+          id: a.id,
+          settingKey: a.settingKey,
+          settingValue: a.settingValue ?? null,
+          updatedAt: a.updatedAt ? new Date(a.updatedAt) : new Date(),
+        })));
+      }
+
+      res.json({ success: true, restoredAt: new Date().toISOString() });
+    } catch (error: any) {
+      console.error("Restore error:", error?.message, error?.stack);
+      res.status(500).json({ success: false, message: `Wiederherstellung fehlgeschlagen: ${error?.message || "Unbekannter Fehler"}` });
     }
   });
 
@@ -600,11 +770,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // ── SATURDAY selected (admin opened Sunday): Sonder/Samstagsreinigung ───
+      // Nur JP23 & KP5 – TS17 erhält diese Liste nicht
       if (targetDayOfWeek === 6) {
         const dayChecklists = checklistsForLocalDate(dy);
         const cat = allCategories.find(c => c.name === 'Sonder/Samstagsreinigung');
         if (cat) {
-          for (const store of STORES) {
+          for (const store of ['JP23', 'KP5']) {
             const submitted = dayChecklists.some(c => c.categoryId === cat.id && c.store === store);
             if (!submitted) filteredMissing.push({ categoryId: cat.id, categoryName: cat.name, store, shiftType: 'keine_schicht' });
           }
@@ -1625,6 +1796,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error sending test email:', error);
       res.status(500).json({ message: "Failed to send test email" });
+    }
+  });
+
+  // Terminal Quiz Routes
+  app.get("/api/terminal-quiz", async (req, res) => {
+    try {
+      const storage = await getStorage();
+      const questions = await storage.getQuizQuestions();
+      res.json(questions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch quiz questions" });
+    }
+  });
+
+  app.get("/api/terminal-quiz/random", async (req, res) => {
+    try {
+      res.set("Cache-Control", "no-store, no-cache, must-revalidate");
+      res.set("Pragma", "no-cache");
+      const storage = await getStorage();
+      const excludeId = typeof req.query.exclude === "string" ? req.query.exclude : undefined;
+      const question = await storage.getRandomQuizQuestion(excludeId);
+      if (!question) {
+        return res.status(404).json({ message: "No active quiz questions found" });
+      }
+      const { correctAnswer, ...rest } = question;
+      res.json(rest);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch random quiz question" });
+    }
+  });
+
+  app.post("/api/terminal-quiz/verify", async (req, res) => {
+    try {
+      const { questionId, selectedAnswer } = req.body;
+      if (!questionId || !selectedAnswer) {
+        return res.status(400).json({ message: "questionId and selectedAnswer required" });
+      }
+      const storage = await getStorage();
+      const questions = await storage.getQuizQuestions();
+      const question = questions.find(q => q.id === questionId);
+      if (!question) {
+        return res.status(404).json({ message: "Question not found" });
+      }
+      const isCorrect = question.correctAnswer === Number(selectedAnswer);
+      res.json({ isCorrect });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to verify answer" });
+    }
+  });
+
+  app.post("/api/terminal-quiz", async (req, res) => {
+    try {
+      const parsed = insertTerminalQuizQuestionSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Invalid data", errors: parsed.error.errors });
+      }
+      const storage = await getStorage();
+      const created = await storage.createQuizQuestion(parsed.data);
+      res.status(201).json(created);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create quiz question" });
+    }
+  });
+
+  app.put("/api/terminal-quiz/:id", async (req, res) => {
+    try {
+      const parsed = insertTerminalQuizQuestionSchema.partial().safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Invalid data", errors: parsed.error.errors });
+      }
+      const storage = await getStorage();
+      const updated = await storage.updateQuizQuestion(req.params.id, parsed.data);
+      if (!updated) return res.status(404).json({ message: "Question not found" });
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update quiz question" });
+    }
+  });
+
+  app.delete("/api/terminal-quiz/:id", async (req, res) => {
+    try {
+      const storage = await getStorage();
+      const deleted = await storage.deleteQuizQuestion(req.params.id);
+      if (!deleted) return res.status(404).json({ message: "Question not found" });
+      res.json({ message: "Deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete quiz question" });
     }
   });
 

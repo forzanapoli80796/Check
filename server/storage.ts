@@ -1,7 +1,7 @@
-import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist, type TeigProduction, type InsertTeigProduction, type TeigProductionHistory, type InventoryItem, type InsertInventoryItem, type EmployeeMessage, type InsertEmployeeMessage, type StoreWhiteboard, type InsertStoreWhiteboard, type WhiteboardRead, type InsertWhiteboardRead, type Setting, type InsertSetting, type AppSetting, type InsertAppSetting } from "@shared/schema";
+import { type Category, type InsertCategory, type Task, type InsertTask, type Checklist, type InsertChecklist, type TeigProduction, type InsertTeigProduction, type TeigProductionHistory, type InventoryItem, type InsertInventoryItem, type EmployeeMessage, type InsertEmployeeMessage, type StoreWhiteboard, type InsertStoreWhiteboard, type WhiteboardRead, type InsertWhiteboardRead, type Setting, type InsertSetting, type AppSetting, type InsertAppSetting, type TerminalQuizQuestion, type InsertTerminalQuizQuestion } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { categories, tasks, checklists, teigProduction, teigProductionHistory, inventoryItems, employeeMessages, storeWhiteboard, whiteboardReads, settings, appSettings } from "@shared/schema";
+import { categories, tasks, checklists, teigProduction, teigProductionHistory, inventoryItems, employeeMessages, storeWhiteboard, whiteboardReads, settings, appSettings, terminalQuizQuestions } from "@shared/schema";
 import { eq, sql, and } from "drizzle-orm";
 
 export interface IStorage {
@@ -71,6 +71,13 @@ export interface IStorage {
   getAppSetting(key: string): Promise<AppSetting | undefined>;
   getAppSettings(): Promise<AppSetting[]>;
   updateAppSetting(key: string, value: string): Promise<AppSetting>;
+
+  // Terminal Quiz Questions
+  getQuizQuestions(): Promise<TerminalQuizQuestion[]>;
+  getRandomQuizQuestion(excludeId?: string): Promise<TerminalQuizQuestion | undefined>;
+  createQuizQuestion(q: InsertTerminalQuizQuestion): Promise<TerminalQuizQuestion>;
+  updateQuizQuestion(id: string, q: Partial<InsertTerminalQuizQuestion>): Promise<TerminalQuizQuestion | undefined>;
+  deleteQuizQuestion(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -582,6 +589,32 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return created;
     }
+  }
+
+  async getQuizQuestions(): Promise<TerminalQuizQuestion[]> {
+    return await db.select().from(terminalQuizQuestions).orderBy(terminalQuizQuestions.createdAt);
+  }
+
+  async getRandomQuizQuestion(excludeId?: string): Promise<TerminalQuizQuestion | undefined> {
+    const active = await db.select().from(terminalQuizQuestions).where(eq(terminalQuizQuestions.isActive, true));
+    if (!active.length) return undefined;
+    const pool = active.length > 1 && excludeId ? active.filter(q => q.id !== excludeId) : active;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  async createQuizQuestion(q: InsertTerminalQuizQuestion): Promise<TerminalQuizQuestion> {
+    const [created] = await db.insert(terminalQuizQuestions).values({ id: randomUUID(), ...q }).returning();
+    return created;
+  }
+
+  async updateQuizQuestion(id: string, q: Partial<InsertTerminalQuizQuestion>): Promise<TerminalQuizQuestion | undefined> {
+    const [updated] = await db.update(terminalQuizQuestions).set(q).where(eq(terminalQuizQuestions.id, id)).returning();
+    return updated || undefined;
+  }
+
+  async deleteQuizQuestion(id: string): Promise<boolean> {
+    const result = await db.delete(terminalQuizQuestions).where(eq(terminalQuizQuestions.id, id));
+    return (result.rowCount ?? 0) > 0;
   }
 }
 
@@ -1110,6 +1143,40 @@ export class MemStorage implements IStorage {
       this.appSettingsMap.set(key, created);
       return created;
     }
+  }
+
+  private quizQuestionsMap: Map<string, TerminalQuizQuestion> = new Map();
+
+  async getQuizQuestions(): Promise<TerminalQuizQuestion[]> {
+    return Array.from(this.quizQuestionsMap.values()).sort((a, b) =>
+      new Date(a.createdAt!).getTime() - new Date(b.createdAt!).getTime()
+    );
+  }
+
+  async getRandomQuizQuestion(excludeId?: string): Promise<TerminalQuizQuestion | undefined> {
+    const active = Array.from(this.quizQuestionsMap.values()).filter(q => q.isActive);
+    if (!active.length) return undefined;
+    const pool = active.length > 1 && excludeId ? active.filter(q => q.id !== excludeId) : active;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  async createQuizQuestion(q: InsertTerminalQuizQuestion): Promise<TerminalQuizQuestion> {
+    const id = randomUUID();
+    const created: TerminalQuizQuestion = { id, ...q, isActive: q.isActive ?? true, createdAt: new Date() };
+    this.quizQuestionsMap.set(id, created);
+    return created;
+  }
+
+  async updateQuizQuestion(id: string, q: Partial<InsertTerminalQuizQuestion>): Promise<TerminalQuizQuestion | undefined> {
+    const existing = this.quizQuestionsMap.get(id);
+    if (!existing) return undefined;
+    const updated = { ...existing, ...q };
+    this.quizQuestionsMap.set(id, updated);
+    return updated;
+  }
+
+  async deleteQuizQuestion(id: string): Promise<boolean> {
+    return this.quizQuestionsMap.delete(id);
   }
 }
 

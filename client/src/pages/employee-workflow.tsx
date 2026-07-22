@@ -15,6 +15,7 @@ import InventoryChecklist from "@/components/employee-steps/inventory-checklist"
 import SuccessScreen from "@/components/employee-steps/success-screen";
 import WhiteboardStep from "@/components/employee-steps/whiteboard-step";
 import WhiteboardConfirmation from "@/components/employee-steps/whiteboard-confirmation";
+import QuizStep from "@/components/employee-steps/quiz-step";
 
 
 export default function EmployeeWorkflow() {
@@ -94,6 +95,15 @@ export default function EmployeeWorkflow() {
         return <ShiftSelection state={state} updateState={updateState} goBack={goBack} />;
       case 'subcategory':
         return <SubcategorySelection state={state} updateState={updateState} goBack={goBack} />;
+      case 'quiz':
+        return (
+          <QuizStep
+            state={state}
+            updateState={updateState}
+            goBack={goBack}
+            onCorrect={() => updateState({ step: 'whiteboard-confirmation' })}
+          />
+        );
       case 'whiteboard-confirmation':
         return (
           <WhiteboardConfirmation 
