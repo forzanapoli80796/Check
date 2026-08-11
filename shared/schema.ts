@@ -145,6 +145,10 @@ export const terminalQuizQuestions = pgTable("terminal_quiz_questions", {
   answer3: text("answer3").notNull(),
   correctAnswer: integer("correct_answer").notNull(), // 1, 2 oder 3
   isActive: boolean("is_active").notNull().default(true),
+  timesShown: integer("times_shown").notNull().default(0), // Wie oft die Frage angezeigt wurde
+  answer1Count: integer("answer1_count").notNull().default(0), // Wie oft Antwort 1 angeklickt wurde
+  answer2Count: integer("answer2_count").notNull().default(0),
+  answer3Count: integer("answer3_count").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -243,6 +247,10 @@ export type AppSetting = typeof appSettings.$inferSelect;
 export const insertTerminalQuizQuestionSchema = createInsertSchema(terminalQuizQuestions).omit({
   id: true,
   createdAt: true,
+  timesShown: true,
+  answer1Count: true,
+  answer2Count: true,
+  answer3Count: true,
 });
 export type InsertTerminalQuizQuestion = z.infer<typeof insertTerminalQuizQuestionSchema>;
 export type TerminalQuizQuestion = typeof terminalQuizQuestions.$inferSelect;

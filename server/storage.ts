@@ -78,6 +78,8 @@ export interface IStorage {
   createQuizQuestion(q: InsertTerminalQuizQuestion): Promise<TerminalQuizQuestion>;
   updateQuizQuestion(id: string, q: Partial<InsertTerminalQuizQuestion>): Promise<TerminalQuizQuestion | undefined>;
   deleteQuizQuestion(id: string): Promise<boolean>;
+  incrementQuizShown(id: string): Promise<void>;
+  incrementQuizAnswer(id: string, answerNum: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -615,6 +617,25 @@ export class DatabaseStorage implements IStorage {
   async deleteQuizQuestion(id: string): Promise<boolean> {
     const result = await db.delete(terminalQuizQuestions).where(eq(terminalQuizQuestions.id, id));
     return (result.rowCount ?? 0) > 0;
+  }
+
+  async incrementQuizShown(id: string): Promise<void> {
+    await db.update(terminalQuizQuestions)
+      .set({ timesShown: sql`${terminalQuizQuestions.timesShown} + 1` })
+      .where(eq(terminalQuizQuestions.id, id));
+  }
+
+  async incrementQuizAnswer(id: string, answerNum: number): Promise<void> {
+    const column = answerNum === 1 ? terminalQuizQuestions.answer1Count
+      : answerNum === 2 ? terminalQuizQuestions.answer2Count
+      : terminalQuizQuestions.answer3Count;
+    await db.update(terminalQuizQuestions)
+      .set(answerNum === 1
+        ? { answer1Count: sql`${column} + 1` }
+        : answerNum === 2
+          ? { answer2Count: sql`${column} + 1` }
+          : { answer3Count: sql`${column} + 1` })
+      .where(eq(terminalQuizQuestions.id, id));
   }
 }
 
@@ -1162,7 +1183,7 @@ export class MemStorage implements IStorage {
 
   async createQuizQuestion(q: InsertTerminalQuizQuestion): Promise<TerminalQuizQuestion> {
     const id = randomUUID();
-    const created: TerminalQuizQuestion = { id, ...q, isActive: q.isActive ?? true, createdAt: new Date() };
+    const created: TerminalQuizQuestion = { id, ...q, isActive: q.isActive ?? true, timesShown: 0, answer1Count: 0, answer2Count: 0, answer3Count: 0, createdAt: new Date() };
     this.quizQuestionsMap.set(id, created);
     return created;
   }
@@ -1177,6 +1198,18 @@ export class MemStorage implements IStorage {
 
   async deleteQuizQuestion(id: string): Promise<boolean> {
     return this.quizQuestionsMap.delete(id);
+  }
+
+  async incrementQuizShown(id: string): Promise<void> {
+    const q = this.quizQuestionsMap.get(id);
+    if (q) this.quizQuestionsMap.set(id, { ...q, timesShown: (q.timesShown ?? 0) + 1 });
+  }
+
+  async incrementQuizAnswer(id: string, answerNum: number): Promise<void> {
+    const q = this.quizQuestionsMap.get(id);
+    if (!q) return;
+    const key = answerNum === 1 ? "answer1Count" : answerNum === 2 ? "answer2Count" : "answer3Count";
+    this.quizQuestionsMap.set(id, { ...q, [key]: ((q as any)[key] ?? 0) + 1 });
   }
 }
 

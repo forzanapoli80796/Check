@@ -19,6 +19,10 @@ interface QuizQuestion {
   answer3: string;
   correctAnswer: number;
   isActive: boolean;
+  timesShown: number;
+  answer1Count: number;
+  answer2Count: number;
+  answer3Count: number;
   createdAt: string;
 }
 
@@ -174,30 +178,52 @@ export default function QuizManagement() {
                     <div className="flex items-start justify-between gap-2">
                       <p className="font-semibold text-gray-900 leading-snug">{q.question}</p>
                       <div className="flex items-center gap-1 flex-shrink-0">
+                        <Badge variant="outline" className="text-xs text-gray-600">
+                          {q.timesShown ?? 0}× angezeigt
+                        </Badge>
                         <Badge variant={q.isActive ? "default" : "secondary"} className="text-xs">
                           {q.isActive ? "Aktiv" : "Inaktiv"}
                         </Badge>
                       </div>
                     </div>
                     <div className="mt-2 grid grid-cols-1 gap-1">
-                      {([1, 2, 3] as const).map((num) => {
-                        const text = q[`answer${num}` as 'answer1' | 'answer2' | 'answer3'];
-                        const isCorrect = q.correctAnswer === num;
-                        return (
-                          <div
-                            key={num}
-                            className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded ${
-                              isCorrect ? 'bg-green-50 text-green-800 font-medium' : 'text-gray-600'
-                            }`}
-                          >
-                            <span className="flex-shrink-0 w-5 h-5 rounded-full border border-current flex items-center justify-center text-xs font-bold">
-                              {num}
-                            </span>
-                            <span>{text}</span>
-                            {isCorrect && <CheckCircle2 className="w-4 h-4 text-green-600 ml-auto" />}
-                          </div>
-                        );
-                      })}
+                      {(() => {
+                        const totalClicks = (q.answer1Count ?? 0) + (q.answer2Count ?? 0) + (q.answer3Count ?? 0);
+                        return ([1, 2, 3] as const).map((num) => {
+                          const text = q[`answer${num}` as 'answer1' | 'answer2' | 'answer3'];
+                          const count = q[`answer${num}Count` as 'answer1Count' | 'answer2Count' | 'answer3Count'] ?? 0;
+                          const pct = totalClicks > 0 ? Math.round((count / totalClicks) * 100) : 0;
+                          const isCorrect = q.correctAnswer === num;
+                          return (
+                            <div
+                              key={num}
+                              className={`text-sm px-3 py-1.5 rounded ${
+                                isCorrect ? 'bg-green-50 text-green-800 font-medium' : 'text-gray-600'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2">
+                                <span className="flex-shrink-0 w-5 h-5 rounded-full border border-current flex items-center justify-center text-xs font-bold">
+                                  {num}
+                                </span>
+                                <span>{text}</span>
+                                {isCorrect && <CheckCircle2 className="w-4 h-4 text-green-600" />}
+                                <span className="ml-auto flex-shrink-0 text-xs tabular-nums text-gray-500">
+                                  {count}× ({pct}%)
+                                </span>
+                              </div>
+                              <div className="mt-1 ml-7 h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                                <div
+                                  className="h-full rounded-full"
+                                  style={{
+                                    width: `${pct}%`,
+                                    backgroundColor: isCorrect ? '#16a34a' : '#f59e0b',
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        });
+                      })()}
                     </div>
                   </div>
                 </div>

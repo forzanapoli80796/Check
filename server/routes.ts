@@ -1820,7 +1820,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!question) {
         return res.status(404).json({ message: "No active quiz questions found" });
       }
-      const { correctAnswer, ...rest } = question;
+      await storage.incrementQuizShown(question.id);
+      const { correctAnswer, timesShown, answer1Count, answer2Count, answer3Count, ...rest } = question;
       res.json(rest);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch random quiz question" });
@@ -1839,7 +1840,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!question) {
         return res.status(404).json({ message: "Question not found" });
       }
-      const isCorrect = question.correctAnswer === Number(selectedAnswer);
+      const answerNum = Number(selectedAnswer);
+      if ([1, 2, 3].includes(answerNum)) {
+        await storage.incrementQuizAnswer(questionId, answerNum);
+      }
+      const isCorrect = question.correctAnswer === answerNum;
       res.json({ isCorrect });
     } catch (error) {
       res.status(500).json({ message: "Failed to verify answer" });
