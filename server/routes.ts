@@ -4,6 +4,7 @@ import { getStorage } from "./storage";
 import {
   sendKugelnWarningEmail,
   sendKugelnLeftoverWarningEmail,
+  sendMhdChecklistEmail,
   getEmailNotificationsSettings,
   saveEmailNotificationsSettings,
   DEFAULT_EMAIL_NOTIFICATIONS_SETTINGS,
@@ -29,6 +30,7 @@ import {
   settings as settingsTable,
   appSettings as appSettingsTable,
 } from "@shared/schema";
+import { sanitizeWhiteboardMessage, whiteboardMessageHasText } from "@shared/whiteboard";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Admin verification
@@ -386,7 +388,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await batchInsert(storeWhiteboardTable, whiteboardNotes.map((w: any) => ({
           id: w.id,
           storeName: w.storeName,
-          message: w.message,
+          message: sanitizeWhiteboardMessage(String(w.message ?? "")),
           editorName: w.editorName ?? null,
           createdAt: w.createdAt ? new Date(w.createdAt) : new Date(),
           updatedAt: w.updatedAt ? new Date(w.updatedAt) : new Date(),
@@ -825,7 +827,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...validatedData,
         mhdExpiryDate: mhdExpiryDate || null,
         mhdProductDetails: mhdProductDetails || null,
-        mhdStockCount: mhdStockCount || null,
+        mhdStockCount: mhdStockCount != null && mhdStockCount !== "" ? String(mhdStockCount) : null,
         lateShiftDate: lateShiftDate || null,
         ballsForTomorrow: ballsForTomorrow || null,
         newBalls: newBalls || null,
@@ -839,7 +841,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       const checklist = await storage.createChecklist(checklistData);
-      res.json(checklist);
+
+      // The category is resolved on the server. Never use a client-provided
+      // name/field to decide whether an MHD notification should be sent.
+      let emailStatus: {
+        status: "sent" | "failed" | "not_applicable";
+        error?: string;
+      } = { status: "not_applicable" };
+      try {
+        const category = await storage.getCategoryById(checklist.categoryId);
+        if (category && category.name === "MHD-Check") {
+          try {
+            const tasks = await storage.getTasksByCategory(checklist.categoryId);
+            const result = await sendMhdChecklistEmail({
+              checklist,
+              category,
+              tasks,
+            });
+            emailStatus = result.sent
+              ? { status: "sent" }
+              : result.skipped
+                ? { status: "not_applicable" }
+                : { status: "failed", error: result.error || "E-Mail konnte nicht versendet werden." };
+          } catch (error) {
+            // The checklist has already been persisted. Report the mail failure
+            // explicitly instead of turning a successful submission into a
+            // retry prompt (which could create a duplicate checklist).
+            console.error("[E-Mail] MHD-Check notification failed after checklist save:", error);
+            emailStatus = {
+              status: "failed",
+              error: "E-Mail konnte nicht versendet werden.",
+            };
+          }
+        }
+      } catch (error) {
+        // Even category lookup failures must not hide the saved checklist.
+        console.error("[E-Mail] Could not resolve checklist category after save:", error);
+        emailStatus = {
+          status: "failed",
+          error: "E-Mail konnte nicht versendet werden.",
+        };
+      }
+
+      res.json({ ...checklist, emailStatus });
 
       // Fire-and-forget: warn if Kugeln von morgen wurden verwendet (newBalls > 0)
       if (checklistData.newBalls && checklistData.newBalls > 0) {
@@ -1428,7 +1472,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const storage = await getStorage();
       const { insertStoreWhiteboardSchema } = await import("@shared/schema");
       const validatedData = insertStoreWhiteboardSchema.parse(req.body);
-      const note = await storage.createWhiteboardNote(validatedData);
+      const message = sanitizeWhiteboardMessage(validatedData.message);
+      if (!whiteboardMessageHasText(message)) {
+        return res.status(400).json({ message: "Whiteboard message cannot be empty" });
+      }
+      const note = await storage.createWhiteboardNote({ ...validatedData, message });
       res.json(note);
     } catch (error) {
       res.status(400).json({ message: "Invalid whiteboard note data" });
@@ -1440,11 +1488,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const storage = await getStorage();
       const { message, editorName } = req.body;
       
-      if (!message || !editorName) {
+      if (typeof message !== "string" || !message.trim() || typeof editorName !== "string" || !editorName.trim()) {
         return res.status(400).json({ message: "Message and editor name are required" });
       }
-      
-      const updatedNote = await storage.updateWhiteboardNote(req.params.id, message, editorName);
+
+      const safeMessage = sanitizeWhiteboardMessage(message);
+      if (!whiteboardMessageHasText(safeMessage)) {
+        return res.status(400).json({ message: "Whiteboard message cannot be empty" });
+      }
+      const updatedNote = await storage.updateWhiteboardNote(req.params.id, safeMessage, editorName.trim());
       
       if (!updatedNote) {
         return res.status(404).json({ message: "Whiteboard note not found" });
@@ -1739,7 +1791,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/email-notifications/settings", async (req, res) => {
     try {
-      const { kugelnUsed, kugelnLeftover } = req.body || {};
+      const { kugelnUsed, kugelnLeftover, mhdCheck } = req.body || {};
 
       const isValidConfig = (c: any) =>
         c && typeof c.enabled === 'boolean' && typeof c.subject === 'string' && typeof c.body === 'string' &&
@@ -1749,7 +1801,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid settings payload" });
       }
 
-      await saveEmailNotificationsSettings({ kugelnUsed, kugelnLeftover });
+      // Keep accepting payloads from older admin clients that predate the
+      // MHD toggle. In that case retain the current (migrated) MHD setting
+      // instead of silently dropping it on every save.
+      let currentMhdCheck = mhdCheck;
+      if (currentMhdCheck === undefined) {
+        currentMhdCheck = (await getEmailNotificationsSettings()).mhdCheck;
+      }
+      if (
+        !currentMhdCheck ||
+        typeof currentMhdCheck.enabled !== 'boolean'
+      ) {
+        return res.status(400).json({ message: "Invalid MHD settings payload" });
+      }
+
+      await saveEmailNotificationsSettings({ kugelnUsed, kugelnLeftover, mhdCheck: currentMhdCheck });
       const settings = await getEmailNotificationsSettings();
       res.json(settings);
     } catch (error) {

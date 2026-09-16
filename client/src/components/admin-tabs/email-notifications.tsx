@@ -24,9 +24,13 @@ interface EmailNotificationConfig {
 interface EmailNotificationsSettings {
   kugelnUsed: EmailNotificationConfig;
   kugelnLeftover: EmailNotificationConfig;
+  mhdCheck: {
+    enabled: boolean;
+  };
 }
 
 const EMPTY_CONFIG: EmailNotificationConfig = { enabled: true, subject: "", body: "" };
+const EMPTY_MHD_CONFIG = { enabled: true };
 
 function isStoreEnabled(config: EmailNotificationConfig, store: string): boolean {
   if (!config.storeEnabled) return true;
@@ -38,6 +42,7 @@ export default function EmailNotifications() {
   const [settings, setSettings] = useState<EmailNotificationsSettings>({
     kugelnUsed: EMPTY_CONFIG,
     kugelnLeftover: EMPTY_CONFIG,
+    mhdCheck: EMPTY_MHD_CONFIG,
   });
   const [testStore, setTestStore] = useState<string>("JP23");
   const [sendingTest, setSendingTest] = useState<string | null>(null);
@@ -78,17 +83,17 @@ export default function EmailNotifications() {
     },
   });
 
-  const updateConfig = (key: keyof EmailNotificationsSettings, patch: Partial<EmailNotificationConfig>) => {
+  const updateConfig = (key: "kugelnUsed" | "kugelnLeftover", patch: Partial<EmailNotificationConfig>) => {
     setSettings(prev => ({ ...prev, [key]: { ...prev[key], ...patch } }));
   };
 
-  const toggleEnabled = (key: keyof EmailNotificationsSettings, enabled: boolean) => {
+  const toggleEnabled = (key: "kugelnUsed" | "kugelnLeftover", enabled: boolean) => {
     const updated = { ...settings, [key]: { ...settings[key], enabled } };
     setSettings(updated);
     saveMutation.mutate(updated);
   };
 
-  const toggleStoreEnabled = (key: keyof EmailNotificationsSettings, store: string, enabled: boolean) => {
+  const toggleStoreEnabled = (key: "kugelnUsed" | "kugelnLeftover", store: string, enabled: boolean) => {
     const currentStoreEnabled = settings[key].storeEnabled || { JP23: true, KP5: true, TS17: true };
     const updated = {
       ...settings,
@@ -101,8 +106,14 @@ export default function EmailNotifications() {
     saveMutation.mutate(updated);
   };
 
-  const handleSave = (key: keyof EmailNotificationsSettings) => {
+  const handleSave = (_key: "kugelnUsed" | "kugelnLeftover") => {
     saveMutation.mutate(settings);
+  };
+
+  const toggleMhdEnabled = (enabled: boolean) => {
+    const updated = { ...settings, mhdCheck: { ...settings.mhdCheck, enabled } };
+    setSettings(updated);
+    saveMutation.mutate(updated);
   };
 
   const handleTestSend = async (type: keyof EmailNotificationsSettings) => {
@@ -155,6 +166,37 @@ export default function EmailNotifications() {
               </Badge>
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Notification 0: MHD checklist */}
+      <Card className={settings.mhdCheck.enabled ? "border-green-200" : "border-gray-200 bg-gray-50"}>
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2">
+                MHD-Check
+                <Badge variant="outline" className="text-xs">MHD-Check</Badge>
+              </CardTitle>
+              <CardDescription className="mt-1">
+                Nach dem Absenden einer MHD-Checkliste wird die vollständige Checkliste automatisch per E-Mail verschickt.
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className={`text-sm font-medium ${settings.mhdCheck.enabled ? "text-green-700" : "text-gray-500"}`}>
+                {settings.mhdCheck.enabled ? "Aktiv" : "Deaktiviert"}
+              </span>
+              <Switch
+                checked={settings.mhdCheck.enabled}
+                onCheckedChange={toggleMhdEnabled}
+                aria-label="MHD-Check-E-Mail aktivieren"
+              />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0 text-sm text-gray-600">
+          Empfänger: <strong className="text-gray-900">mhd@forzanapoli.de</strong>
+          <p className="mt-1 text-xs text-gray-500">Die Änderung wird beim Umschalten sofort gespeichert.</p>
         </CardContent>
       </Card>
 

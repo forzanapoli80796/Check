@@ -2,7 +2,6 @@ import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -15,6 +14,11 @@ import type { StoreWhiteboard, InsertStoreWhiteboard } from "@shared/schema";
 import type { EmployeeWorkflowState } from "@/lib/types";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import {
+  RichTextEditor,
+  WhiteboardMessage,
+  whiteboardMessageHasText,
+} from "@/components/whiteboard-rich-text";
 
 const NOTE_COLORS = [
   "yellow",
@@ -203,7 +207,7 @@ export default function WhiteboardConfirmation({ state, updateState, goBack, onC
   };
 
   const handleAddNote = () => {
-    if (!employeeName.trim() || !message.trim()) {
+    if (!employeeName.trim() || !whiteboardMessageHasText(message)) {
       toast({
         title: "Fehlende Angaben",
         description: "Bitte gib deinen Namen und eine Nachricht ein.",
@@ -228,7 +232,7 @@ export default function WhiteboardConfirmation({ state, updateState, goBack, onC
   };
 
   const handleUpdateNote = () => {
-    if (!editingNote || !employeeName.trim() || !message.trim()) {
+    if (!editingNote || !employeeName.trim() || !whiteboardMessageHasText(message)) {
       toast({
         title: "Fehlende Angaben",
         description: "Bitte gib deinen Namen und eine Nachricht ein.",
@@ -324,9 +328,10 @@ export default function WhiteboardConfirmation({ state, updateState, goBack, onC
                         />
                       </div>
                     )}
-                    <p className={`whitespace-pre-wrap leading-relaxed mb-3 font-medium ${isAdminNote ? 'text-white' : 'text-gray-900'}`}>
-                      {note.message}
-                    </p>
+                    <WhiteboardMessage
+                      message={note.message}
+                      className={`leading-relaxed mb-3 font-medium ${isAdminNote ? 'text-white' : 'text-gray-900'}`}
+                    />
                   </div>
                 </div>
                 <div className={`flex items-center justify-between text-xs pt-2 border-t ${isAdminNote ? 'text-red-100 border-red-500' : 'text-gray-500 border-gray-300'}`}>
@@ -431,12 +436,11 @@ export default function WhiteboardConfirmation({ state, updateState, goBack, onC
 
             <div>
               <Label htmlFor="message">Mitteilung</Label>
-              <Textarea
+              <RichTextEditor
                 id="message"
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={setMessage}
                 placeholder="Mitteilung eingeben..."
-                rows={4}
                 data-testid="input-note-message"
               />
             </div>

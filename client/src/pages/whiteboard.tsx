@@ -3,7 +3,6 @@ import { useLocation, Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, StickyNote, Trash2, Plus } from "lucide-react";
@@ -12,6 +11,11 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { StoreWhiteboard, InsertStoreWhiteboard } from "@shared/schema";
 import AppLogo from "@/components/app-logo";
 import { useLanguage } from "@/contexts/LanguageContext";
+import {
+  RichTextEditor,
+  WhiteboardMessage,
+  whiteboardMessageHasText,
+} from "@/components/whiteboard-rich-text";
 
 const STORES = ["JP23", "KP5", "TS17"];
 const NOTE_COLORS = [
@@ -87,7 +91,7 @@ export default function Whiteboard() {
   });
 
   const handleAddNote = () => {
-    if (!employeeName.trim() || !message.trim()) {
+    if (!employeeName.trim() || !whiteboardMessageHasText(message)) {
       toast({
         title: "Fehler",
         description: "Bitte Name und Nachricht eingeben.",
@@ -215,12 +219,11 @@ export default function Whiteboard() {
                 </div>
                 <div>
                   <Label htmlFor="message">Nachricht</Label>
-                  <Textarea
+                  <RichTextEditor
                     id="message"
                     value={message}
-                    onChange={(e) => setMessage(e.target.value)}
+                    onChange={setMessage}
                     placeholder="Nachricht eingeben..."
-                    rows={4}
                     data-testid="input-message"
                   />
                 </div>
@@ -304,7 +307,7 @@ export default function Whiteboard() {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-gray-800 whitespace-pre-wrap">{note.message}</p>
+                      <WhiteboardMessage message={note.message} className="text-gray-800" />
                     </CardContent>
                   </Card>
                 );

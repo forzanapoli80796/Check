@@ -290,6 +290,7 @@ export class DatabaseStorage implements IStorage {
         taskNotes: insertChecklist.taskNotes || null,
         mhdExpiryDate: (insertChecklist as any).mhdExpiryDate || null,
         mhdProductDetails: (insertChecklist as any).mhdProductDetails || null,
+        mhdStockCount: (insertChecklist as any).mhdStockCount ?? null,
         lateShiftDate: (insertChecklist as any).lateShiftDate || null,
         ballsForTomorrow: (insertChecklist as any).ballsForTomorrow || null,
         newBalls: (insertChecklist as any).newBalls || null,

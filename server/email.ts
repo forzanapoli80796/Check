@@ -1,7 +1,9 @@
 import nodemailer from "nodemailer";
 import { getStorage } from "./storage";
+import type { Category, Checklist, Task } from "@shared/schema";
 
-const NOTIFICATION_RECIPIENT = "bestellung@forzanapoli.de";
+export const NOTIFICATION_RECIPIENT = "bestellung@forzanapoli.de";
+export const MHD_NOTIFICATION_RECIPIENT = "mhd@forzanapoli.de";
 const EMAIL_SETTINGS_KEY = "email_notifications_config";
 
 export interface EmailNotificationConfig {
@@ -11,7 +13,17 @@ export interface EmailNotificationConfig {
   storeEnabled?: Record<string, boolean>;
 }
 
+export interface MhdNotificationConfig {
+  enabled: boolean;
+}
+
 const ALL_STORES = ["JP23", "KP5", "TS17"];
+
+export interface EmailSendResult {
+  sent: boolean;
+  error?: string;
+  skipped?: boolean;
+}
 
 function isStoreEnabled(config: EmailNotificationConfig, store: string): boolean {
   if (!config.storeEnabled) return true;
@@ -21,6 +33,7 @@ function isStoreEnabled(config: EmailNotificationConfig, store: string): boolean
 export interface EmailNotificationsSettings {
   kugelnUsed: EmailNotificationConfig;
   kugelnLeftover: EmailNotificationConfig;
+  mhdCheck: MhdNotificationConfig;
 }
 
 export const DEFAULT_EMAIL_NOTIFICATIONS_SETTINGS: EmailNotificationsSettings = {
@@ -47,6 +60,12 @@ Erfasst von: {{employeeName}}
 Dein Forza Check`,
     storeEnabled: { JP23: true, KP5: true, TS17: true },
   },
+  // MHD notifications have always been sent. Keep the default enabled so
+  // existing installations continue delivering them after this setting was
+  // added.
+  mhdCheck: {
+    enabled: true,
+  },
 };
 
 function renderTemplate(template: string, vars: Record<string, string | number>): string {
@@ -64,6 +83,9 @@ export async function getEmailNotificationsSettings(): Promise<EmailNotification
     return {
       kugelnUsed: { ...DEFAULT_EMAIL_NOTIFICATIONS_SETTINGS.kugelnUsed, ...(parsed.kugelnUsed || {}) },
       kugelnLeftover: { ...DEFAULT_EMAIL_NOTIFICATIONS_SETTINGS.kugelnLeftover, ...(parsed.kugelnLeftover || {}) },
+      // Older saved JSON does not contain mhdCheck. Merging with the default
+      // is the migration path and preserves the historic always-on behavior.
+      mhdCheck: { ...DEFAULT_EMAIL_NOTIFICATIONS_SETTINGS.mhdCheck, ...(parsed.mhdCheck || {}) },
     };
   } catch (err) {
     console.error("[E-Mail] Fehler beim Laden der Benachrichtigungseinstellungen, verwende Standardwerte:", err);
@@ -94,7 +116,12 @@ function createTransporter() {
   });
 }
 
-async function dispatchEmail(subject: string, body: string, logLabel: string) {
+async function dispatchEmail(
+  subject: string,
+  body: string,
+  logLabel: string,
+  recipient: string = NOTIFICATION_RECIPIENT,
+): Promise<EmailSendResult> {
   const transporter = createTransporter();
 
   if (!transporter) {
@@ -102,19 +129,21 @@ async function dispatchEmail(subject: string, body: string, logLabel: string) {
       `[E-Mail] SMTP nicht konfiguriert (SMTP_USER / SMTP_PASS fehlen). E-Mail würde gesendet werden (${logLabel}):\n` +
         body
     );
-    return;
+    return { sent: false, error: "SMTP ist nicht konfiguriert." };
   }
 
   try {
     await transporter.sendMail({
       from: `"Forza Check" <${process.env.SMTP_USER}>`,
-      to: NOTIFICATION_RECIPIENT,
+      to: recipient,
       subject,
       text: body,
     });
     console.log(`[E-Mail] ${logLabel} erfolgreich gesendet`);
+    return { sent: true };
   } catch (err) {
     console.error(`[E-Mail] Fehler beim Senden (${logLabel}):`, err);
+    return { sent: false, error: "E-Mail konnte nicht versendet werden." };
   }
 }
 
@@ -172,4 +201,114 @@ export async function sendKugelnLeftoverWarningEmail(params: {
   const subject = renderTemplate(config.subject, vars);
   const body = renderTemplate(config.body, vars);
   await dispatchEmail(subject, body, `Leftover-Warn-E-Mail für Store ${store}`);
+}
+
+function displayValue(value: unknown): string {
+  if (value === null || value === undefined || value === "") {
+    return "Nicht angegeben";
+  }
+  return String(value);
+}
+
+function formatSubmissionDate(value: Date | string | null | undefined): string {
+  if (!value) return "Nicht angegeben";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return displayValue(value);
+  return date.toLocaleString("de-DE");
+}
+
+/**
+ * Builds the MHD notification separately from dispatching it so the complete
+ * submitted data can be tested without creating a transporter or sending mail.
+ */
+export function buildMhdChecklistEmail(params: {
+  checklist: Checklist;
+  category: Pick<Category, "name">;
+  tasks: Task[];
+}): { subject: string; body: string } {
+  const { checklist, category, tasks } = params;
+  const completedTaskIds = new Set(
+    Array.isArray(checklist.completedTasks)
+      ? checklist.completedTasks.map(taskId => String(taskId))
+      : [],
+  );
+  const taskLines = tasks
+    .filter(task => task.categoryId === checklist.categoryId)
+    .map(task => {
+      const answer = completedTaskIds.has(task.id) ? "Ja" : "Nein";
+      const note = checklist.taskNotes &&
+        typeof checklist.taskNotes === "object" &&
+        !Array.isArray(checklist.taskNotes)
+        ? (checklist.taskNotes as Record<string, string>)[task.id]
+        : undefined;
+      return `- ${task.title}: ${answer}${note ? ` (Notiz: ${note})` : ""}`;
+    });
+
+  // Keep answers visible even if an old checklist references tasks that have
+  // since been removed from the category.
+  const knownTaskIds = new Set(
+    tasks.filter(task => task.categoryId === checklist.categoryId).map(task => task.id),
+  );
+  for (const taskId of Array.from(completedTaskIds)) {
+    if (!knownTaskIds.has(taskId)) {
+      taskLines.push(`- Aufgabe ${taskId}: Ja`);
+    }
+  }
+
+  const subject = `MHD-Check – ${displayValue(checklist.store)} – ${displayValue(checklist.employeeName)}`;
+  const body = [
+    "MHD-Check eingereicht",
+    "",
+    `Bereich: ${displayValue(category.name)}`,
+    `Store: ${displayValue(checklist.store)}`,
+    `Mitarbeiter: ${displayValue(checklist.employeeName)}`,
+    `Eingereicht am: ${formatSubmissionDate(checklist.submittedAt)}`,
+    `Checklisten-ID: ${displayValue(checklist.id)}`,
+    "",
+    "MHD-Daten:",
+    `- Frühestes MHD / Ablaufdatum: ${displayValue(checklist.mhdExpiryDate)}`,
+    `- Produkte: ${displayValue(checklist.mhdProductDetails)}`,
+    `- Bestand: ${displayValue(checklist.mhdStockCount)}`,
+    "",
+    "Checklisten-Antworten:",
+    ...(taskLines.length > 0 ? taskLines : ["- Keine Aufgaben übermittelt"]),
+    ...(checklist.comments ? ["", `Kommentare: ${checklist.comments}`] : []),
+    "",
+    "Dein Forza Check",
+  ].join("\n");
+
+  return { subject, body };
+}
+
+export async function sendMhdChecklistEmail(params: {
+  checklist: Checklist;
+  category: Pick<Category, "name">;
+  tasks: Task[];
+}): Promise<EmailSendResult> {
+  if (params.category.name !== "MHD-Check") {
+    return {
+      sent: false,
+      skipped: true,
+      error: "Keine MHD-Check-Kategorie.",
+    };
+  }
+
+  const settings = await getEmailNotificationsSettings();
+  if (settings.mhdCheck.enabled === false) {
+    console.log(
+      `[E-Mail] MHD-Check-Benachrichtigung ist deaktiviert – kein Versand für ${params.checklist.store}.`,
+    );
+    return {
+      sent: false,
+      skipped: true,
+    };
+  }
+
+  const { subject, body } = buildMhdChecklistEmail(params);
+  return dispatchEmail(
+    subject,
+    body,
+    `MHD-Check für Store ${params.checklist.store}`,
+    MHD_NOTIFICATION_RECIPIENT,
+  );
 }

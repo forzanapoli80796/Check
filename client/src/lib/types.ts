@@ -17,6 +17,10 @@ export interface EmployeeWorkflowState {
   completedTasks: string[];
   totalTasks: number;
 
+  // Set after submission so an MHD mail failure can be shown without asking
+  // the employee to submit the already-saved checklist again.
+  mhdEmailStatus?: 'sent' | 'failed' | 'not_applicable';
+
   navigationHistory?: EmployeeWorkflowState['step'][]; // History of steps for consistent back navigation
 }
 

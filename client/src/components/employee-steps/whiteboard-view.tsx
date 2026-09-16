@@ -8,6 +8,7 @@ import { ArrowLeft, CheckCircle, Clock, Image } from "lucide-react";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import type { StoreWhiteboard } from "@shared/schema";
+import { WhiteboardMessage } from "@/components/whiteboard-rich-text";
 
 interface WhiteboardViewProps {
   state: {
@@ -121,9 +122,10 @@ export function WhiteboardView({ state, updateState }: WhiteboardViewProps) {
                         </div>
 
                         <div className={`rounded p-3 ${isAdminNote ? "bg-white/20" : "bg-white/50"}`}>
-                          <p className={`whitespace-pre-wrap ${isAdminNote ? "text-white font-medium" : "text-gray-800"}`}>
-                            {entry.message}
-                          </p>
+                          <WhiteboardMessage
+                            message={entry.message}
+                            className={isAdminNote ? "text-white font-medium" : "text-gray-800"}
+                          />
                         </div>
 
                         {entry.imageUrl && (

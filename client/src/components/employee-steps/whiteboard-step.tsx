@@ -2,7 +2,6 @@ import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,6 +11,11 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { StoreWhiteboard, InsertStoreWhiteboard } from "@shared/schema";
 import type { EmployeeWorkflowState } from "@/lib/types";
+import {
+  RichTextEditor,
+  WhiteboardMessage,
+  whiteboardMessageHasText,
+} from "@/components/whiteboard-rich-text";
 
 const NOTE_COLORS = [
   { name: "Gelb", value: "yellow", bgClass: "bg-yellow-100", borderClass: "border-yellow-300" },
@@ -175,7 +179,7 @@ export default function WhiteboardStep({ state, updateState, goBack }: Whiteboar
   };
 
   const handleAddNote = () => {
-    if (!employeeName.trim() || !message.trim()) {
+    if (!employeeName.trim() || !whiteboardMessageHasText(message)) {
       toast({
         title: "Fehler",
         description: "Bitte Name und Nachricht eingeben.",
@@ -210,7 +214,7 @@ export default function WhiteboardStep({ state, updateState, goBack }: Whiteboar
   };
 
   const handleUpdateNote = () => {
-    if (!editingNote || !message.trim() || !employeeName.trim()) {
+    if (!editingNote || !whiteboardMessageHasText(message) || !employeeName.trim()) {
       toast({
         title: "Fehler",
         description: "Bitte Name und Nachricht eingeben.",
@@ -292,12 +296,11 @@ export default function WhiteboardStep({ state, updateState, goBack }: Whiteboar
               </div>
               <div>
                 <Label htmlFor="message">Nachricht</Label>
-                <Textarea
+                <RichTextEditor
                   id="message"
                   value={message}
-                  onChange={(e) => setMessage(e.target.value)}
+                  onChange={setMessage}
                   placeholder="Nachricht eingeben..."
-                  rows={4}
                   data-testid="input-message"
                 />
               </div>
@@ -405,12 +408,11 @@ export default function WhiteboardStep({ state, updateState, goBack }: Whiteboar
               </div>
               <div>
                 <Label htmlFor="editMessage">Nachricht</Label>
-                <Textarea
+                <RichTextEditor
                   id="editMessage"
                   value={message}
-                  onChange={(e) => setMessage(e.target.value)}
+                  onChange={setMessage}
                   placeholder="Nachricht eingeben..."
-                  rows={4}
                   data-testid="input-edit-message"
                 />
               </div>
@@ -503,7 +505,10 @@ export default function WhiteboardStep({ state, updateState, goBack }: Whiteboar
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    <p className={`whitespace-pre-wrap ${isAdminNote ? "text-white font-medium" : "text-gray-800"}`}>{note.message}</p>
+                    <WhiteboardMessage
+                      message={note.message}
+                      className={isAdminNote ? "text-white font-medium" : "text-gray-800"}
+                    />
                     {note.imageUrl && (
                       <img src={`/api/whiteboard-image?path=${encodeURIComponent(note.imageUrl)}`} alt="Notiz Bild" className="max-h-60 rounded-lg mt-2" />
                     )}

@@ -389,32 +389,32 @@ export default function SubmittedLists() {
                   <h4 className="font-medium text-sm text-blue-800 mb-2">
                     {language === 'de' ? 'MHD-Check Details' : 'Expiry Check Details'}
                   </h4>
-                  {(selectedChecklist as any).mhdExpiryDate && (
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">
-                        {language === 'de' ? 'Frühestes Ablaufdatum:' : 'Earliest Expiry Date:'}
-                      </span>
-                      <span className="ml-2 text-sm font-bold">
-                        {new Date((selectedChecklist as any).mhdExpiryDate).toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US')}
-                      </span>
-                    </div>
-                  )}
-                  {(selectedChecklist as any).mhdProductDetails && (
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">
-                        {language === 'de' ? 'Produkt:' : 'Product:'}
-                      </span>
-                      <p className="text-sm mt-1">{(selectedChecklist as any).mhdProductDetails}</p>
-                    </div>
-                  )}
-                  {(selectedChecklist as any).mhdStockCount && (
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">
-                        {language === 'de' ? 'Menge auf Lager:' : 'Stock quantity:'}
-                      </span>
-                      <p className="text-sm mt-1">{(selectedChecklist as any).mhdStockCount}</p>
-                    </div>
-                  )}
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">
+                      {language === 'de' ? 'Frühestes Ablaufdatum:' : 'Earliest Expiry Date:'}
+                    </span>
+                    <span className="ml-2 text-sm font-bold">
+                      {selectedChecklist.mhdExpiryDate
+                        ? new Date(selectedChecklist.mhdExpiryDate).toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US')
+                        : (language === 'de' ? 'Nicht angegeben' : 'Not provided')}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">
+                      {language === 'de' ? 'Produkt:' : 'Product:'}
+                    </span>
+                    <p className="text-sm mt-1">
+                      {selectedChecklist.mhdProductDetails || (language === 'de' ? 'Nicht angegeben' : 'Not provided')}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">
+                      {language === 'de' ? 'Menge auf Lager:' : 'Stock quantity:'}
+                    </span>
+                    <p className="text-sm mt-1">
+                      {selectedChecklist.mhdStockCount || (language === 'de' ? 'Nicht angegeben' : 'Not provided')}
+                    </p>
+                  </div>
                 </div>
               )}
 

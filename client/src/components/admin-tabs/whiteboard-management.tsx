@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { StickyNote, Plus, Edit2, Trash2, User, Image as ImageIcon, Store, RotateCcw, Loader2 as Loader, ShieldAlert, DatabaseZap } from "lucide-react";
@@ -12,6 +11,11 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { StoreWhiteboard, InsertStoreWhiteboard } from "@shared/schema";
 import { STORES } from "@/lib/types";
+import {
+  RichTextEditor,
+  WhiteboardMessage,
+  whiteboardMessageHasText,
+} from "@/components/whiteboard-rich-text";
 
 
 function WhiteboardSettings() {
@@ -138,7 +142,10 @@ function NoteCard({ note, storeName, onEdit, onDelete, isDeleting }: NoteCardPro
         </div>
       </CardHeader>
       <CardContent className="px-4 pb-3 space-y-2">
-        <p className={`text-sm whitespace-pre-wrap ${isAdmin ? "text-white" : "text-gray-800"}`}>{note.message}</p>
+        <WhiteboardMessage
+          message={note.message}
+          className={`text-sm ${isAdmin ? "text-white" : "text-gray-800"}`}
+        />
         {note.imageUrl && (
           <img
             src={`/api/whiteboard-image?path=${encodeURIComponent(note.imageUrl)}`}
@@ -327,7 +334,7 @@ export default function WhiteboardManagement() {
   };
 
   const handleAdd = () => {
-    if (!addName.trim() || !addMessage.trim() || !addDialogStore) {
+    if (!addName.trim() || !whiteboardMessageHasText(addMessage) || !addDialogStore) {
       toast({ title: "Fehler", description: "Bitte Name und Nachricht eingeben.", variant: "destructive" });
       return;
     }
@@ -348,7 +355,7 @@ export default function WhiteboardManagement() {
   };
 
   const handleUpdate = () => {
-    if (!editingNote || !editMessage.trim() || !editName.trim()) {
+    if (!editingNote || !whiteboardMessageHasText(editMessage) || !editName.trim()) {
       toast({ title: "Fehler", description: "Bitte Name und Nachricht eingeben.", variant: "destructive" });
       return;
     }
@@ -436,12 +443,11 @@ export default function WhiteboardManagement() {
             </div>
             <div>
               <Label htmlFor="add-message">Nachricht</Label>
-              <Textarea
+              <RichTextEditor
                 id="add-message"
                 value={addMessage}
-                onChange={e => setAddMessage(e.target.value)}
+                onChange={setAddMessage}
                 placeholder="Nachricht eingeben…"
-                rows={4}
                 className="mt-1"
               />
             </div>
@@ -532,12 +538,11 @@ export default function WhiteboardManagement() {
             </div>
             <div>
               <Label htmlFor="edit-message">Nachricht</Label>
-              <Textarea
+              <RichTextEditor
                 id="edit-message"
                 value={editMessage}
-                onChange={e => setEditMessage(e.target.value)}
+                onChange={setEditMessage}
                 placeholder="Nachricht eingeben…"
-                rows={4}
                 className="mt-1"
               />
             </div>

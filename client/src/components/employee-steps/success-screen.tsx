@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { AlertTriangle, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmployeeWorkflowState } from "@/lib/types";
@@ -9,7 +9,7 @@ interface SuccessScreenProps {
   goBack: () => void;
 }
 
-export default function SuccessScreen({ updateState, goBack }: SuccessScreenProps) {
+export default function SuccessScreen({ state, updateState, goBack }: SuccessScreenProps) {
   const startNewChecklist = () => {
     // Load saved preferences from localStorage
     const savedStore = localStorage.getItem('employeeStore');
@@ -24,6 +24,7 @@ export default function SuccessScreen({ updateState, goBack }: SuccessScreenProp
       selectedShift: (savedShift as 'frühschicht' | 'spätschicht' | null) || null,
       completedTasks: [],
       totalTasks: 0,
+      mhdEmailStatus: undefined,
     });
   };
 
@@ -37,6 +38,18 @@ export default function SuccessScreen({ updateState, goBack }: SuccessScreenProp
         <p className="text-gray-600 mb-6">
           Deine Aufgaben wurden erfolgreich dokumentiert und gespeichert.
         </p>
+        {state.mhdEmailStatus === 'failed' && (
+          <div className="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4 text-left text-amber-900">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
+              <p className="text-sm">
+                Die Checkliste wurde gespeichert, aber die MHD-E-Mail konnte nicht
+                gesendet werden. Bitte nicht erneut absenden – die gespeicherte
+                Checkliste bleibt im Admin-Bereich erhalten.
+              </p>
+            </div>
+          </div>
+        )}
         <Button onClick={startNewChecklist} className="bg-primary hover:bg-blue-700">
           Neue Checkliste starten
         </Button>

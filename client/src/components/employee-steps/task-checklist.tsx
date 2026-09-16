@@ -111,8 +111,12 @@ export default function TaskChecklist({ state, updateState, goBack }: TaskCheckl
       const response = await apiRequest("POST", "/api/checklists", submissionData);
       return response.json();
     },
-    onSuccess: () => {
-      updateState({ step: 'success', completedTasks });
+    onSuccess: (result) => {
+      updateState({
+        step: 'success',
+        completedTasks,
+        mhdEmailStatus: result?.emailStatus?.status || 'not_applicable',
+      });
     },
     onError: () => {
       toast({
