@@ -26,6 +26,7 @@ export default function QuizStep({ state, updateState, goBack, onCorrect }: Quiz
   const [result, setResult] = useState<'correct' | 'wrong' | null>(null);
   const [excludeId, setExcludeId] = useState<string | null>(null);
   const [fetchCounter, setFetchCounter] = useState(() => Date.now());
+  const [confirmation, setConfirmation] = useState<{ question: string; answer: string } | null>(null);
 
   const { data: question, isLoading, isError } = useQuery<QuizQuestion>({
     queryKey: ["/api/terminal-quiz/random", fetchCounter],
@@ -39,6 +40,7 @@ export default function QuizStep({ state, updateState, goBack, onCorrect }: Quiz
     },
     retry: false,
     refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     staleTime: 0,
     gcTime: 0,
   });
@@ -48,10 +50,14 @@ export default function QuizStep({ state, updateState, goBack, onCorrect }: Quiz
       const res = await apiRequest("POST", "/api/terminal-quiz/verify", { questionId, selectedAnswer });
       return res.json() as Promise<{ isCorrect: boolean }>;
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       if (data.isCorrect) {
         setResult('correct');
-        setTimeout(() => onCorrect(), 1000);
+        if (question) {
+          const answer = variables.selectedAnswer === 1 ? question.answer1
+            : variables.selectedAnswer === 2 ? question.answer2 : question.answer3;
+          setConfirmation({ question: question.question, answer });
+        }
       } else {
         setResult('wrong');
       }
@@ -71,6 +77,37 @@ export default function QuizStep({ state, updateState, goBack, onCorrect }: Quiz
     if (question) setExcludeId(question.id);
     setFetchCounter(c => c + 1);
   };
+
+  if (confirmation) {
+    return (
+      <Card className="shadow-sm border-2 border-green-300 w-full">
+        <CardContent className="p-6 sm:p-8 space-y-6" aria-live="polite">
+          <div className="flex items-center gap-3 text-green-800">
+            <CheckCircle2 className="w-8 h-8 flex-shrink-0" />
+            <h2 className="text-2xl font-bold">Richtig beantwortet!</h2>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-500 mb-2">Die Frage</p>
+            <h3 className="text-2xl sm:text-3xl font-semibold text-gray-900 leading-relaxed break-words">
+              {confirmation.question}
+            </h3>
+          </div>
+          <div className="rounded-xl border border-green-300 bg-green-50 p-5">
+            <p className="text-sm font-medium text-green-800 mb-2">Die richtige Antwort</p>
+            <p className="text-3xl sm:text-4xl font-bold text-green-900 leading-relaxed break-words">
+              {confirmation.answer}
+            </p>
+          </div>
+          <p className="text-base text-gray-600">
+            Lies dir die richtige Antwort nochmals durch und merke sie dir für deinen Arbeitsalltag.
+          </p>
+          <Button className="w-full h-auto py-4 whitespace-normal text-lg" onClick={onCorrect}>
+            Verstanden – weiter
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -155,7 +192,7 @@ export default function QuizStep({ state, updateState, goBack, onCorrect }: Quiz
         {result === 'correct' && (
           <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-green-800">
             <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-            <span className="font-medium">Richtig! Du wirst weitergeleitet…</span>
+            <span className="font-medium">Richtig beantwortet!</span>
           </div>
         )}
 
