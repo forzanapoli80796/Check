@@ -67,9 +67,10 @@ export function RichTextEditor({
     const editor = editorRef.current;
     if (!editor || document.activeElement === editor) return;
 
-    const nextHtml = isWhiteboardRichText(value)
-      ? sanitizeWhiteboardMessage(value)
-      : value
+    const normalizedValue = sanitizeWhiteboardMessage(value);
+    const nextHtml = isWhiteboardRichText(normalizedValue)
+      ? normalizedValue
+      : normalizedValue
           .replace(/&/g, "&amp;")
           .replace(/</g, "&lt;")
           .replace(/>/g, "&gt;")
@@ -87,7 +88,11 @@ export function RichTextEditor({
     // innerHTML encodes typed plain-text characters such as "<". Keep
     // legacy/plain messages as actual text, while retaining HTML only when
     // formatting is present.
-    onChange(isWhiteboardRichText(safeHtml) ? safeHtml : editor.innerText);
+    onChange(
+      isWhiteboardRichText(safeHtml)
+        ? safeHtml
+        : sanitizeWhiteboardMessage(editor.innerText),
+    );
   };
 
   const executeCommand = (command: string) => {

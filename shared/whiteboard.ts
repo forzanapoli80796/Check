@@ -21,9 +21,24 @@ const WHITEBOARD_TAG_TOKEN_PATTERN =
   /^<\s*(\/?)\s*([a-z][a-z0-9]*)(?:\s[^>]*)?\s*\/?\s*>/i;
 const DANGEROUS_HTML_BLOCK_PATTERN =
   /<\s*(script|style|iframe|object|embed|svg|math|form|input|button|textarea|select|link|meta|base)\b[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi;
+const RAW_SPAN_TAG_PATTERN = /<\s*\/?\s*span\b[^>]*>/gi;
+const ENCODED_SPAN_TAG_PATTERN =
+  /&(?:amp;)*lt;\s*\/?\s*span\b(?:(?!&(?:amp;)*lt;)[\s\S])*?&(?:amp;)*gt;/gi;
 
 function escapeHtmlText(text: string): string {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+/**
+ * Browsers commonly add style-only spans when formatted text is pasted into a
+ * contenteditable. Older sanitizer output may contain those span tags encoded
+ * one or more times. Remove only the recognized wrappers: decoding all HTML
+ * entities here could turn otherwise inert user text into executable markup.
+ */
+function stripFormattingSpans(message: string): string {
+  return message
+    .replace(RAW_SPAN_TAG_PATTERN, "")
+    .replace(ENCODED_SPAN_TAG_PATTERN, "");
 }
 
 /**
@@ -37,13 +52,15 @@ function escapeHtmlText(text: string): string {
  * cannot become an element when the result is rendered as HTML.
  */
 export function sanitizeWhiteboardMessage(message: string): string {
-  if (!HTML_LIKE_PATTERN.test(message)) {
-    return message;
+  const normalizedMessage = stripFormattingSpans(message);
+
+  if (!HTML_LIKE_PATTERN.test(normalizedMessage)) {
+    return normalizedMessage;
   }
 
   // Drop complete blocks that can carry executable content before processing
   // individual tags. Incomplete dangerous tags are escaped below.
-  const withoutDangerousBlocks = message
+  const withoutDangerousBlocks = normalizedMessage
     .replace(/<!--[\s\S]*?-->/g, "")
     .replace(DANGEROUS_HTML_BLOCK_PATTERN, "");
 
